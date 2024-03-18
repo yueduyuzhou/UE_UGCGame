@@ -28,6 +28,11 @@ public:
 public:
 	bool TakeControl(const int32& InControlID);
 	void ReturnControl();
+	void DestoryElement();
+
+public:
+	FORCEINLINE const int32 GetElementID() { return ID; }
+	void SetElementID(const int32& InElementID);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
@@ -37,4 +42,7 @@ public:
 
 	UPROPERTY(Replicated)
 	int32 ControllerID;
+
+private:
+	int32 ID;
 };

@@ -51,6 +51,11 @@ void AElementBase::Tick(float DeltaTime)
 	}
 }
 
+void AElementBase::SetElementID(const int32& InElementID)
+{
+	ID = InElementID;
+}
+
 void AElementBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -74,5 +79,10 @@ void AElementBase::ReturnControl()
 {
 	ControllerID = INDEX_NONE;
 	bControlled = false;
+}
+
+void AElementBase::DestoryElement()
+{
+	Destroy();
 }
 

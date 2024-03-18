@@ -60,4 +60,8 @@ void AUGCGamePlayerController::OnRightMouseButtonUp()
 void AUGCGamePlayerController::OnDeleteButtonUp()
 {
 	//通知服务器删除控制中的Element
+	if (AUGCGamePlayerState * MyPlayerState = GetPlayerState<AUGCGamePlayerState>())
+	{
+		MyPlayerState->TryDeleteControlElementOnServer();
+	}
 }

@@ -4,6 +4,7 @@
 #include "UGCGameState.h"
 #include "Engine/World.h"
 #include "Engine/DataTable.h"
+#include "Element/ElementBase.h"
 
 AUGCGameState::AUGCGameState()
 {
@@ -78,4 +79,20 @@ const TArray<FElementAttribute*>* AUGCGameState::GetElementAttributesTemplate()
 		}
 	}
 	return &CacheElementAttributes;
+}
+
+void AUGCGameState::AddToMapDatas(AElementBase* InElement)
+{
+	if (!MapDatas.Contains(InElement->GetElementID()))
+	{
+		MapDatas.Add(InElement->GetElementID(), InElement);
+	}
+}
+
+void AUGCGameState::RemoveFromMapDatas(AElementBase* InElement)
+{
+	if (MapDatas.Contains(InElement->GetElementID()))
+	{
+		MapDatas.Remove(InElement->GetElementID());
+	}
 }

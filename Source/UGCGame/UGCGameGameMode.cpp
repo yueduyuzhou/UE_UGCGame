@@ -3,6 +3,7 @@
 #include "UGCGameGameMode.h"
 #include "UGCGameCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "GameFramework/SpectatorPawn.h"
 #include "UGCGameState.h"
 #include "UGCGameHUD.h"
 #include "UGCGamePlayerController.h"
@@ -16,6 +17,8 @@ AUGCGameGameMode::AUGCGameGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	DefaultPawnClass = ASpectatorPawn::StaticClass();
 
 	GameStateClass = AUGCGameState::StaticClass();
 

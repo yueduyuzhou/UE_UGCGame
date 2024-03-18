@@ -70,6 +70,12 @@ void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32
 				ControlElement = MewElement;
 				ControlElement->TakeControl(InPlayerID);
 
+				//待改进
+				ControlElement->SetElementID(FMath::RandRange(8888, 999998888));
+
+				//添加到数据集
+				MyGameState->AddToMapDatas(MewElement);
+
 				//TODO:分情况处理
 				if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
 				{
@@ -133,6 +139,19 @@ void AUGCGamePlayerState::TryGetElementControlOnServer_Implementation(const FVec
 		{
 			ControlElement = TmpElement;
 			ControlElement->TakeControl(TPlayerID);
+		}
+	}
+}
+
+void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
+{
+	if (ControlElement)
+	{
+		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
+		{
+			//从数据集中移除
+			MyGameState->RemoveFromMapDatas(ControlElement);
+			ControlElement->DestoryElement();
 		}
 	}
 }

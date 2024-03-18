@@ -54,6 +54,9 @@ public:
 	UFUNCTION(Server, reliable)
 		void TryGetElementControlOnServer(const FVector& InMouseLocation, const FVector& InMouseDirection);
 
+	UFUNCTION(Server, reliable)
+		void TryDeleteControlElementOnServer();
+
 public:
 
 
