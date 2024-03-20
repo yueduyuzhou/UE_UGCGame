@@ -8,6 +8,7 @@
 
 class UUniformGridPanel;
 class UUI_Item;
+class UUI_Settings;
 
 /**
  * 
@@ -18,11 +19,17 @@ class UGCGAME_API UUI_ItemPanel : public UUI_Base
 	GENERATED_BODY()
 
 	UPROPERTY(meta = (BindWidget))
-		UUniformGridPanel* SlotArray;
+		UUniformGridPanel* ItemArray;
 
 	UPROPERTY(EditDefaultsOnly, Category = UI)
-		TSubclassOf<UUI_Item> InventorySlotClass;
+		TSubclassOf<UUI_Item> ItemClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUI_Settings> SettingsClass;
 
 protected:
 	virtual void NativeConstruct();
+
+protected:
+	void LayoutItem();
 };

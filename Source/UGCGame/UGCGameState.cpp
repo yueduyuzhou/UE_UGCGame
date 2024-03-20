@@ -81,18 +81,3 @@ const TArray<FElementAttribute*>* AUGCGameState::GetElementAttributesTemplate()
 	return &CacheElementAttributes;
 }
 
-void AUGCGameState::AddToMapDatas(AElementBase* InElement)
-{
-	if (!MapDatas.Contains(InElement->GetElementID()))
-	{
-		MapDatas.Add(InElement->GetElementID(), InElement);
-	}
-}
-
-void AUGCGameState::RemoveFromMapDatas(AElementBase* InElement)
-{
-	if (MapDatas.Contains(InElement->GetElementID()))
-	{
-		MapDatas.Remove(InElement->GetElementID());
-	}
-}

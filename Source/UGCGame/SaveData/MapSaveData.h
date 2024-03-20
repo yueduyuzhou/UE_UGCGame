@@ -15,5 +15,6 @@ class UGCGAME_API UMapSaveData : public USaveGame
 	GENERATED_BODY()
 
 public:
-	TMap<int32, TPair<FVector, FRotator>> SaveMapData;
+	// ElementID : {FV,FR}[]
+	TMap<int32, TArray<TPair<FVector, FRotator>>> SaveMapData;
 };

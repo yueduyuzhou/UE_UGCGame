@@ -40,6 +40,13 @@ public:
 		void ServerCallClientInitPlayerData(const int32& InPlayerID);
 
 	/*****************************************************************
+	*	
+	*****************************************************************/
+
+	UFUNCTION(Server, reliable)
+		void RequestSaveAndQuitOnServer();
+
+	/*****************************************************************
 	*	Element
 	*****************************************************************/
 	UFUNCTION(Server, reliable)

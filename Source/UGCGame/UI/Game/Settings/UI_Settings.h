@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../Core/UI_Base.h"
+#include "../Core/UI_Slot.h"
 #include "UI_Settings.generated.h"
 
 class UCheckBox;
@@ -13,10 +13,13 @@ class UButton;
  * 
  */
 UCLASS()
-class UGCGAME_API UUI_Settings : public UUI_Base
+class UGCGAME_API UUI_Settings : public UUI_Slot
 {
 	GENERATED_BODY()
 
-	UPROPERTY(meta = (BindWidget))
-		UButton* QuitButton;
+public:
+	virtual void OnClickedWidget();
+
+protected:
+	virtual void NativeConstruct();
 };

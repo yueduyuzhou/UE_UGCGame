@@ -11,6 +11,7 @@
 #include "Element/BuildElement.h"
 #include "Element/ElementBase.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "System/GameMapManage.h"
 
 void AUGCGamePlayerState::BeginPlay()
 {
@@ -59,6 +60,11 @@ void AUGCGamePlayerState::ServerCallClientInitPlayerData_Implementation(const in
 	TPlayerID = InPlayerID;
 }
 
+void AUGCGamePlayerState::RequestSaveAndQuitOnServer_Implementation()
+{
+	FGameMapManage::QuitAndSaveMap(GetWorld());
+}
+
 void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32& InPlayerID, const int32& InElementID)
 {
 	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
@@ -72,9 +78,6 @@ void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32
 
 				//待改进
 				ControlElement->SetElementID(FMath::RandRange(8888, 999998888));
-
-				//添加到数据集
-				MyGameState->AddToMapDatas(MewElement);
 
 				//TODO:分情况处理
 				if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
@@ -149,8 +152,6 @@ void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
 	{
 		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
 		{
-			//从数据集中移除
-			MyGameState->RemoveFromMapDatas(ControlElement);
 			ControlElement->DestoryElement();
 		}
 	}

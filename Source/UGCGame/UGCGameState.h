@@ -30,14 +30,6 @@ public:
 	const TArray<FSlotTable*>* GetSlotTablesTemplate();
 	const TArray<FElementAttribute*>* GetElementAttributesTemplate();
 
-public:
-	void AddToMapDatas(AElementBase* InElement);
-	void RemoveFromMapDatas(AElementBase* InElement);
-	FORCEINLINE const TMap<int32, AElementBase*>& GetMapDatas() { return MapDatas; }
-
-private:
-	TMap<int32, AElementBase*> MapDatas;
-
 protected:
 	UPROPERTY()
 		UDataTable* SlotTablePtr;
