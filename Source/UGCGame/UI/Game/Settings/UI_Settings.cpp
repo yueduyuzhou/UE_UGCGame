@@ -7,7 +7,7 @@
 
 void UUI_Settings::OnClickedWidget()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Click"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Click"));
 	//通知服务器
 	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
