@@ -14,7 +14,7 @@ public:
 	/*打开地图*/
 	static void OpenMap(UWorld* InWorld, FName InOpenMapName);
 
-	/*创建地图*/
+	/*创建模板地图*/
 	static void CreateGameMap(UWorld* InWorld);
 	
 	/*退出地图*/

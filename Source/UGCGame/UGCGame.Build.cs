@@ -15,6 +15,12 @@ public class UGCGame : ModuleRules
             "InputCore",
             "HeadMountedDisplay",
             "SimpleThread",
-            "SlateCore"});
-	}
+            "SlateCore",
+            "OnlineSubsystem",
+            "OnlineSubsystemUtils"});
+
+        //PrivateDependencyModuleNames.AddRange(new string[] {
+        //    "Sockets",
+        //    "Networking"});
+    }
 }

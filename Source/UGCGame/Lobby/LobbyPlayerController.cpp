@@ -2,6 +2,8 @@
 
 
 #include "LobbyPlayerController.h"
+#include "Engine/World.h"
+#include "../System/GameMapManage.h"
 
 ALobbyPlayerController::ALobbyPlayerController()
 {

@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "../SaveData/MapSaveData.h"
 #include "../Element/ElementBase.h"
+#include "ThreadManage.h"
+#include "../Lobby/LobbyGameMode.h"
 
 FGameMapManage::FGameMapManage()
 {
@@ -19,13 +21,18 @@ void FGameMapManage::OpenMap(UWorld* InWorld, FName InOpenMapName)
 
 void FGameMapManage::CreateGameMap(UWorld* InWorld)
 {
-	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("TemplateMap")));
+	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("TemplateMap")), true, TEXT("listen"));
+
+	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
+	//InWorld->ServerTravel(TEXT("/Game/Maps/TemplateMap"));
 }
 
 void FGameMapManage::QuitGameMap(UWorld* InWorld)
 {
 	//TODO
-	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("ThirdPersonExampleMap")));
+	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
+	//InWorld->ServerTravel(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap"));
+	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap")));
 }
 
 void FGameMapManage::QuitAndSaveMap(UWorld* InWorld)

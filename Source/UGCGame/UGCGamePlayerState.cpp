@@ -12,6 +12,8 @@
 #include "Element/ElementBase.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "System/GameMapManage.h"
+#include "Kismet/GameplayStatics.h"
+#include "Lobby/LobbyPlayerController.h"
 
 void AUGCGamePlayerState::BeginPlay()
 {
@@ -32,15 +34,18 @@ void AUGCGamePlayerState::BeginPlay()
 
 void AUGCGamePlayerState::GetInventorySlotNetPackage(TArray<int32>& InKeys)
 {
-	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
+	if (GetWorld())
 	{
-		if (const TArray<FSlotTable*> * SlotData = MyGameState->GetSlotTablesTemplate())
+		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
 		{
-			for (auto* Tmp : (*SlotData))
+			if (const TArray<FSlotTable*> * SlotData = MyGameState->GetSlotTablesTemplate())
 			{
-				if (!InKeys.Contains(Tmp->ID))
+				for (auto* Tmp : (*SlotData))
 				{
-					InKeys.Add(Tmp->ID);
+					if (!InKeys.Contains(Tmp->ID))
+					{
+						InKeys.Add(Tmp->ID);
+					}
 				}
 			}
 		}
@@ -63,6 +68,18 @@ void AUGCGamePlayerState::ServerCallClientInitPlayerData_Implementation(const in
 void AUGCGamePlayerState::RequestSaveAndQuitOnServer_Implementation()
 {
 	FGameMapManage::QuitAndSaveMap(GetWorld());
+}
+
+void AUGCGamePlayerState::RequestCreateMapOnServer_Implementation()
+{
+	FGameMapManage::CreateGameMap(GetWorld());
+
+	//ServerCallAllClientOpenLevel();
+}
+
+void AUGCGamePlayerState::ServerCallAllClientOpenLevel_Implementation()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("127.0.0.1")));
 }
 
 void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32& InPlayerID, const int32& InElementID)
@@ -156,3 +173,5 @@ void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
 		}
 	}
 }
+
+

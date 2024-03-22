@@ -15,4 +15,5 @@ class UGCGAME_API ALobbyPlayerController : public APlayerController
 	GENERATED_BODY()
 
 	ALobbyPlayerController();
+
 };

@@ -12,4 +12,5 @@ AFPSGameGameMode::AFPSGameGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
+	bUseSeamlessTravel = true;
 }

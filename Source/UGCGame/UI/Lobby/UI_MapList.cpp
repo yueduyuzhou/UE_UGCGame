@@ -3,6 +3,8 @@
 
 #include "UI_MapList.h"
 #include "Components/Button.h"
+#include "../../Common/MethodUnit.h"
+#include "../../System/GameMapManage.h"
 
 void UUI_MapList::NativeConstruct()
 {
@@ -13,5 +15,8 @@ void UUI_MapList::NativeConstruct()
 
 void UUI_MapList::OnCreateMapClick()
 {
-	//TODO:通知服务器创建新地图
+	//通知服务器创建新地图
+	FGameMapManage::CreateGameMap(GetWorld());
+
+	//CreateSessionBP(3, true);
 }

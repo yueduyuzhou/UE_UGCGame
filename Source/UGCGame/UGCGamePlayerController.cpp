@@ -4,6 +4,10 @@
 #include "UGCGamePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "UGCGamePlayerState.h"
+#include "ThreadManage.h"
+//#include "Sockets.h"
+//#include "SocketSubsystem.h"
+//#include "Interfaces/IPv4/IPv4Address.h"
 
 AUGCGamePlayerController::AUGCGamePlayerController()
 {
@@ -13,11 +17,11 @@ AUGCGamePlayerController::AUGCGamePlayerController()
 
 void AUGCGamePlayerController::GetMouseLocationAndDrection(FVector& OutWorldPosition, FVector& OutWorldDirection)
 {
-	// 获取鼠标位置
+	//获取鼠标位置
 	FVector2D MousePosition;
 	GetMousePosition(MousePosition.X, MousePosition.Y);
 
-	// 屏幕位置转换为世界空间
+	//屏幕位置转换为世界空间
 	FVector WorldLocation, WorldDirection;
 	FVector2D ScreenPosition(MousePosition.X, MousePosition.Y);
 	if (UGameplayStatics::DeprojectScreenToWorld(this, ScreenPosition, WorldLocation, WorldDirection))

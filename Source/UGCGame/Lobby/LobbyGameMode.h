@@ -9,11 +9,12 @@
 /**
  * 
  */
+
 UCLASS()
 class UGCGAME_API ALobbyGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	ALobbyGameMode();
 

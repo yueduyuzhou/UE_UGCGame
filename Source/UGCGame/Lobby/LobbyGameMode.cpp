@@ -2,7 +2,10 @@
 
 
 #include "LobbyGameMode.h"
-#include "LobbyPlayerController.h"
+#include "../UGCGamePlayerState.h"
+#include "../UGCGamePlayerController.h"
+#include "ThreadManage.h"
+#include "Kismet/GameplayStatics.h"
 #include "LobbyHUD.h"
 
 ALobbyGameMode::ALobbyGameMode()
@@ -16,7 +19,11 @@ ALobbyGameMode::ALobbyGameMode()
 
 	HUDClass = ALobbyHUD::StaticClass();
 
-	PlayerControllerClass = ALobbyPlayerController::StaticClass();
+	PlayerControllerClass = AUGCGamePlayerController::StaticClass();
+
+	PlayerStateClass = AUGCGamePlayerState::StaticClass();
+
+	bUseSeamlessTravel = true;
 }
 
 void ALobbyGameMode::BeginPlay()

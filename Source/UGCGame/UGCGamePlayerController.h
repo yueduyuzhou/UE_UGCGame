@@ -17,7 +17,8 @@ class UGCGAME_API AUGCGamePlayerController : public APlayerController
 	AUGCGamePlayerController();
 
 	virtual void SetupInputComponent() override;
-	
+
+
 private:
 	void OnRightMouseButtonDown();
 	void OnRightMouseButtonUp();

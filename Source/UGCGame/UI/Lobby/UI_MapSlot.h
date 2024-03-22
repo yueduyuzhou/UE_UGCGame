@@ -17,6 +17,7 @@ class UGCGAME_API UUI_MapSlot : public UUI_Slot
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* MapName;
 public:

@@ -23,8 +23,15 @@ class UGCGAME_API UUI_MapList : public UUI_Base
 	UPROPERTY(meta = (BindWidget))
 		UButton* CreateMap;
 
+	//UPROPERTY(EditDefaultsOnly, Category = UI)
+		//TSubclassOf<UUI_MapListSlot> MapSlotClass;
+
 protected:
 	virtual void NativeConstruct() override;
 
+	UFUNCTION(BlueprintCallable)
 	void OnCreateMapClick();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void CreateSessionBP(int32 InMax, bool InUseLAN);
 };

@@ -46,6 +46,12 @@ public:
 	UFUNCTION(Server, reliable)
 		void RequestSaveAndQuitOnServer();
 
+	UFUNCTION(Server, reliable)
+		void RequestCreateMapOnServer();
+
+	UFUNCTION(NetMulticast, reliable)
+		void ServerCallAllClientOpenLevel();
+
 	/*****************************************************************
 	*	Element
 	*****************************************************************/

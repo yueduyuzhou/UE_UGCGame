@@ -20,6 +20,8 @@ AUGCGameGameMode::AUGCGameGameMode()
 	PlayerControllerClass = AUGCGamePlayerController::StaticClass();
 
 	PlayerStateClass = AUGCGamePlayerState::StaticClass();
+
+	bUseSeamlessTravel = true;
 }
 
 void AUGCGameGameMode::PostLogin(APlayerController* NewPlayer)
