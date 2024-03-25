@@ -21,8 +21,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* MapName;
 public:
-	virtual void OnClickedWidget();
+	virtual void OnClickedWidget() override;
 
 protected:
-	virtual void NativeConstruct();
+	virtual void NativeConstruct() override;
 };

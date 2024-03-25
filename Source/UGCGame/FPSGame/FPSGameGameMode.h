@@ -16,4 +16,7 @@ class UGCGAME_API AFPSGameGameMode : public AGameModeBase
 
 public:
 	AFPSGameGameMode();
+
+protected:
+	virtual void BeginPlay() override;
 };

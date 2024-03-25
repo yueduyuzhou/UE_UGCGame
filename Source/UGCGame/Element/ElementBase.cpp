@@ -29,25 +29,17 @@ void AElementBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetLocalRole() != ROLE_Authority)
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
-		if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+		if (MyPlayerState->TPlayerID == ControllerID)
 		{
-			if (MyPlayerState->TPlayerID == ControllerID)
+			if (AUGCGamePlayerController * MyPlayerController = MethodUnit::GetPlayerControllerByPlayerID(GetWorld(), ControllerID))
 			{
-				if (AUGCGamePlayerController * MyPlayerController = MethodUnit::GetPlayerControllerByPlayerID(GetWorld(), ControllerID))
-				{
-					FVector TraceStart, Direction;
-					MyPlayerController->GetMouseLocationAndDrection(TraceStart, Direction);
-					MyPlayerState->UpdateElementLocationOnServer(TraceStart, Direction);
-					GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Blue, FString(TEXT("Client:")) + GetActorLocation().ToString());
-				}
+				FVector TraceStart, Direction;
+				MyPlayerController->GetMouseLocationAndDrection(TraceStart, Direction);
+				MyPlayerState->UpdateElementLocationOnServer(TraceStart, Direction);
 			}
 		}
-	}	
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Blue, FString(TEXT("Server:")) + GetActorLocation().ToString());
 	}
 }
 

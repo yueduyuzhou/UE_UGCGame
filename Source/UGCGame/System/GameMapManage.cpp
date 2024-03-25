@@ -1,33 +1,53 @@
 #include "GameMapManage.h"
-#include "../Common/MethodUnit.h"
 #include "../UGCGameState.h"
-#include "Kismet/GameplayStatics.h"
+#include "../UGCGameInstance.h"
 #include "../SaveData/MapSaveData.h"
 #include "../Element/ElementBase.h"
-#include "ThreadManage.h"
+#include "../Element/BuildElement.h"
 #include "../Lobby/LobbyGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "ThreadManage.h"
 
-FGameMapManage::FGameMapManage()
+TSharedPtr<UGameMapManage> UGameMapManage::GameMapManage = nullptr;
+
+TSharedRef<UGameMapManage> UGameMapManage::Get()
 {
+	if (!GameMapManage.IsValid())
+	{
+		GameMapManage = MakeShareable(new UGameMapManage);
+	}
+
+	return GameMapManage.ToSharedRef();
 }
 
-void FGameMapManage::OpenMap(UWorld* InWorld, FName InOpenMapName)
+void UGameMapManage::Destroy()
 {
-	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("TemplateMap")));
+	if (GameMapManage.IsValid())
+	{
+		GameMapManage = nullptr;
+	}
+}
+
+void UGameMapManage::OpenMap(UWorld* InWorld, FString InOpenMapName)
+{
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(InWorld->GetGameInstance()))
+	{
+		// 操作数据
+		MyGameInstance->LoadMapName = InOpenMapName;
+
+		UGameplayStatics::OpenLevel(InWorld, FName(TEXT("GameTemplateMap")), true, TEXT("listen"));
+	}
+}
+
+void UGameMapManage::CreateGameMap(UWorld* InWorld)
+{
+	UGameplayStatics::OpenLevel(InWorld, TEXT("/Game/Maps/TemplateMap"), true, TEXT("listen"));
 	
-	//TODO
-	LoadMapDataAndSpawn(InOpenMapName.ToString(), InWorld);
-}
-
-void FGameMapManage::CreateGameMap(UWorld* InWorld)
-{
-	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("TemplateMap")), true, TEXT("listen"));
-
 	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
 	//InWorld->ServerTravel(TEXT("/Game/Maps/TemplateMap"));
 }
 
-void FGameMapManage::QuitGameMap(UWorld* InWorld)
+void UGameMapManage::QuitGameMap(UWorld* InWorld)
 {
 	//TODO
 	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
@@ -35,59 +55,60 @@ void FGameMapManage::QuitGameMap(UWorld* InWorld)
 	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap")));
 }
 
-void FGameMapManage::QuitAndSaveMap(UWorld* InWorld)
+void UGameMapManage::QuitAndSaveMap(UWorld* InWorld)
 {
 	SaveGameMap(InWorld);
 	QuitGameMap(InWorld);
 }
 
-void FGameMapManage::SaveGameMap(UWorld* InWorld)
+void UGameMapManage::SaveGameMap(UWorld* InWorld)
 {
-	TArray<AActor*> Elements;
-	UGameplayStatics::GetAllActorsOfClass(InWorld, AElementBase::StaticClass(), Elements);
-
-	UMapSaveData* SaveGameInstance = Cast<UMapSaveData>(UGameplayStatics::CreateSaveGameObject(UMapSaveData::StaticClass()));
-	if (SaveGameInstance)
+	if (UUGCGameInstance * MyGameInstance = InWorld->GetGameInstance<UUGCGameInstance>())
 	{
-		if (Elements.Num())
+		TArray<AActor*> Elements;
+		UGameplayStatics::GetAllActorsOfClass(InWorld, AElementBase::StaticClass(), Elements);
+
+		UMapSaveData* SaveGameInstance = Cast<UMapSaveData>(UGameplayStatics::CreateSaveGameObject(UMapSaveData::StaticClass()));
+		if (SaveGameInstance)
 		{
-			for (auto& Tmp : Elements)
+			if (Elements.Num())
 			{
-				if (AElementBase * Elem = Cast<AElementBase>(Tmp))
+				for (auto& Tmp : Elements)
 				{
-					if (SaveGameInstance->SaveMapData.Contains(Elem->GetElementID()))
+					if (AElementBase * Elem = Cast<AElementBase>(Tmp))
 					{
-						SaveGameInstance->SaveMapData[Elem->GetElementID()].Add(TPair<FVector, FRotator>(Elem->GetActorLocation(), Elem->GetActorRotation()));
+						SaveGameInstance->Elements.Add(FElemInfo(Elem->GetElementID(), Elem->GetActorLocation(), Elem->GetActorRotation()));
+						Elem->DestoryElement();
 					}
-					else
-					{
-						SaveGameInstance->SaveMapData.Add(Elem->GetElementID());
-						SaveGameInstance->SaveMapData[Elem->GetElementID()].Add(TPair<FVector, FRotator>(Elem->GetActorLocation(), Elem->GetActorRotation()));
-					}
-					Elem->DestoryElement();
 				}
 			}
-		}
 
-		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("SaveMapData"), 0);
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, MyGameInstance->LoadMapName, 0);
+		}
 	}
 }
 
-void FGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld)
+void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld)
 {
-	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
+	if (InWorld)
 	{
-		UMapSaveData* SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0));
-		if (SaveMapData)
+		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
 		{
-			//生成Elements
-			for (auto& Tmp : SaveMapData->SaveMapData)
+			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
-				if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.Key))
+				//生成Elements
+				for (auto& Tmp : SaveMapData->Elements)
 				{
-					for (auto& Info : Tmp.Value)
+					if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.ElementID))
 					{
-						InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Info.Key, Info.Value);
+						if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
+						{
+							//TODO:分情况处理
+							if (ABuildElement * Element = Cast<ABuildElement>(MewElement))
+							{
+								Element->SetElementMesh(ElementAttr->ElementMeth);
+							}
+						}
 					}
 				}
 			}

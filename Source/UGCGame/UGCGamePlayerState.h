@@ -7,6 +7,7 @@
 #include "UGCGamePlayerState.generated.h"
 
 class AElementBase;
+enum class EElementModifyType : uint8;
 
 /**
  * 
@@ -24,10 +25,11 @@ public:
 	FOneKeyMulticastDelegate InitSlotDelegate;
 
 private:
-
 	virtual void BeginPlay() override;
 
 public:
+	AUGCGamePlayerState();
+
 	/*获取表格数据*/
 	void GetInventorySlotNetPackage(TArray<int32>& InKeys);
 
@@ -45,12 +47,6 @@ public:
 
 	UFUNCTION(Server, reliable)
 		void RequestSaveAndQuitOnServer();
-
-	UFUNCTION(Server, reliable)
-		void RequestCreateMapOnServer();
-
-	UFUNCTION(NetMulticast, reliable)
-		void ServerCallAllClientOpenLevel();
 
 	/*****************************************************************
 	*	Element
@@ -70,12 +66,23 @@ public:
 	UFUNCTION(Server, reliable)
 		void TryDeleteControlElementOnServer();
 
-public:
+	UFUNCTION(Server, reliable)
+		void RequestChangeElementModify(const int32& InValue, const EElementModifyType& InModifyType);
 
+public:
+	void SpawnElement(const int32& InPlayerID, const int32& InElementID);
+	FVector SnapToGrid(const FVector& InOldPosition, const float& InGridSize);
+
+	bool SaveMapName(const FString& InMapName);
+	TArray<FString> GetMapList();
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Player Data")
 		int32 TPlayerID;
 
 	AElementBase* ControlElement;
+
+private:
+	int32 GridSize;
+	int32 AngleSize;
 };

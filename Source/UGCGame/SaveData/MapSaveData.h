@@ -6,6 +6,33 @@
 #include "GameFramework/SaveGame.h"
 #include "MapSaveData.generated.h"
 
+USTRUCT(BlueprintType)
+struct FElemInfo
+{
+	GENERATED_BODY()
+
+	FElemInfo()
+		:ElementID(INDEX_NONE)
+		, Location(FVector::ZeroVector)
+		, Rotation(FRotator::ZeroRotator)
+	{}
+
+	FElemInfo(int32 InID, FVector InLoc, FRotator InRot)
+		:ElementID(InID)
+		,Location(InLoc)
+		,Rotation(InRot)
+	{}
+
+	UPROPERTY()
+		int32 ElementID;
+
+	UPROPERTY()
+		FVector Location;
+
+	UPROPERTY()
+		FRotator Rotation;
+};
+
 /**
  * 
  */
@@ -16,5 +43,7 @@ class UGCGAME_API UMapSaveData : public USaveGame
 
 public:
 	// ElementID : {FV,FR}[]
-	TMap<int32, TArray<TPair<FVector, FRotator>>> SaveMapData;
+	UPROPERTY()
+		TArray<FElemInfo> Elements;
+
 };

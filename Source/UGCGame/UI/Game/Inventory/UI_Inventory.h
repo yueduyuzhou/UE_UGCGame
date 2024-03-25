@@ -26,7 +26,6 @@ class UGCGAME_API UUI_Inventory : public UUI_Base
 protected:
 	virtual void NativeConstruct();
 
-
 protected:
 	//≥ı ºªØInventorySlot
 	void LayoutSlot(const TArray<int32>& InKeys);

@@ -3,6 +3,9 @@
 
 #include "UI_MapSlot.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+#include "../../System/GameMapManage.h"
+#include "../../UGCGameInstance.h"
 
 void UUI_MapSlot::NativeConstruct()
 {
@@ -11,5 +14,5 @@ void UUI_MapSlot::NativeConstruct()
 
 void UUI_MapSlot::OnClickedWidget()
 {
-	//TODO:通知服务器打开Map
+	UGameMapManage::Get()->OpenMap(GetWorld(), MapName->GetText().ToString());
 }

@@ -4,12 +4,20 @@ namespace MethodUnit
 {
 	AUGCGameState* GetGameState(UWorld* InWorld)
 	{
-		return InWorld->GetGameState<AUGCGameState>();
+		if (InWorld)
+		{
+			return InWorld->GetGameState<AUGCGameState>();
+		}
+		return nullptr;
 	}
 
 	AUGCGamePlayerState* GetPlayerState(UWorld* InWorld)
 	{
-		return InWorld->GetFirstPlayerController()->GetPlayerState<AUGCGamePlayerState>();
+		if (InWorld)
+		{
+			return InWorld->GetFirstPlayerController()->GetPlayerState<AUGCGamePlayerState>();
+		}
+		return nullptr;
 	}
 
 	AUGCGamePlayerController* GetPlayerControllerByPlayerID(UWorld* InWorld, int32& InPlayerID)

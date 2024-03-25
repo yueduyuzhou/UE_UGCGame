@@ -14,6 +14,16 @@
 #include "System/GameMapManage.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lobby/LobbyPlayerController.h"
+#include "SaveData/MapListSaveData.h"
+#include "UGCGameInstance.h"
+#include "Common/UGCGameType.h"
+
+AUGCGamePlayerState::AUGCGamePlayerState()
+	:TPlayerID(INDEX_NONE)
+	, GridSize(10.f)
+	, ControlElement(nullptr)
+{
+}
 
 void AUGCGamePlayerState::BeginPlay()
 {
@@ -67,43 +77,12 @@ void AUGCGamePlayerState::ServerCallClientInitPlayerData_Implementation(const in
 
 void AUGCGamePlayerState::RequestSaveAndQuitOnServer_Implementation()
 {
-	FGameMapManage::QuitAndSaveMap(GetWorld());
-}
-
-void AUGCGamePlayerState::RequestCreateMapOnServer_Implementation()
-{
-	FGameMapManage::CreateGameMap(GetWorld());
-
-	//ServerCallAllClientOpenLevel();
-}
-
-void AUGCGamePlayerState::ServerCallAllClientOpenLevel_Implementation()
-{
-	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("127.0.0.1")));
+	UGameMapManage::Get()->QuitAndSaveMap(GetWorld());
 }
 
 void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32& InPlayerID, const int32& InElementID)
 {
-	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
-	{
-		if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(InElementID))
-		{
-			if (AElementBase* MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
-			{
-				ControlElement = MewElement;
-				ControlElement->TakeControl(InPlayerID);
-
-				//待改进
-				ControlElement->SetElementID(FMath::RandRange(8888, 999998888));
-
-				//TODO:分情况处理
-				if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
-				{
-					Element->SetElementMesh(ElementAttr->ElementMeth);
-				}
-			}
-		}
-	}
+	SpawnElement(InPlayerID, InElementID);
 }
 
 void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVector& InMouseLocation, const FVector& InMouseDirection)
@@ -111,7 +90,7 @@ void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVe
 	if (ControlElement)
 	{
 		//射线长度
-		float RayLength = 1000.0f; 
+		float RayLength = 10000.0f; 
 
 		//射线终点
 		FVector EndLocation = InMouseLocation + InMouseDirection * RayLength;
@@ -127,7 +106,7 @@ void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVe
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, InMouseLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
 		{
 			//TODO:网格对齐移动
-			ControlElement->SetActorLocation(HitResult.Location);
+			ControlElement->SetActorLocation(SnapToGrid(HitResult.Location, (float)GridSize));
 		}
 	}
 }
@@ -174,4 +153,87 @@ void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
 	}
 }
 
+void AUGCGamePlayerState::RequestChangeElementModify_Implementation(const int32& InValue, const EElementModifyType& InModifyType)
+{
+	if (InModifyType == EElementModifyType::MODIFY_LOCATION)
+	{
+		GridSize = InValue;
+	}
+	else if (InModifyType == EElementModifyType::MODIFY_ROTATION)
+	{
+		AngleSize = InValue;
+	}
+}
 
+void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InElementID)
+{
+	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
+	{
+		if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(InElementID))
+		{
+			if (AElementBase * MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
+			{
+				ControlElement = MewElement;
+				ControlElement->TakeControl(InPlayerID);
+
+				//待改进
+				ControlElement->SetElementID(InElementID);
+
+				//TODO:分情况处理
+				if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
+				{
+					Element->SetElementMesh(ElementAttr->ElementMeth);
+				}
+			}
+		}
+	}
+}
+
+FVector AUGCGamePlayerState::SnapToGrid(const FVector& InOldPosition, const float& InGridSize)
+{
+	FVector SnappedPosition;
+	SnappedPosition.X = FMath::RoundToFloat(InOldPosition.X / InGridSize) * InGridSize;
+	SnappedPosition.Y = FMath::RoundToFloat(InOldPosition.Y / InGridSize) * InGridSize;
+	SnappedPosition.Z = FMath::RoundToFloat(InOldPosition.Z / InGridSize) * InGridSize;
+	return SnappedPosition;
+}
+
+TArray<FString> AUGCGamePlayerState::GetMapList()
+{
+	UMapListSaveData* SaveMapData = Cast<UMapListSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("MapList"), 0));
+	if (SaveMapData)
+	{
+		return SaveMapData->Maps;
+	}
+
+	return TArray<FString>();
+}
+
+bool AUGCGamePlayerState::SaveMapName(const FString& InMapName)
+{
+	if (UUGCGameInstance * MyGameInstance = GetWorld()->GetGameInstance<UUGCGameInstance>())
+	{
+		MyGameInstance->LoadMapName = InMapName;
+		UMapListSaveData* SaveGameInstance = Cast<UMapListSaveData>(UGameplayStatics::CreateSaveGameObject(UMapListSaveData::StaticClass()));
+		if (SaveGameInstance)
+		{
+			TArray<FString> Maps = GetMapList();
+
+			if (!Maps.Contains(InMapName))
+			{
+				Maps.Add(InMapName);
+				SaveGameInstance->Maps = Maps;
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("MapList"), 0);
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		return false;
+	}
+	return true;
+}

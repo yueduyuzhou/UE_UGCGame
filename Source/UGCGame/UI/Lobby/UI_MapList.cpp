@@ -3,20 +3,59 @@
 
 #include "UI_MapList.h"
 #include "Components/Button.h"
+#include "Components/VerticalBox.h"
+#include "Components/EditableText.h"
 #include "../../Common/MethodUnit.h"
 #include "../../System/GameMapManage.h"
+#include "../../UGCGameInstance.h"
 
 void UUI_MapList::NativeConstruct()
 {
 	Super::NativeConstruct();
 
 	CreateMap->OnClicked.AddDynamic(this, &UUI_MapList::OnCreateMapClick);
+
+	UpdateMapList();
+}
+
+void UUI_MapList::UpdateMapList()
+{
+	MapList->ClearChildren();
+
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		TArray<FString> Maps = MyPlayerState->GetMapList();
+
+		for (auto& Tmp : Maps)
+		{
+			if (UUI_MapSlot * SlotWidget = CreateWidget<UUI_MapSlot>(GetWorld(), MapSlotClass))
+			{
+				if (UPanelSlot * PanelSlot = MapList->AddChild(Cast<UWidget>(SlotWidget)))
+				{
+					SlotWidget->MapName->SetText(FText::FromString(Tmp));
+				}
+			}
+		}
+	}
 }
 
 void UUI_MapList::OnCreateMapClick()
 {
-	//通知服务器创建新地图
-	FGameMapManage::CreateGameMap(GetWorld());
-
+	FString MapName = CreateMapName->GetText().ToString();
+	if (!MapName.IsEmpty())
+	{
+		//保存
+		if (AUGCGamePlayerState* MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+		{
+			if (MyPlayerState->SaveMapName(MapName))
+			{
+				UGameMapManage::Get()->CreateGameMap(GetWorld());
+			}
+		}
+	}
+	else
+	{
+		
+	}
 	//CreateSessionBP(3, true);
 }

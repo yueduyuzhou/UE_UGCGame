@@ -2,6 +2,9 @@
 
 
 #include "FPSGameGameMode.h"
+#include "ThreadManage.h"
+#include "../UGCGameInstance.h"
+#include "../System/GameMapManage.h"
 
 AFPSGameGameMode::AFPSGameGameMode()
 {
@@ -12,5 +15,17 @@ AFPSGameGameMode::AFPSGameGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
+	GameStateClass = AUGCGameState::StaticClass();
+
 	bUseSeamlessTravel = true;
+}
+
+void AFPSGameGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+	{
+		UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
+	}
 }

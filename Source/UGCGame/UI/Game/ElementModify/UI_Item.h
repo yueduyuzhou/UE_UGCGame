@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../Core/UI_Base.h"
+#include "../../../Common/UGCGameType.h"
 #include "UI_Item.generated.h"
 
 class UImage;
@@ -22,4 +23,17 @@ class UGCGAME_API UUI_Item : public UUI_Base
 
 	UPROPERTY(meta = (BindWidget))
 		UEditableText* InputText;
+
+	UPROPERTY(EditDefaultsOnly)
+		EElementModifyType ModifyType;
+
+public:
+	void SetModifyType(const EElementModifyType& InModifyType);
+
+protected:
+	virtual void NativeConstruct();
+
+private:
+	UFUNCTION(BlueprintCallable)
+	void OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod);
 };

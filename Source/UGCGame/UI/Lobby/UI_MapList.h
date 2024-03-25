@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "../Core/UI_Base.h"
+#include "UI_MapSlot.h"
 #include "UI_MapList.generated.h"
 
 class UVerticalBox;
 class UButton;
+class UEditableText;
 
 /**
  * 
@@ -23,12 +25,19 @@ class UGCGAME_API UUI_MapList : public UUI_Base
 	UPROPERTY(meta = (BindWidget))
 		UButton* CreateMap;
 
-	//UPROPERTY(EditDefaultsOnly, Category = UI)
-		//TSubclassOf<UUI_MapListSlot> MapSlotClass;
+	UPROPERTY(meta = (BindWidget))
+		UEditableText* CreateMapName;
+
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUI_MapSlot> MapSlotClass;
 
 protected:
 	virtual void NativeConstruct() override;
 
+private:
+	void UpdateMapList();
+
+protected:
 	UFUNCTION(BlueprintCallable)
 	void OnCreateMapClick();
 

@@ -15,6 +15,7 @@ public:
 	AUGCGameGameMode();
 
 protected:
+
 	virtual void PostLogin(APlayerController* NewPlayer);
 };
 

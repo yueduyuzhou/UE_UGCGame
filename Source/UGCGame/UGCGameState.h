@@ -19,8 +19,10 @@ class UGCGAME_API AUGCGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
+public:
 	AUGCGameState();
 
+private:
 	virtual void BeginPlay() override;
 
 public:

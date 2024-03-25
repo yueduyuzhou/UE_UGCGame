@@ -33,10 +33,17 @@ void UUI_InventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const 
 	{
 		if (AUGCGamePlayerState * MyPlayerState = GetPlayerState())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("开始拖动"));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("开始拖动"));
 
-			//呼叫服务器生成Element
-			MyPlayerState->RequestSpawnElementOnServer(MyPlayerState->TPlayerID, GetElementID());
+			if (MyPlayerState->GetLocalRole() != ROLE_Authority)
+			{
+				//呼叫服务器生成Element
+				MyPlayerState->RequestSpawnElementOnServer(MyPlayerState->TPlayerID, GetElementID());
+			}
+			else
+			{
+				MyPlayerState->SpawnElement(MyPlayerState->TPlayerID, GetElementID());
+			}
 		}
 	}
 }
