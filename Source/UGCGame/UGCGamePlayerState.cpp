@@ -17,11 +17,15 @@
 #include "SaveData/MapListSaveData.h"
 #include "UGCGameInstance.h"
 #include "Common/UGCGameType.h"
+#include "Net/UnrealNetwork.h"
 
 AUGCGamePlayerState::AUGCGamePlayerState()
 	:TPlayerID(INDEX_NONE)
 	, GridSize(10.f)
+	, AngleSize(10.f)
 	, ControlElement(nullptr)
+	, CurModifyType(EElementModifyType::MODIFY_LOCATION)
+	, RotationSpeed(10.f)
 {
 }
 
@@ -105,9 +109,23 @@ void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVe
 		//发射射线
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, InMouseLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
 		{
-			//TODO:网格对齐移动
+			//网格对齐移动
 			ControlElement->SetActorLocation(SnapToGrid(HitResult.Location, (float)GridSize));
 		}
+	}
+}
+
+void AUGCGamePlayerState::UpdateElementRotationOnServer_Implementation(const float& InRotationX, const float& InRotationY)
+{
+	if (ControlElement)
+	{
+		FRotator CurrentRotation = ControlElement->GetActorRotation();
+		CurrentRotation.Yaw += InRotationX * RotationSpeed;
+		CurrentRotation.Pitch += InRotationY * RotationSpeed;
+
+		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, CurrentRotation.ToString());
+		// Set the new rotation to the actor
+		ControlElement->SetActorRotation(SnapToGridRotation(CurrentRotation, AngleSize));
 	}
 }
 
@@ -153,7 +171,7 @@ void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
 	}
 }
 
-void AUGCGamePlayerState::RequestChangeElementModify_Implementation(const int32& InValue, const EElementModifyType& InModifyType)
+void AUGCGamePlayerState::RequestChangeElementModifyValueOnServer_Implementation(const int32& InValue, const EElementModifyType& InModifyType)
 {
 	if (InModifyType == EElementModifyType::MODIFY_LOCATION)
 	{
@@ -163,6 +181,18 @@ void AUGCGamePlayerState::RequestChangeElementModify_Implementation(const int32&
 	{
 		AngleSize = InValue;
 	}
+}
+
+void AUGCGamePlayerState::RequestChangeElementModifyOnServer_Implementation(const EElementModifyType& InModifyType)
+{
+	SetModifyType(InModifyType);
+}
+
+void AUGCGamePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUGCGamePlayerState, CurModifyType);
 }
 
 void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InElementID)
@@ -198,6 +228,16 @@ FVector AUGCGamePlayerState::SnapToGrid(const FVector& InOldPosition, const floa
 	return SnappedPosition;
 }
 
+FRotator AUGCGamePlayerState::SnapToGridRotation(const FRotator& InOldRotation, const float& InAngleSize)
+{
+	FRotator SnappedRotation = FRotator(
+		FMath::RoundToFloat(InOldRotation.Pitch / InAngleSize) * InAngleSize,
+		FMath::RoundToFloat(InOldRotation.Yaw / InAngleSize) * InAngleSize,
+		FMath::RoundToFloat(InOldRotation.Roll / InAngleSize) * InAngleSize
+	);
+	return SnappedRotation;
+}
+
 TArray<FString> AUGCGamePlayerState::GetMapList()
 {
 	UMapListSaveData* SaveMapData = Cast<UMapListSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("MapList"), 0));
@@ -207,6 +247,11 @@ TArray<FString> AUGCGamePlayerState::GetMapList()
 	}
 
 	return TArray<FString>();
+}
+
+void AUGCGamePlayerState::SetModifyType(const EElementModifyType& InModifyType)
+{
+	CurModifyType = InModifyType;
 }
 
 bool AUGCGamePlayerState::SaveMapName(const FString& InMapName)

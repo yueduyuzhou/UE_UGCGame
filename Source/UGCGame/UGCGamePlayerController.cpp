@@ -5,6 +5,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "UGCGamePlayerState.h"
 #include "ThreadManage.h"
+#include "UGCGamePawn.h"
+#include "UGCGamePlayerState.h"
+#include "Common/MethodUnit.h"
 //#include "Sockets.h"
 //#include "SocketSubsystem.h"
 //#include "Interfaces/IPv4/IPv4Address.h"
@@ -38,7 +41,20 @@ void AUGCGamePlayerController::SetupInputComponent()
 	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &AUGCGamePlayerController::OnRightMouseButtonDown);
 	InputComponent->BindAction("RightMouseButton", IE_Released, this, &AUGCGamePlayerController::OnRightMouseButtonUp);
 	
+	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &AUGCGamePlayerController::OnLeftMouseButtonDown);
+	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &AUGCGamePlayerController::OnLeftMouseButtonUp);
+
 	InputComponent->BindAction("DeleteButton", IE_Released, this, &AUGCGamePlayerController::OnDeleteButtonUp);
+
+	InputComponent->BindAction("TransformationForTranslation", IE_Released, this, &AUGCGamePlayerController::TransformationForTranslation);
+	InputComponent->BindAction("TransformationForRotation", IE_Released, this, &AUGCGamePlayerController::TransformationForRotation);
+	InputComponent->BindAction("TransformationForScale", IE_Released, this, &AUGCGamePlayerController::TransformationForScale);
+
+	InputComponent->BindAxis("MoveForward", this, &AUGCGamePlayerController::MoveForward);
+	InputComponent->BindAxis("MoveRight", this, &AUGCGamePlayerController::MoveRight);
+	InputComponent->BindAxis("MoveUp", this, &AUGCGamePlayerController::MoveUp);
+	InputComponent->BindAxis("Turn", this, &AUGCGamePlayerController::TurnAtRate);
+	InputComponent->BindAxis("LookUp", this, &AUGCGamePlayerController::LookUpAtRate);
 }
 
 void AUGCGamePlayerController::OnRightMouseButtonDown()
@@ -61,11 +77,90 @@ void AUGCGamePlayerController::OnRightMouseButtonUp()
 	}
 }
 
+void AUGCGamePlayerController::OnLeftMouseButtonDown()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->OnLeftMousePressed();
+	}
+}
+
+void AUGCGamePlayerController::OnLeftMouseButtonUp()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->OnLeftMouseReleassed();
+	}
+}
+
 void AUGCGamePlayerController::OnDeleteButtonUp()
 {
-	//通知服务器删除控制中的Element
-	if (AUGCGamePlayerState * MyPlayerState = GetPlayerState<AUGCGamePlayerState>())
+	if (AUGCGamePlayerState* MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
 		MyPlayerState->TryDeleteControlElementOnServer();
+	}
+}
+
+void AUGCGamePlayerController::MoveForward(float Value)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->MoveForward(Value);
+	}
+}
+
+void AUGCGamePlayerController::MoveRight(float Value)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->MoveRight(Value);
+	}
+}
+
+void AUGCGamePlayerController::MoveUp(float Value)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->MoveUp(Value);
+	}
+}
+
+void AUGCGamePlayerController::TurnAtRate(float Rate)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->TurnAtRate(Rate);
+	}
+}
+
+void AUGCGamePlayerController::LookUpAtRate(float Rate)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->LookUpAtRate(Rate);
+	}
+}
+
+void AUGCGamePlayerController::TransformationForTranslation()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->TransformationForTranslation();
+	}
+}
+
+void AUGCGamePlayerController::TransformationForRotation()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->TransformationForRotation();
+	}
+}
+
+void AUGCGamePlayerController::TransformationForScale()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->TransformationForScale();
 	}
 }

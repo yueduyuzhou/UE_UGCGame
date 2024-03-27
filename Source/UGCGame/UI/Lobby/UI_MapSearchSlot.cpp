@@ -4,6 +4,7 @@
 #include "UI_MapSearchSlot.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "../../UGCGameInstance.h"
 
 void UUI_MapSearchSlot::NativeConstruct()
 {

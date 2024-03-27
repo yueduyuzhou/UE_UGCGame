@@ -22,4 +22,7 @@ public:
 
 protected:
 	virtual void NativeConstruct();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void DestorySessionBP();
 };

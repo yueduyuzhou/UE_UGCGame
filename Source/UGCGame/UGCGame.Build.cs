@@ -15,6 +15,7 @@ public class UGCGame : ModuleRules
             "InputCore",
             "HeadMountedDisplay",
             "SimpleThread",
+            "RuntimeTransformer",
             "SlateCore",
             "OnlineSubsystem",
             "OnlineSubsystemUtils"});

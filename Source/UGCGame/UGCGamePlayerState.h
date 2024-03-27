@@ -13,6 +13,7 @@ enum class EElementModifyType : uint8;
  * 
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(FOneKeyMulticastDelegate, const TArray<int32>&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FChangeModifyTypeMulticastDelegate, const EElementModifyType&);
 
 UCLASS()
 class UGCGAME_API AUGCGamePlayerState : public APlayerState
@@ -23,6 +24,7 @@ class UGCGAME_API AUGCGamePlayerState : public APlayerState
 
 public:
 	FOneKeyMulticastDelegate InitSlotDelegate;
+	FChangeModifyTypeMulticastDelegate ChangeModifyTypeDelegate;
 
 private:
 	virtual void BeginPlay() override;
@@ -57,6 +59,9 @@ public:
 	UFUNCTION(Server, unreliable)
 		void UpdateElementLocationOnServer(const FVector& InMouseLocation, const FVector& InMouseDirection);
 
+	UFUNCTION(Server, unreliable)
+		void UpdateElementRotationOnServer(const float& InRotationX, const float& InRotationY);
+
 	UFUNCTION(Server, reliable)
 		void TryReturnElementControlOnServer();
 
@@ -67,14 +72,26 @@ public:
 		void TryDeleteControlElementOnServer();
 
 	UFUNCTION(Server, reliable)
-		void RequestChangeElementModify(const int32& InValue, const EElementModifyType& InModifyType);
+		void RequestChangeElementModifyValueOnServer(const int32& InValue, const EElementModifyType& InModifyType);
+
+	UFUNCTION(Server, reliable)
+		void RequestChangeElementModifyOnServer(const EElementModifyType& InModifyType);
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
 
 public:
 	void SpawnElement(const int32& InPlayerID, const int32& InElementID);
 	FVector SnapToGrid(const FVector& InOldPosition, const float& InGridSize);
 
+	FRotator SnapToGridRotation(const FRotator& InOldRotation, const float& InAngleSize);
+
+public:
 	bool SaveMapName(const FString& InMapName);
 	TArray<FString> GetMapList();
+
+	FORCEINLINE const EElementModifyType& GetModifyType() { return CurModifyType; }
+	void SetModifyType(const EElementModifyType& InModifyType);
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Player Data")
@@ -85,4 +102,9 @@ public:
 private:
 	int32 GridSize;
 	int32 AngleSize;
+
+	float RotationSpeed;
+
+	UPROPERTY(Replicated)
+	EElementModifyType CurModifyType;
 };

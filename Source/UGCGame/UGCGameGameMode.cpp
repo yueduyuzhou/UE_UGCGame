@@ -3,15 +3,20 @@
 #include "UGCGameGameMode.h"
 #include "UGCGameCharacter.h"
 #include "UObject/ConstructorHelpers.h"
-#include "GameFramework/SpectatorPawn.h"
+//#include "GameFramework/SpectatorPawn.h"
 #include "UGCGameState.h"
 #include "UGCGameHUD.h"
 #include "UGCGamePlayerController.h"
 #include "UGCGamePlayerState.h"
+#include "UGCGamePawn.h"
 
 AUGCGameGameMode::AUGCGameGameMode()
 {
-	DefaultPawnClass = ASpectatorPawn::StaticClass();
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/BP/BP_UGCGamePawn"));
+	if (PlayerPawnBPClass.Class != NULL)
+	{
+		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
 
 	GameStateClass = AUGCGameState::StaticClass();
 

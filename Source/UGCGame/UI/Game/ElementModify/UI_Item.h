@@ -9,6 +9,7 @@
 
 class UImage;
 class UEditableText;
+class UCheckBox;
 
 /**
  * 
@@ -24,6 +25,9 @@ class UGCGAME_API UUI_Item : public UUI_Base
 	UPROPERTY(meta = (BindWidget))
 		UEditableText* InputText;
 
+	UPROPERTY(meta = (BindWidget))
+		UCheckBox* UsedCheckBox;
+
 	UPROPERTY(EditDefaultsOnly)
 		EElementModifyType ModifyType;
 
@@ -36,4 +40,7 @@ protected:
 private:
 	UFUNCTION(BlueprintCallable)
 	void OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod);
+
+	UFUNCTION(BlueprintCallable)
+	void OnCheckedStateChange(bool InbIsChecked);
 };

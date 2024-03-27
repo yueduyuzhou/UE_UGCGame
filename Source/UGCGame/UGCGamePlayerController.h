@@ -18,12 +18,25 @@ class UGCGAME_API AUGCGamePlayerController : public APlayerController
 
 	virtual void SetupInputComponent() override;
 
-
 private:
 	void OnRightMouseButtonDown();
 	void OnRightMouseButtonUp();
 
+	void OnLeftMouseButtonDown();
+	void OnLeftMouseButtonUp();
+
 	void OnDeleteButtonUp();
+
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void MoveUp(float Value);
+
+	void TurnAtRate(float Rate);
+	void LookUpAtRate(float Rate);
+
+	void TransformationForTranslation();
+	void TransformationForRotation();
+	void TransformationForScale();
 
 public:
 	void GetMouseLocationAndDrection(FVector& OutWorldPosition, FVector& OutWorldDirection);

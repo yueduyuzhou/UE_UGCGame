@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+//#include "TransformerPawn.h"
 #include "ElementBase.generated.h"
 
 UCLASS()
 class UGCGAME_API AElementBase : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:	
 	// Sets default values for this actor's properties
 	AElementBase();
@@ -45,4 +46,6 @@ public:
 
 private:
 	int32 ID;
+
+
 };
