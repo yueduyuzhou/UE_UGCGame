@@ -33,7 +33,7 @@ public:
 	AUGCGamePlayerState();
 
 	/*获取表格数据*/
-	void GetInventorySlotNetPackage(TArray<int32>& InKeys);
+	void GetInventorySlotNetPackage(const ESlotType& InType, TArray<int32>& InKeys);
 
 	/*RPC相关参数*/
 public:

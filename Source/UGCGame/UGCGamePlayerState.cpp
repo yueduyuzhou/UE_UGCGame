@@ -39,14 +39,14 @@ void AUGCGamePlayerState::BeginPlay()
 		{
 			//获取InventorySlotID
 			TArray<int32> SlotKeys;
-			GetInventorySlotNetPackage(SlotKeys);
+			GetInventorySlotNetPackage(ESlotType::ALL, SlotKeys);
 			//触发客户端Inventory初始化
 			ServerCallClientInitInventory(SlotKeys);
 		});
 	}
 }
 
-void AUGCGamePlayerState::GetInventorySlotNetPackage(TArray<int32>& InKeys)
+void AUGCGamePlayerState::GetInventorySlotNetPackage(const ESlotType& InType, TArray<int32>& InKeys)
 {
 	if (GetWorld())
 	{
@@ -56,7 +56,7 @@ void AUGCGamePlayerState::GetInventorySlotNetPackage(TArray<int32>& InKeys)
 			{
 				for (auto* Tmp : (*SlotData))
 				{
-					if (!InKeys.Contains(Tmp->ID))
+					if (Tmp->ContainsType(InType) && !InKeys.Contains(Tmp->ID))
 					{
 						InKeys.Add(Tmp->ID);
 					}

@@ -2,9 +2,12 @@
 
 
 #include "UI_Inventory.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "../../../UGCGamePlayerState.h"
 #include "Components/UniformGridSlot.h"
 #include "Components/UniformGridPanel.h"
+#include "Components/HorizontalBox.h"
+#include "Types/UI_TypeSlot.h"
 #include "UI_InventorySlot.h"
 #include "ThreadManage.h"
 
@@ -17,6 +20,7 @@ void UUI_Inventory::NativeConstruct()
 
 void UUI_Inventory::LayoutSlot(const TArray<int32>& InKeys)
 {
+	SlotArray->ClearChildren();
 	if (!SlotArray->GetChildrenCount())
 	{
 		if (InventorySlotClass)
@@ -30,8 +34,6 @@ void UUI_Inventory::LayoutSlot(const TArray<int32>& InKeys)
 						if (UUniformGridSlot * GridSlot = SlotArray->AddChildToUniformGrid(SlotWidget))
 						{
 							GridSlot->SetColumn(MyColum);
-							//GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-							//GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 						}
 						SlotWidget->SetElementID(InKeys[MyColum]);
 						
@@ -44,6 +46,25 @@ void UUI_Inventory::LayoutSlot(const TArray<int32>& InKeys)
 	}
 }
 
+void UUI_Inventory::LayoutTypesPanel()
+{
+	TypesPanel->ClearChildren();
+
+	UEnum* SlotTypeEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("ESlotType"), true);
+	for (int32 i = 0; i <= (uint8)ESlotType::EFFECT_PROP; i++)
+	{
+		if (UUI_TypeSlot * SlotWidget = CreateWidget<UUI_TypeSlot>(GetWorld(), TypesPanelSlotClass))
+		{
+			if (UPanelSlot * BoxSlot = TypesPanel->AddChild(SlotWidget))
+			{
+				SlotWidget->SetType((ESlotType)i);
+				SlotWidget->SetTypeText(SlotTypeEnum->GetDisplayNameTextByIndex(i));
+				SlotWidget->SetParentInventory(this);
+			}
+		}
+	}
+}
+
 void UUI_Inventory::BindDelegate()
 {
 	if (AUGCGamePlayerState * MyPlayerState = GetPlayerState())
@@ -51,6 +72,7 @@ void UUI_Inventory::BindDelegate()
 		MyPlayerState->InitSlotDelegate.AddLambda([&](const TArray<int32>& InKeys)
 			{
 				LayoutSlot(InKeys);
+				LayoutTypesPanel();
 			});
 	}
 	else

@@ -11,4 +11,12 @@ enum class EElementModifyType : uint8
 	MODIFY_ROTATION UMETA(DisplayName = "ModifyRotation")
 };
 
+UENUM(BlueprintType)
+enum class ESlotType : uint8
+{
+	ALL					UMETA(DisplayName = "All"),
+	STATIC_PROP			UMETA(DisplayName = "Static Prop"),
+	DYNAMIC_PROP		UMETA(DisplayName = "Dynamic Prop"),
+	EFFECT_PROP			UMETA(DisplayName = "Effect Prop")
+};
 

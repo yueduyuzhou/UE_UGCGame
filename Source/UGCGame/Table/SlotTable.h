@@ -17,6 +17,9 @@ struct FSlotTable : public FUGCGameTableBase
 public:
 	FSlotTable();
 
+	bool ContainsType(const ESlotType& InType);
+
+public:
 	/*名字*/
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		FName SlotName;
@@ -24,4 +27,6 @@ public:
 	/*图标*/
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		UTexture2D* SlotIcon;
+
+	/*类别*/	UPROPERTY(EditDefaultsOnly, Category = "SlotTypes")		TArray<ESlotType> Types;
 };
