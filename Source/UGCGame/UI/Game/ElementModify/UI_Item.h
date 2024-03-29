@@ -29,10 +29,12 @@ class UGCGAME_API UUI_Item : public UUI_Base
 		UCheckBox* UsedCheckBox;
 
 	UPROPERTY(EditDefaultsOnly)
-		EElementModifyType ModifyType;
+		ETransformationType ModifyType;
 
 public:
-	void SetModifyType(const EElementModifyType& InModifyType);
+	void SetModifyType(const ETransformationType& InModifyType);
+
+	void SetUsedCheckState(const ECheckBoxState& InCheckedState);
 
 protected:
 	virtual void NativeConstruct();
@@ -43,4 +45,6 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void OnCheckedStateChange(bool InbIsChecked);
+
+	void BindDelegate();
 };

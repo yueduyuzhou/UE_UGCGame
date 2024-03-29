@@ -3,6 +3,9 @@
 
 #include "UGCGamePawn.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "GameFramework/MovementComponent.h"
+#include "UGCGamePlayerState.h"
+#include "Common/MethodUnit.h"
 
 AUGCGamePawn::AUGCGamePawn()
 {
@@ -10,6 +13,18 @@ AUGCGamePawn::AUGCGamePawn()
 
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+}
+
+void AUGCGamePawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetSnappingEnabled(ETransformationType::TT_Translation, true);
+	SetSnappingEnabled(ETransformationType::TT_Rotation, true);
+	SetSnappingEnabled(ETransformationType::TT_Scale, true);
+	SetSnappingValue(ETransformationType::TT_Translation, 10.f);
+	SetSnappingValue(ETransformationType::TT_Rotation, 10.f);
+	SetSnappingValue(ETransformationType::TT_Scale, 10.f);
 }
 
 void AUGCGamePawn::OnLeftMousePressed()
@@ -83,15 +98,27 @@ void AUGCGamePawn::LookUpAtRate(float Rate)
 
 void AUGCGamePawn::TransformationForTranslation()
 {
-	SetTransformationType(ETransformationType::TT_Translation);
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		SetTransformationType(ETransformationType::TT_Translation);
+		MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ETransformationType::TT_Translation);
+	}
 }
 
 void AUGCGamePawn::TransformationForRotation()
 {
-	SetTransformationType(ETransformationType::TT_Rotation);
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		SetTransformationType(ETransformationType::TT_Rotation);
+		MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ETransformationType::TT_Rotation);
+	}
 }
 
 void AUGCGamePawn::TransformationForScale()
 {
-	SetTransformationType(ETransformationType::TT_Scale);
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		SetTransformationType(ETransformationType::TT_Scale);
+		MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ETransformationType::TT_Scale);
+	}
 }

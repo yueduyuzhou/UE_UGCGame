@@ -5,6 +5,7 @@
 #include "Components/UniformGridSlot.h"
 #include "Components/UniformGridPanel.h"
 #include "../Settings/UI_Settings.h"
+#include "TransformerPawn.h"
 #include "ThreadManage.h"
 #include "UI_Item.h"
 
@@ -25,7 +26,7 @@ void UUI_ItemPanel::LayoutItem()
 		//ÃÌº” Ù–‘–ﬁ∏ƒUi
 		if (ItemClass)
 		{
-			for (int32 MyColum = 0; MyColum < 2; MyColum++)
+			for (int32 MyColum = 0; MyColum < 3; MyColum++)
 			{
 				if (UUI_Item * ItemWidget = CreateWidget<UUI_Item>(GetWorld(), ItemClass))
 				{
@@ -34,13 +35,20 @@ void UUI_ItemPanel::LayoutItem()
 						GridSlot->SetColumn(MyColum);
 					}
 
-					if (MyColum)
+					if (MyColum == 0)
 					{
-						ItemWidget->SetModifyType(EElementModifyType::MODIFY_LOCATION);
+						ItemWidget->SetModifyType(ETransformationType::TT_Translation);
+						ItemWidget->SetUsedCheckState(ECheckBoxState::Checked);
 					}
-					else
+					else if(MyColum == 1)
 					{
-						ItemWidget->SetModifyType(EElementModifyType::MODIFY_ROTATION);
+						ItemWidget->SetModifyType(ETransformationType::TT_Rotation);
+						ItemWidget->SetUsedCheckState(ECheckBoxState::Unchecked);
+					}
+					else if (MyColum == 2)
+					{
+						ItemWidget->SetModifyType(ETransformationType::TT_Scale);
+						ItemWidget->SetUsedCheckState(ECheckBoxState::Unchecked);
 					}
 				}
 			}

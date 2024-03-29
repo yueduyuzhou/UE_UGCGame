@@ -3,12 +3,18 @@
 
 #include "UI_Item.h"
 #include "Components/CheckBox.h"
+#include "../../../UGCGamePawn.h"
 #include "Components/EditableText.h"
 #include "../../../Common/MethodUnit.h"
 
-void UUI_Item::SetModifyType(const EElementModifyType& InModifyType)
+void UUI_Item::SetModifyType(const ETransformationType& InModifyType)
 {
 	ModifyType = InModifyType;
+}
+
+void UUI_Item::SetUsedCheckState(const ECheckBoxState& InCheckedState)
+{
+	UsedCheckBox->SetCheckedState(InCheckedState);
 }
 
 void UUI_Item::NativeConstruct()
@@ -18,26 +24,17 @@ void UUI_Item::NativeConstruct()
 	InputText->OnTextCommitted.AddDynamic(this, &UUI_Item::OnTextCommit);
 	UsedCheckBox->OnCheckStateChanged.AddDynamic(this, &UUI_Item::OnCheckedStateChange);
 
-	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
-	{
-		MyPlayerState->ChangeModifyTypeDelegate.AddLambda([&](const EElementModifyType& InModifyType)
-			{
-				if (ModifyType != InModifyType)
-				{
-					UsedCheckBox->SetCheckedState(ECheckBoxState::Unchecked);
-				}
-			});
-	}
+	BindDelegate();
 }
 
 void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod)
 {
 	if (InText.ToString().IsNumeric())
 	{
-		//请求服务器修改属性
-		if (AUGCGamePlayerState* MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+		//修改对齐参数
+		if (AUGCGamePawn * MyPawn = MethodUnit::GetUGCPlayerPawn(GetWorld()))
 		{
-			MyPlayerState->RequestChangeElementModifyValueOnServer(FCString::Atoi(*InText.ToString()), ModifyType);
+			MyPawn->SetSnappingValue(ModifyType, FCString::Atoi(*InText.ToString()));
 		}
 	}
 	else
@@ -48,12 +45,33 @@ void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMetho
 
 void UUI_Item::OnCheckedStateChange(bool InbIsChecked)
 {
+	if (InbIsChecked)
+	{
+		if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+		{
+			if (AUGCGamePawn * MyPlayerPawn = MethodUnit::GetUGCPlayerPawn(GetWorld()))
+			{
+				MyPlayerPawn->SetTransformationType(ModifyType);
+				MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ModifyType);
+			}
+		}
+	}
+}
+
+void UUI_Item::BindDelegate()
+{
 	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
-		if (InbIsChecked)
-		{
-			MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ModifyType);
-			MyPlayerState->RequestChangeElementModifyOnServer(ModifyType);
-		}
+		MyPlayerState->ChangeModifyTypeDelegate.AddLambda([&](const ETransformationType & InModifyType)
+			{
+				if (ModifyType != InModifyType)
+				{
+					SetUsedCheckState(ECheckBoxState::Unchecked);
+				}
+				else
+				{
+					SetUsedCheckState(ECheckBoxState::Checked);
+				}
+			});
 	}
 }

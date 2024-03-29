@@ -36,13 +36,13 @@ void AElementBase::Tick(float DeltaTime)
 		{
 			if (AUGCGamePlayerController * MyPlayerController = MethodUnit::GetPlayerControllerByPlayerID(GetWorld(), ControllerID))
 			{
-				if (MyPlayerState->GetModifyType() == EElementModifyType::MODIFY_LOCATION)
+				if (MyPlayerState->GetModifyType() == ETransformationType::TT_Translation)
 				{
 					FVector TraceStart, Direction;
 					MyPlayerController->GetMouseLocationAndDrection(TraceStart, Direction);
 					MyPlayerState->UpdateElementLocationOnServer(TraceStart, Direction);
 				}
-				else if(MyPlayerState->GetModifyType() == EElementModifyType::MODIFY_ROTATION)
+				else if(MyPlayerState->GetModifyType() == ETransformationType::TT_Rotation)
 				{
 					float RotationX, RotationY;
 					MyPlayerController->GetInputMouseDelta(RotationX, RotationY);

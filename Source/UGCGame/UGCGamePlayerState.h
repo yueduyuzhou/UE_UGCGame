@@ -13,7 +13,7 @@ enum class EElementModifyType : uint8;
  * 
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(FOneKeyMulticastDelegate, const TArray<int32>&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FChangeModifyTypeMulticastDelegate, const EElementModifyType&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FChangeModifyTypeMulticastDelegate, const ETransformationType&);
 
 UCLASS()
 class UGCGAME_API AUGCGamePlayerState : public APlayerState
@@ -69,13 +69,7 @@ public:
 		void TryGetElementControlOnServer(const FVector& InMouseLocation, const FVector& InMouseDirection);
 
 	UFUNCTION(Server, reliable)
-		void TryDeleteControlElementOnServer();
-
-	UFUNCTION(Server, reliable)
 		void RequestChangeElementModifyValueOnServer(const int32& InValue, const EElementModifyType& InModifyType);
-
-	UFUNCTION(Server, reliable)
-		void RequestChangeElementModifyOnServer(const EElementModifyType& InModifyType);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
@@ -90,8 +84,8 @@ public:
 	bool SaveMapName(const FString& InMapName);
 	TArray<FString> GetMapList();
 
-	FORCEINLINE const EElementModifyType& GetModifyType() { return CurModifyType; }
-	void SetModifyType(const EElementModifyType& InModifyType);
+	FORCEINLINE const ETransformationType& GetModifyType() { return CurModifyType; }
+	void SetModifyType(const ETransformationType& InModifyType);
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Player Data")
@@ -106,5 +100,5 @@ private:
 	float RotationSpeed;
 
 	UPROPERTY(Replicated)
-	EElementModifyType CurModifyType;
+		ETransformationType CurModifyType;
 };

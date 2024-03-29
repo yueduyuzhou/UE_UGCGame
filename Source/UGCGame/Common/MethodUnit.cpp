@@ -20,6 +20,15 @@ namespace MethodUnit
 		return nullptr;
 	}
 
+	AUGCGamePawn* GetUGCPlayerPawn(UWorld* InWorld)
+	{
+		if (AUGCGamePlayerState * MyPlayerState = GetPlayerState(InWorld))
+		{
+			return MyPlayerState->GetPawn<AUGCGamePawn>();
+		}
+		return nullptr;
+	}
+
 	AUGCGamePlayerController* GetPlayerControllerByPlayerID(UWorld* InWorld, int32& InPlayerID)
 	{
 		if (InWorld)

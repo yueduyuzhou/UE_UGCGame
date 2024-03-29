@@ -14,11 +14,16 @@ class UGCGAME_API AUGCGamePawn : public ATransformerPawn
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UFloatingPawnMovement* FloatingPawnMovement;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class UFloatingPawnMovement* FloatingPawnMovement;
+
+
 
 public:
 	AUGCGamePawn();
+
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	void OnLeftMousePressed();
@@ -34,6 +39,8 @@ public:
 	void TransformationForTranslation();
 	void TransformationForRotation();
 	void TransformationForScale();
+
+	//void Set
 
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */

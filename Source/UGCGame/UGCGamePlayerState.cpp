@@ -21,11 +21,11 @@
 
 AUGCGamePlayerState::AUGCGamePlayerState()
 	:TPlayerID(INDEX_NONE)
+	, ControlElement(nullptr)
 	, GridSize(10.f)
 	, AngleSize(10.f)
-	, ControlElement(nullptr)
-	, CurModifyType(EElementModifyType::MODIFY_LOCATION)
 	, RotationSpeed(10.f)
+	, CurModifyType(ETransformationType::TT_Translation)
 {
 }
 
@@ -160,17 +160,6 @@ void AUGCGamePlayerState::TryGetElementControlOnServer_Implementation(const FVec
 	}
 }
 
-void AUGCGamePlayerState::TryDeleteControlElementOnServer_Implementation()
-{
-	if (ControlElement)
-	{
-		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
-		{
-			ControlElement->DestoryElement();
-		}
-	}
-}
-
 void AUGCGamePlayerState::RequestChangeElementModifyValueOnServer_Implementation(const int32& InValue, const EElementModifyType& InModifyType)
 {
 	if (InModifyType == EElementModifyType::MODIFY_LOCATION)
@@ -181,11 +170,6 @@ void AUGCGamePlayerState::RequestChangeElementModifyValueOnServer_Implementation
 	{
 		AngleSize = InValue;
 	}
-}
-
-void AUGCGamePlayerState::RequestChangeElementModifyOnServer_Implementation(const EElementModifyType& InModifyType)
-{
-	SetModifyType(InModifyType);
 }
 
 void AUGCGamePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -249,7 +233,7 @@ TArray<FString> AUGCGamePlayerState::GetMapList()
 	return TArray<FString>();
 }
 
-void AUGCGamePlayerState::SetModifyType(const EElementModifyType& InModifyType)
+void AUGCGamePlayerState::SetModifyType(const ETransformationType& InModifyType)
 {
 	CurModifyType = InModifyType;
 }

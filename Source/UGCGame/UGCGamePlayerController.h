@@ -40,4 +40,9 @@ private:
 
 public:
 	void GetMouseLocationAndDrection(FVector& OutWorldPosition, FVector& OutWorldDirection);
+
+	FORCEINLINE bool IsEditing() { return bIsEditing; }
+
+private:
+	bool bIsEditing;
 };

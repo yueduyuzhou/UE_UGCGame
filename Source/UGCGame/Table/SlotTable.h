@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Core/UGCGameTableBase.h"
+#include "../Common/UGCGameType.h"
 #include "SlotTable.generated.h"
 
 class UTexture2D;
@@ -23,5 +24,4 @@ public:
 	/*Í¼±ê*/
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		UTexture2D* SlotIcon;
-	
 };

@@ -13,6 +13,7 @@
 //#include "Interfaces/IPv4/IPv4Address.h"
 
 AUGCGamePlayerController::AUGCGamePlayerController()
+	:bIsEditing(true)
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
@@ -59,6 +60,7 @@ void AUGCGamePlayerController::SetupInputComponent()
 
 void AUGCGamePlayerController::OnRightMouseButtonDown()
 {
+	bIsEditing = false;
 	//尝试在服务器上获取该Element的控制
 	if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
 	{
@@ -70,6 +72,7 @@ void AUGCGamePlayerController::OnRightMouseButtonDown()
 
 void AUGCGamePlayerController::OnRightMouseButtonUp()
 {
+	bIsEditing = true;
 	//在服务器上获归还Element的控制权
 	if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
 	{
@@ -95,72 +98,96 @@ void AUGCGamePlayerController::OnLeftMouseButtonUp()
 
 void AUGCGamePlayerController::OnDeleteButtonUp()
 {
-	if (AUGCGamePlayerState* MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
 	{
-		MyPlayerState->TryDeleteControlElementOnServer();
+		MyPlayerPawn->ServerDeselectAll(true);
 	}
 }
 
 void AUGCGamePlayerController::MoveForward(float Value)
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (!IsEditing())
 	{
-		MyPlayerPawn->MoveForward(Value);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->MoveForward(Value);
+		}
 	}
 }
 
 void AUGCGamePlayerController::MoveRight(float Value)
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (!IsEditing())
 	{
-		MyPlayerPawn->MoveRight(Value);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->MoveRight(Value);
+		}
 	}
 }
 
 void AUGCGamePlayerController::MoveUp(float Value)
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (!IsEditing())
 	{
-		MyPlayerPawn->MoveUp(Value);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->MoveUp(Value);
+		}
 	}
 }
 
 void AUGCGamePlayerController::TurnAtRate(float Rate)
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (!IsEditing())
 	{
-		MyPlayerPawn->TurnAtRate(Rate);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->TurnAtRate(Rate);
+		}
 	}
 }
 
 void AUGCGamePlayerController::LookUpAtRate(float Rate)
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (!IsEditing())
 	{
-		MyPlayerPawn->LookUpAtRate(Rate);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->LookUpAtRate(Rate);
+		}
 	}
 }
 
 void AUGCGamePlayerController::TransformationForTranslation()
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (IsEditing())
 	{
-		MyPlayerPawn->TransformationForTranslation();
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->TransformationForTranslation();
+		}
 	}
 }
 
 void AUGCGamePlayerController::TransformationForRotation()
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (IsEditing())
 	{
-		MyPlayerPawn->TransformationForRotation();
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->TransformationForRotation();
+		}
 	}
 }
 
 void AUGCGamePlayerController::TransformationForScale()
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (IsEditing())
 	{
-		MyPlayerPawn->TransformationForScale();
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			MyPlayerPawn->TransformationForScale();
+		}
 	}
 }
