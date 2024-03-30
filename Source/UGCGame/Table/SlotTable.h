@@ -28,5 +28,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		UTexture2D* SlotIcon;
 
-	/*类别*/	UPROPERTY(EditDefaultsOnly, Category = "SlotTypes")		TArray<ESlotType> Types;
+	/*类别*/
+	UPROPERTY(EditDefaultsOnly, Category = "SlotTypes")
+		TArray<ESlotType> Types;
 };

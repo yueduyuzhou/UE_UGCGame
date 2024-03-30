@@ -17,7 +17,11 @@ class UGCGAME_API AUGCGamePawn : public ATransformerPawn
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UFloatingPawnMovement* FloatingPawnMovement;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* RootScene;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* Camera;
 
 public:
 	AUGCGamePawn();
@@ -40,6 +44,9 @@ public:
 	void TransformationForRotation();
 	void TransformationForScale();
 
+	void MultiSelect();
+	void DeMultiSelect();
+	void MouseWheelCameraView(float Value);
 	//void Set
 
 public:
@@ -50,4 +57,10 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float ZoomSpeed;
+
+private:
+	bool bMulitSelect;
 };

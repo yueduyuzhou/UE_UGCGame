@@ -51,23 +51,27 @@ void AUGCGamePlayerController::SetupInputComponent()
 	InputComponent->BindAction("TransformationForRotation", IE_Released, this, &AUGCGamePlayerController::TransformationForRotation);
 	InputComponent->BindAction("TransformationForScale", IE_Released, this, &AUGCGamePlayerController::TransformationForScale);
 
+	InputComponent->BindAction("MultiSelect", IE_Released, this, &AUGCGamePlayerController::MultiSelect);
+	InputComponent->BindAction("DeMultiSelect", IE_Released, this, &AUGCGamePlayerController::DeMultiSelect);
+
 	InputComponent->BindAxis("MoveForward", this, &AUGCGamePlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AUGCGamePlayerController::MoveRight);
 	InputComponent->BindAxis("MoveUp", this, &AUGCGamePlayerController::MoveUp);
 	InputComponent->BindAxis("Turn", this, &AUGCGamePlayerController::TurnAtRate);
 	InputComponent->BindAxis("LookUp", this, &AUGCGamePlayerController::LookUpAtRate);
+	InputComponent->BindAxis("CameraView", this, &AUGCGamePlayerController::MouseWheelCameraView);
 }
 
 void AUGCGamePlayerController::OnRightMouseButtonDown()
 {
 	bIsEditing = false;
 	//尝试在服务器上获取该Element的控制
-	if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
+	/*if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
 	{
 		FVector TraceStart, Direction;
 		GetMouseLocationAndDrection(TraceStart, Direction);
 		MyPlayerSatte->TryGetElementControlOnServer(TraceStart, Direction);
-	}
+	}*/
 }
 
 void AUGCGamePlayerController::OnRightMouseButtonUp()
@@ -189,5 +193,29 @@ void AUGCGamePlayerController::TransformationForScale()
 		{
 			MyPlayerPawn->TransformationForScale();
 		}
+	}
+}
+
+void AUGCGamePlayerController::MultiSelect()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->MultiSelect();
+	}
+}
+
+void AUGCGamePlayerController::DeMultiSelect()
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->DeMultiSelect();
+	}
+}
+
+void AUGCGamePlayerController::MouseWheelCameraView(float Value)
+{
+	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	{
+		MyPlayerPawn->MouseWheelCameraView(Value);
 	}
 }

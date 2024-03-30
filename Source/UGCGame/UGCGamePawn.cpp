@@ -4,11 +4,21 @@
 #include "UGCGamePawn.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "GameFramework/MovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Components/SceneComponent.h"
 #include "UGCGamePlayerState.h"
 #include "Common/MethodUnit.h"
 
 AUGCGamePawn::AUGCGamePawn()
+	:bMulitSelect(false)
+	, ZoomSpeed(50.f)
 {
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	RootComponent = RootScene;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("UCameraComponent"));
+	Camera->SetupAttachment(RootComponent);
+
 	FloatingPawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingPawnMovement"));
 
 	BaseTurnRate = 45.f;
@@ -32,7 +42,7 @@ void AUGCGamePawn::OnLeftMousePressed()
 	TArray<TEnumAsByte<ECollisionChannel>> CollisionChannels;
 	CollisionChannels.Add(TEnumAsByte<ECollisionChannel>::EnumType::ECC_WorldDynamic);
 	CollisionChannels.Add(TEnumAsByte<ECollisionChannel>::EnumType::ECC_WorldStatic);
-	ReplicatedMouseTraceByObjectTypes(5000000.f, CollisionChannels);
+	ReplicatedMouseTraceByObjectTypes(5000000.f, CollisionChannels, bMulitSelect);
 }
 
 void AUGCGamePawn::OnLeftMouseReleassed()
@@ -121,4 +131,21 @@ void AUGCGamePawn::TransformationForScale()
 		SetTransformationType(ETransformationType::TT_Scale);
 		MyPlayerState->ChangeModifyTypeDelegate.Broadcast(ETransformationType::TT_Scale);
 	}
+}
+
+void AUGCGamePawn::MultiSelect()
+{
+	bMulitSelect = true;
+}
+
+void AUGCGamePawn::DeMultiSelect()
+{
+	bMulitSelect = false;
+}
+
+void AUGCGamePawn::MouseWheelCameraView(float Value)
+{
+	FVector CurrentLocation = Camera->GetComponentLocation();
+	FVector NewLocation = CurrentLocation + (Camera->GetForwardVector() * Value * ZoomSpeed);
+	Camera->SetWorldLocation(NewLocation);
 }
