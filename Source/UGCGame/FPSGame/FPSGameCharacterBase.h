@@ -3,31 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TransformerPawn.h"
-#include "UGCGamePawn.generated.h"
+#include "GameFramework/Character.h"
+#include "FPSGameCharacterBase.generated.h"
 
-/**
- * 
- */
 UCLASS()
-class UGCGAME_API AUGCGamePawn : public ATransformerPawn
+class UGCGAME_API AFPSGameCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UFloatingPawnMovement* FloatingPawnMovement;
+		class UCameraComponent* PlayerCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class USceneComponent* RootScene;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* Camera;
+		class USkeletalMeshComponent* ArmMesh;
 
 public:
-	AUGCGamePawn();
+	AFPSGameCharacterBase();
 
 protected:
 	virtual void BeginPlay() override;
+
+public:	
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	void OnLeftMousePressed();
@@ -35,18 +32,10 @@ public:
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
-	void MoveUp(float Value);
+	void Jump();
 
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
-
-	void TransformationForTranslation();
-	void TransformationForRotation();
-	void TransformationForScale();
-
-	void MultiSelect();
-	void DeMultiSelect();
-	void MouseWheelCameraView(float Value);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -54,10 +43,4 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-		float ZoomSpeed;
-
-private:
-	bool bMulitSelect;
 };

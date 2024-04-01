@@ -5,19 +5,18 @@
 #include "ThreadManage.h"
 #include "../UGCGameInstance.h"
 #include "../System/GameMapManage.h"
+#include "FPSGamePlayerController.h"
 
 AFPSGameGameMode::AFPSGameGameMode()
 {
-	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/ThirdPersonCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/BP/FPS/BP_FPSGameCharacter"));
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
-	GameStateClass = AUGCGameState::StaticClass();
+	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
-	bUseSeamlessTravel = true;
 }
 
 void AFPSGameGameMode::BeginPlay()
