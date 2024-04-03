@@ -7,7 +7,7 @@
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
 	:BaseTurnRate(45.f)
-	, BaseLookUpRate(45.f)
+	,BaseLookUpRate(45.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -77,14 +77,9 @@ void AFPSGameCharacterBase::MoveRight(float Value)
 	}
 }
 
-void AFPSGameCharacterBase::Jump()
-{
-
-}
-
 void AFPSGameCharacterBase::TurnAtRate(float Rate)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%f"), Rate));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%f"), Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()));
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 

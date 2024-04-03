@@ -15,7 +15,7 @@ void AFPSGamePlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &AFPSGamePlayerController::OnLeftMouseButtonDown);
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &AFPSGamePlayerController::OnLeftMouseButtonUp);
-	InputComponent->BindAction("MoveUp", IE_Pressed, this, &AFPSGamePlayerController::Jump);
+	InputComponent->BindAction("Jump", IE_Pressed, this, &AFPSGamePlayerController::Jump);
 
 
 	InputComponent->BindAxis("MoveForward", this, &AFPSGamePlayerController::MoveForward);
@@ -52,6 +52,10 @@ void AFPSGamePlayerController::MoveRight(float Value)
 
 void AFPSGamePlayerController::Jump()
 {
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->Jump();
+	}
 }
 
 void AFPSGamePlayerController::TurnAtRate(float Rate)
