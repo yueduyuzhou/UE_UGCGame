@@ -3,6 +3,7 @@
 
 #include "FPSGameCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
@@ -38,6 +39,11 @@ void AFPSGameCharacterBase::Tick(float DeltaTime)
 
 }
 
+void AFPSGameCharacterBase::ChangeWalkWpeedOnServer_Implementation(float InValue)
+{
+	CharacterMovement->MaxWalkSpeed = InValue;
+}
+
 void AFPSGameCharacterBase::OnLeftMousePressed()
 {
 	
@@ -46,6 +52,18 @@ void AFPSGameCharacterBase::OnLeftMousePressed()
 void AFPSGameCharacterBase::OnLeftMouseReleassed()
 {
 
+}
+
+void AFPSGameCharacterBase::LowSpeedWalk()
+{
+	CharacterMovement->MaxWalkSpeed = 300.f;
+	ChangeWalkWpeedOnServer(300.f);
+}
+
+void AFPSGameCharacterBase::NormalSpeedWalk()
+{
+	CharacterMovement->MaxWalkSpeed = 600.f;
+	ChangeWalkWpeedOnServer(600.f);
 }
 
 void AFPSGameCharacterBase::MoveForward(float Value)

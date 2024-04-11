@@ -26,9 +26,16 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	UFUNCTION(server, reliable)
+	void ChangeWalkWpeedOnServer(float InValue);
+
 public:
 	void OnLeftMousePressed();
 	void OnLeftMouseReleassed();
+
+	void LowSpeedWalk();
+	void NormalSpeedWalk();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

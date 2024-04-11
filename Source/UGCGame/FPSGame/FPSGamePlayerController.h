@@ -21,10 +21,13 @@ class UGCGAME_API AFPSGamePlayerController : public APlayerController
 private:
 	void OnLeftMouseButtonDown();
 	void OnLeftMouseButtonUp();
+	void Jump();
+	void OnLeftShiftButtonDown();
+	void OnLeftShiftButtonUp();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
-	void Jump();
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
+
 };
