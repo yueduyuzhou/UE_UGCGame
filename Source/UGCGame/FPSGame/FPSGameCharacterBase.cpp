@@ -4,6 +4,8 @@
 #include "FPSGameCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "WeaponBaseServer.h"
+#include "WeaponBaseClient.h"
 #include "Camera/CameraComponent.h"
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
@@ -42,6 +44,21 @@ void AFPSGameCharacterBase::Tick(float DeltaTime)
 void AFPSGameCharacterBase::ChangeWalkWpeedOnServer_Implementation(float InValue)
 {
 	CharacterMovement->MaxWalkSpeed = InValue;
+}
+
+void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
+{
+	if (WeaponPrimaryServer)
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.Owner = this;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
+		
+		WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, TEXT("WeaponSocket"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		
+		//调整手臂动画
+	}
 }
 
 void AFPSGameCharacterBase::OnLeftMousePressed()
@@ -104,4 +121,20 @@ void AFPSGameCharacterBase::TurnAtRate(float Rate)
 void AFPSGameCharacterBase::LookUpAtRate(float Rate)
 {
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseServer)
+{
+	if (WeaponPrimaryServer)
+	{
+
+	}
+	else
+	{
+		WeaponPrimaryServer = InWeaponBaseServer;
+		WeaponPrimaryServer->SetOwner(this);
+		WeaponPrimaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+	
+		ServerCallClientEquipPrimaryWeapon();
+	}
 }
