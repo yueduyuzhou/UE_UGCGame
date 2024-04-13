@@ -32,7 +32,7 @@ AFPSGameCharacterBase::AFPSGameCharacterBase()
 void AFPSGameCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	StartWeapon();
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -40,6 +40,49 @@ void AFPSGameCharacterBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AFPSGameCharacterBase::StartWeapon()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		PurchaseWeapon(EWeaponType::AK47);
+	}
+}
+
+void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
+{
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = this;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	switch (InWeaponType)
+	{
+	case EWeaponType::AK47:
+	{
+		UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/Ak47/BP_Ak47_Server.BP_Ak47_Server_c'"));
+		AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
+		ServerWeapon->EquipWeapon();
+		EquipPrimaryWeapon(ServerWeapon);
+		break;
+	}
+	case EWeaponType::DESERTEAGLE:
+	{
+
+	}
+	}
+}
+
+AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
+{
+	switch (ActiveWeapon)
+	{
+	case EWeaponType::AK47:
+	{
+		return WeaponPrimaryClient;
+	}
+	}
+	return nullptr;
+}
+
 
 void AFPSGameCharacterBase::ChangeWalkWpeedOnServer_Implementation(float InValue)
 {
@@ -61,14 +104,44 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 	}
 }
 
-void AFPSGameCharacterBase::OnLeftMousePressed()
+void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 {
-	
+	if (AWeaponBaseClient * CurClientWeapon = GetCurrentClientWeapon())
+	{
+		CurClientWeapon->PlayShootAnimation();
+	}
 }
 
-void AFPSGameCharacterBase::OnLeftMouseReleassed()
+void AFPSGameCharacterBase::WeaponFirePressed()
 {
+	switch (ActiveWeapon)
+	{
+	case EWeaponType::AK47:
+	{
+		PrimaryWeaponFire();
+		break;
+	}
+	case EWeaponType::DESERTEAGLE:
+	{
+		break;
+	}
+	}
+}
 
+void AFPSGameCharacterBase::WeaponFireReleassed()
+{
+	switch (ActiveWeapon)
+	{
+	case EWeaponType::AK47:
+	{
+		PrimaryWeaponStopFire();
+		break;
+	}
+	case EWeaponType::DESERTEAGLE:
+	{
+		break;
+	}
+	}
 }
 
 void AFPSGameCharacterBase::LowSpeedWalk()
@@ -114,7 +187,7 @@ void AFPSGameCharacterBase::MoveRight(float Value)
 
 void AFPSGameCharacterBase::TurnAtRate(float Rate)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%f"), Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%f"), Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()));
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
@@ -137,4 +210,18 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 	
 		ServerCallClientEquipPrimaryWeapon();
 	}
+}
+
+void AFPSGameCharacterBase::PrimaryWeaponFire()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Call PrimaryWeaponFire"));
+	//I.服务器：减少弹药、射线检测、应用伤害、弹孔生成
+
+	//II.客户端：枪体播放动画、手臂播放动画、播放设计音效、屏幕抖动、后坐力、枪口火花
+	ServerCallClientFireWeapon();
+}
+
+void AFPSGameCharacterBase::PrimaryWeaponStopFire()
+{
+	//弹头延时销毁
 }

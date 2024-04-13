@@ -29,12 +29,18 @@ void AFPSGamePlayerController::SetupInputComponent()
 
 void AFPSGamePlayerController::OnLeftMouseButtonDown()
 {
-	
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->WeaponFirePressed();
+	}
 }
 
 void AFPSGamePlayerController::OnLeftMouseButtonUp()
 {
-	
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->WeaponFireReleassed();
+	}
 }
 
 void AFPSGamePlayerController::Jump()

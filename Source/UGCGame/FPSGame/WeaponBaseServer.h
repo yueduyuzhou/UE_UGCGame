@@ -4,18 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CommonData/FPSGameType.h"
 #include "WeaponBaseServer.generated.h"
 
 class USkeletalMeshComponent;
 class USphereComponent;
 class AWeaponBaseClient;
-
-UENUM()
-enum class EWeaponType : uint8
-{
-	AK47			UMETA(DisplayName = "Ak47"),
-	DESERTEAGLE		UMETA(DisplayName = "DesertEagle"),
-};
 
 UCLASS()
 class UGCGAME_API AWeaponBaseServer : public AActor

@@ -14,7 +14,7 @@ class UGCGAME_API AWeaponBaseClient : public AActor
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USkeletalMeshComponent* WeaponMesh;
 
 public:	
@@ -26,4 +26,7 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = "FPSAnim")
+		void PlayShootAnimation();
 };

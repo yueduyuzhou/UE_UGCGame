@@ -8,6 +8,7 @@
 
 class AWeaponBaseServer;
 class AWeaponBaseClient;
+enum class EWeaponType : uint8;
 
 UCLASS()
 class UGCGAME_API AFPSGameCharacterBase : public ACharacter
@@ -29,16 +30,29 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	/*玩家初始武器*/
+	void StartWeapon();
+
+	/*根据类型生成武器并装备*/
+	void PurchaseWeapon(EWeaponType InWeaponType);
+
+	AWeaponBaseClient* GetCurrentClientWeapon();
+
+	//RPG
 private:
 	UFUNCTION(server, reliable)
-	void ChangeWalkWpeedOnServer(float InValue);
+		void ChangeWalkWpeedOnServer(float InValue);
 
 	UFUNCTION(client, reliable)
-	void ServerCallClientEquipPrimaryWeapon();
+		void ServerCallClientEquipPrimaryWeapon();
+
+	UFUNCTION(client, reliable)
+		void ServerCallClientFireWeapon();
 
 public:
-	void OnLeftMousePressed();
-	void OnLeftMouseReleassed();
+	void WeaponFirePressed();
+	void WeaponFireReleassed();
 
 	void LowSpeedWalk();
 	void NormalSpeedWalk();
@@ -50,9 +64,17 @@ public:
 	void LookUpAtRate(float Rate);
 
 public:
+	/*准备主武器*/
 	void EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
 
+	/*主武器（步枪）开/停火*/
+	void PrimaryWeaponFire();
+	void PrimaryWeaponStopFire();
+
 private:
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	EWeaponType ActiveWeapon;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		float BaseTurnRate;
 

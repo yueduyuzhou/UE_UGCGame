@@ -25,6 +25,9 @@ AWeaponBaseServer::AWeaponBaseServer()
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SphereCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBaseServer::OnAttackerBeginOverlap);
+
+	//生成时自动同步
+	SetReplicates(true);
 }
 
 void AWeaponBaseServer::OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
