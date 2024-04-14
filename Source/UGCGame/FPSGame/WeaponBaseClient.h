@@ -17,6 +17,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USkeletalMeshComponent* WeaponMesh;
 
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* ClientArmFireMontage;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* ClientWeaponFireSound;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ClientWeaponMuzzleFlash;
+		
 public:	
 	AWeaponBaseClient();
 
@@ -29,4 +38,6 @@ public:
 public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "FPSAnim")
 		void PlayShootAnimation();
+
+	void DisplayWeaponEffect();
 };

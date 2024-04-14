@@ -33,6 +33,8 @@ void AFPSGameCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	StartWeapon();
+
+	ClientArmAnimBP = ArmMesh->GetAnimInstance();
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -108,7 +110,18 @@ void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 {
 	if (AWeaponBaseClient * CurClientWeapon = GetCurrentClientWeapon())
 	{
+		//枪体播放动画
 		CurClientWeapon->PlayShootAnimation();
+		//开火效果
+		CurClientWeapon->DisplayWeaponEffect();
+
+		if (UAnimMontage * ClientArmFireMontage = CurClientWeapon->ClientArmFireMontage)
+		{
+			//手臂播放动画
+			ClientArmAnimBP->Montage_SetPlayRate(ClientArmFireMontage, 1.f);
+			ClientArmAnimBP->Montage_Play(ClientArmFireMontage);
+		}
+		
 	}
 }
 
@@ -217,7 +230,7 @@ void AFPSGameCharacterBase::PrimaryWeaponFire()
 	//UE_LOG(LogTemp, Warning, TEXT("Call PrimaryWeaponFire"));
 	//I.服务器：减少弹药、射线检测、应用伤害、弹孔生成
 
-	//II.客户端：枪体播放动画、手臂播放动画、播放设计音效、屏幕抖动、后坐力、枪口火花
+	//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
 	ServerCallClientFireWeapon();
 }
 

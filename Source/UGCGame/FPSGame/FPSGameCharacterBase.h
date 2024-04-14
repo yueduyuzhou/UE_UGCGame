@@ -21,6 +21,8 @@ class UGCGAME_API AFPSGameCharacterBase : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* ArmMesh;
 
+	UAnimInstance* ClientArmAnimBP;
+
 public:
 	AFPSGameCharacterBase();
 
