@@ -10,8 +10,8 @@
 #include "Common/MethodUnit.h"
 
 AUGCGamePawn::AUGCGamePawn()
-	:bMulitSelect(false)
-	, ZoomSpeed(50.f)
+	:ZoomSpeed(50.f)
+	, bMulitSelect(false)
 {
 	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	RootComponent = RootScene;

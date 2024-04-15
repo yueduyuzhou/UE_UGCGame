@@ -8,6 +8,7 @@
 
 class AWeaponBaseServer;
 class AWeaponBaseClient;
+class AFPSGamePlayerController;
 enum class EWeaponType : uint8;
 
 UCLASS()
@@ -21,7 +22,7 @@ class UGCGAME_API AFPSGameCharacterBase : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* ArmMesh;
 
-	UAnimInstance* ClientArmAnimBP;
+	
 
 public:
 	AFPSGameCharacterBase();
@@ -75,7 +76,7 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	EWeaponType ActiveWeapon;
+		EWeaponType ActiveWeapon;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		float BaseTurnRate;
@@ -88,4 +89,9 @@ private:
 
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 		AWeaponBaseClient * WeaponPrimaryClient;
+
+	UAnimInstance* ClientArmAnimBP;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		AFPSGamePlayerController* FPSPlayerController;
 };

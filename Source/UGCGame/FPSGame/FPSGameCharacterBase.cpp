@@ -4,6 +4,7 @@
 #include "FPSGameCharacterBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "FPSGamePlayerController.h"
 #include "WeaponBaseServer.h"
 #include "WeaponBaseClient.h"
 #include "Camera/CameraComponent.h"
@@ -35,6 +36,7 @@ void AFPSGameCharacterBase::BeginPlay()
 	StartWeapon();
 
 	ClientArmAnimBP = ArmMesh->GetAnimInstance();
+	FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -121,7 +123,12 @@ void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 			ClientArmAnimBP->Montage_SetPlayRate(ClientArmFireMontage, 1.f);
 			ClientArmAnimBP->Montage_Play(ClientArmFireMontage);
 		}
-		
+
+		if (FPSPlayerController)
+		{
+			//ÆÁÄ»¶¶¶¯
+			FPSPlayerController->PlayerCameraShake(CurClientWeapon->CameraShakeClass);
+		}
 	}
 }
 

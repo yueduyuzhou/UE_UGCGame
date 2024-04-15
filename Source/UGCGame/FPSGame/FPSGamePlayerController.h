@@ -30,4 +30,7 @@ private:
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
 
+public:
+	void PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake);
+
 };

@@ -98,3 +98,8 @@ void AFPSGamePlayerController::LookUpAtRate(float Rate)
 		MyCharacter->LookUpAtRate(Rate);
 	}
 }
+
+void AFPSGamePlayerController::PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake)
+{
+	ClientPlayCameraShake(InCameraShake);
+}

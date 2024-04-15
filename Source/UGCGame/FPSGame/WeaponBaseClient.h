@@ -25,6 +25,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ClientWeaponMuzzleFlash;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShake> CameraShakeClass;
 		
 public:	
 	AWeaponBaseClient();
