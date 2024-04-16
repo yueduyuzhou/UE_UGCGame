@@ -3,7 +3,7 @@
 
 #include "FPSGamePlayerController.h"
 #include "FPSGameCharacterBase.h"
-
+#include "FPSGameHUD.h"
 
 AFPSGamePlayerController::AFPSGamePlayerController()
 {
@@ -102,4 +102,12 @@ void AFPSGamePlayerController::LookUpAtRate(float Rate)
 void AFPSGamePlayerController::PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake)
 {
 	ClientPlayCameraShake(InCameraShake);
+}
+
+void AFPSGamePlayerController::CrosshairRecoil()
+{
+	if (CrosshairUI)
+	{
+		CrosshairUI->DoCrosshairRecoil();
+	}
 }

@@ -5,6 +5,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "FPSGameCharacterBase.h"
+#include "Kismet/GameplayStatics.h"
 
 AWeaponBaseServer::AWeaponBaseServer()
 {
@@ -30,6 +31,13 @@ AWeaponBaseServer::AWeaponBaseServer()
 	SetReplicates(true);
 }
 
+void AWeaponBaseServer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AWeaponBaseServer, CurrentClipAmmo, COND_None);
+}
+
 void AWeaponBaseServer::OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (AFPSGameCharacterBase * FPSCharacter = Cast<AFPSGameCharacterBase>(OtherActor))
@@ -45,6 +53,24 @@ void AWeaponBaseServer::EquipWeapon()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AWeaponBaseServer::MulticastFireEffect_Implementation()
+{
+	if (GetOwner() != UGameplayStatics::GetPlayerPawn(GetWorld(), 0))
+	{
+		UGameplayStatics::SpawnEmitterAttached(
+			ServerWeaponMuzzleFlash,
+			WeaponMesh,
+			TEXT("Fire_FX_Soccket"),
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true,
+			EPSCPoolMethod::None,
+			true);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ServerWeaponFireSound, GetActorLocation());
+	}
 }
 
 void AWeaponBaseServer::BeginPlay()

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/Game/UI_Crosshair.h"
 #include "FPSGamePlayerController.generated.h"
 
 /**
@@ -32,5 +33,8 @@ private:
 
 public:
 	void PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake);
+	void CrosshairRecoil();
 
+public:
+	UUI_Crosshair* CrosshairUI;
 };

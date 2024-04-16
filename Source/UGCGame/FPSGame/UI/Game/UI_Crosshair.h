@@ -32,6 +32,10 @@ class UGCGAME_API UUI_Crosshair : public UUI_FPSBase
 	UPROPERTY(meta = (BindWidget))
 		UImage* Right;
 
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+		void DoCrosshairRecoil();
+
 protected:
 	virtual void NativeConstruct();
 

@@ -47,6 +47,9 @@ private:
 	UFUNCTION(server, reliable)
 		void ChangeWalkWpeedOnServer(float InValue);
 
+	UFUNCTION(server, reliable)
+		void RifleWpeedFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
 	UFUNCTION(client, reliable)
 		void ServerCallClientEquipPrimaryWeapon();
 

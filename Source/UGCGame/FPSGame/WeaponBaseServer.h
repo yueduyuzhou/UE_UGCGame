@@ -10,6 +10,7 @@
 class USkeletalMeshComponent;
 class USphereComponent;
 class AWeaponBaseClient;
+class UParticleSystem;
 
 UCLASS()
 class UGCGAME_API AWeaponBaseServer : public AActor
@@ -29,8 +30,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<AWeaponBaseClient> ClientWeaponClass;
 
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* ServerWeaponMuzzleFlash;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* ServerWeaponFireSound;
+
 public:	
 	AWeaponBaseServer();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
 
 	UFUNCTION()
 		void OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -39,9 +50,27 @@ public:
 	UFUNCTION()
 		void EquipWeapon();
 
+public:
+	UFUNCTION(NetMulticast, unreliable)
+		void MulticastFireEffect();
+
 protected:
 	virtual void BeginPlay() override;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+
+public:
+	FORCEINLINE const int32& GetCurrentClipAmmo() { return CurrentClipAmmo; }
+	FORCEINLINE void ExpendAmmo() { CurrentClipAmmo--; }
+
+private:
+	UPROPERTY(EditAnywhere)
+		int32 CurrentAmmo;	//当前的弹药量
+
+	UPROPERTY(EditAnywhere, Replicated)
+		int32 CurrentClipAmmo;	//当前弹夹的弹药量
+
+	UPROPERTY(EditAnywhere)
+		int32 MaxClipAmmo;	//弹夹最大弹药量
 };

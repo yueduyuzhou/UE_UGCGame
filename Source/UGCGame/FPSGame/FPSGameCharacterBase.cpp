@@ -87,10 +87,21 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 	return nullptr;
 }
 
-
 void AFPSGameCharacterBase::ChangeWalkWpeedOnServer_Implementation(float InValue)
 {
 	CharacterMovement->MaxWalkSpeed = InValue;
+}
+
+void AFPSGameCharacterBase::RifleWpeedFireOnServer_Implementation(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
+{
+	if (WeaponPrimaryServer)
+	{
+		//广播枪口火花
+		WeaponPrimaryServer->MulticastFireEffect();
+
+		WeaponPrimaryServer->ExpendAmmo();
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Server CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
+	}
 }
 
 void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
@@ -128,6 +139,9 @@ void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 		{
 			//屏幕抖动
 			FPSPlayerController->PlayerCameraShake(CurClientWeapon->CameraShakeClass);
+
+			//准星动画
+			FPSPlayerController->CrosshairRecoil();
 		}
 	}
 }
@@ -234,11 +248,18 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 
 void AFPSGameCharacterBase::PrimaryWeaponFire()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Call PrimaryWeaponFire"));
-	//I.服务器：减少弹药、射线检测、应用伤害、弹孔生成
+	//子弹
+	if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
+	{
+		//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
+		RifleWpeedFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Client CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
 
-	//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
-	ServerCallClientFireWeapon();
+		//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
+		ServerCallClientFireWeapon();
+
+		//III.连击
+	}
 }
 
 void AFPSGameCharacterBase::PrimaryWeaponStopFire()
