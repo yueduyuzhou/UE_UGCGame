@@ -8,6 +8,7 @@
 
 class UImage;
 class UOverlay;
+class UTextBlock;
 
 /**
  * 
@@ -32,9 +33,17 @@ class UGCGAME_API UUI_Crosshair : public UUI_FPSBase
 	UPROPERTY(meta = (BindWidget))
 		UImage* Right;
 
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* CurrentClipAmmo;
+
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* CurrentAmmo;
+
 public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void DoCrosshairRecoil();
+
+	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
 
 protected:
 	virtual void NativeConstruct();

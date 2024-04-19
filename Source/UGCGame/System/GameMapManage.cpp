@@ -52,7 +52,7 @@ void UGameMapManage::QuitGameMap(UWorld* InWorld)
 	//TODO
 	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
 	//InWorld->ServerTravel(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap"));
-	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap")));
+	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("/Game/Maps/Lobby")));
 }
 
 void UGameMapManage::QuitAndSaveMap(UWorld* InWorld)

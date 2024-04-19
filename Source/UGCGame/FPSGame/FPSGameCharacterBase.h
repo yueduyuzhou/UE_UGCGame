@@ -56,6 +56,15 @@ private:
 	UFUNCTION(client, reliable)
 		void ServerCallClientFireWeapon();
 
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+
+	UFUNCTION(NetMulticast, unreliable)
+		void MulticastFire();
+
+	UFUNCTION(NetMulticast, unreliable)
+		void MulticastBulletHole(const FVector& InLocation, const FRotator& InRotation);
+
 public:
 	void WeaponFirePressed();
 	void WeaponFireReleassed();
@@ -76,6 +85,16 @@ public:
 	/*Ö÷ÎäÆ÷£¨²½Ç¹£©¿ª/Í£»ð*/
 	void PrimaryWeaponFire();
 	void PrimaryWeaponStopFire();
+	void RifleLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
+public:
+	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
+	
+	UFUNCTION()
+	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
+
+public:
+	AFPSGamePlayerController* GetFPSPlayerControllerOnServer();
 
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -93,7 +112,11 @@ private:
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 		AWeaponBaseClient * WeaponPrimaryClient;
 
-	UAnimInstance* ClientArmAnimBP;
+	UPROPERTY(BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		UAnimInstance* ClientArmAnimBP;
+
+	UPROPERTY(BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		UAnimInstance* ClientBodyAnimBP;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		AFPSGamePlayerController* FPSPlayerController;

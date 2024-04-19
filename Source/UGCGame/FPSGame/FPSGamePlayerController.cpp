@@ -111,3 +111,8 @@ void AFPSGamePlayerController::CrosshairRecoil()
 		CrosshairUI->DoCrosshairRecoil();
 	}
 }
+
+void AFPSGamePlayerController::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
+{
+	CrosshairUI->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+}

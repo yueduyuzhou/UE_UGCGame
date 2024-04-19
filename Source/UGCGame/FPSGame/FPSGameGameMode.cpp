@@ -5,6 +5,7 @@
 #include "ThreadManage.h"
 #include "FPSGameHUD.h"
 #include "FPSGamePlayerController.h"
+#include "FPSGamePlayerState.h"
 #include "../UGCGameInstance.h"
 #include "../System/GameMapManage.h"
 
@@ -19,6 +20,8 @@ AFPSGameGameMode::AFPSGameGameMode()
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
 	HUDClass = AFPSGameHUD::StaticClass();
+
+	PlayerStateClass = AFPSGamePlayerState::StaticClass();
 }
 
 void AFPSGameGameMode::BeginPlay()

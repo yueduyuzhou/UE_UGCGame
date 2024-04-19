@@ -36,6 +36,18 @@ public:
 	UPROPERTY(EditAnywhere)
 		USoundBase* ServerWeaponFireSound;
 
+	UPROPERTY(EditAnywhere)
+		UAnimMontage* ClientBodyFireMontage;
+
+	UPROPERTY(EditAnywhere)
+		float BulletDistance;
+
+	UPROPERTY(EditAnywhere)
+		UMaterialInterface* BulletHoleDecal;
+
+	UPROPERTY(EditAnywhere)
+		float BaseDamage;
+
 public:	
 	AWeaponBaseServer();
 
@@ -63,6 +75,7 @@ public:
 public:
 	FORCEINLINE const int32& GetCurrentClipAmmo() { return CurrentClipAmmo; }
 	FORCEINLINE void ExpendAmmo() { CurrentClipAmmo--; }
+	FORCEINLINE const int32& GetCurrentAmmo() { return CurrentAmmo; }
 
 private:
 	UPROPERTY(EditAnywhere)

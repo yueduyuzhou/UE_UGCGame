@@ -5,9 +5,15 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "FPSGamePlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "WeaponBaseServer.h"
 #include "WeaponBaseClient.h"
+#include "Components/DecalComponent.h"
+#include "FPSGamePlayerState.h"
 #include "Camera/CameraComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
 	:BaseTurnRate(45.f)
@@ -36,7 +42,10 @@ void AFPSGameCharacterBase::BeginPlay()
 	StartWeapon();
 
 	ClientArmAnimBP = ArmMesh->GetAnimInstance();
+	ClientBodyAnimBP = Mesh->GetAnimInstance();
 	FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
+
+	OnTakePointDamage.AddDynamic(this, &AFPSGameCharacterBase::OnHit);
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -96,12 +105,19 @@ void AFPSGameCharacterBase::RifleWpeedFireOnServer_Implementation(FVector InCamr
 {
 	if (WeaponPrimaryServer)
 	{
-		//广播枪口火花
+		//广播枪口火花(多播)
 		WeaponPrimaryServer->MulticastFireEffect();
-
 		WeaponPrimaryServer->ExpendAmmo();
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Server CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
+
+		//第三人称身体射击动画(多播)
+		MulticastFire();
+		
+		ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
+
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Server CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
 	}
+
+	RifleLineTrace(InCamreaLocation, InCameraRotation, IsMoveing);
 }
 
 void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
@@ -114,7 +130,7 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 		WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
 		
 		WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, TEXT("WeaponSocket"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
-		
+
 		//调整手臂动画
 	}
 }
@@ -142,6 +158,48 @@ void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 
 			//准星动画
 			FPSPlayerController->CrosshairRecoil();
+		}
+	}
+}
+
+void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
+		{
+			TmpFPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+		}
+	}
+	else
+	{
+		if (FPSPlayerController)
+		{
+			FPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::MulticastFire_Implementation()
+{
+	if (ClientBodyAnimBP)
+	{
+		if (WeaponPrimaryServer)
+		{
+			ClientBodyAnimBP->Montage_Play(WeaponPrimaryServer->ClientBodyFireMontage);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::MulticastBulletHole_Implementation(const FVector& InLocation, const FRotator& InRotation)
+{
+	if (WeaponPrimaryServer)
+	{
+		UDecalComponent* Decle = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), WeaponPrimaryServer->BulletHoleDecal, FVector(8, 8, 8), InLocation, InRotation, 10.f);
+		if (Decle)
+		{
+			//FadeScreenSize越小贴花显示的距离越远
+			Decle->SetFadeScreenSize(0.001);
 		}
 	}
 }
@@ -243,6 +301,8 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 		WeaponPrimaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 	
 		ServerCallClientEquipPrimaryWeapon();
+
+		ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
 	}
 }
 
@@ -265,4 +325,120 @@ void AFPSGameCharacterBase::PrimaryWeaponFire()
 void AFPSGameCharacterBase::PrimaryWeaponStopFire()
 {
 	//弹头延时销毁
+}
+
+void AFPSGameCharacterBase::RifleLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
+{
+	FVector EndLocation;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(this);
+	FHitResult HitResult;
+
+	if (WeaponPrimaryServer)
+	{
+		if (IsMoveing)
+		{
+
+		}
+		else
+		{
+			EndLocation = InCamreaLocation + UKismetMathLibrary::GetForwardVector(InCameraRotation) * WeaponPrimaryServer->BulletDistance;
+		}
+	}
+	
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(
+		GetWorld(),
+		InCamreaLocation,
+		EndLocation,
+		ETraceTypeQuery::TraceTypeQuery1,
+		false,
+		IgnoreActors,
+		EDrawDebugTrace::Persistent,
+		HitResult,
+		true,
+		FLinearColor::Green,
+		FLinearColor::Red,
+		5.f);
+
+	if (HitSuccess)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("%s"), *HitResult.Actor->GetName()));
+		if (AFPSGameCharacterBase * DamageCharacter = Cast<AFPSGameCharacterBase>(HitResult.Actor))
+		{
+			//应用伤害（Server）
+			DamagePlayer(HitResult.PhysMaterial.Get(), HitResult.Actor.Get(), InCamreaLocation, HitResult);
+		}
+		else
+		{
+			//生成弹孔（Multicast）
+			FRotator XRotation = UKismetMathLibrary::MakeRotFromX(HitResult.Normal);
+			MulticastBulletHole(HitResult.Location, XRotation);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult)
+{
+	if (WeaponPrimaryServer)
+	{
+		float DamageVal = WeaponPrimaryServer->BaseDamage;
+
+		switch (InPhysicsMaterial->SurfaceType)
+		{
+		case EPhysicalSurface::SurfaceType1:	//Head
+		{
+			DamageVal *= 4;
+			break;
+		}
+		case EPhysicalSurface::SurfaceType2:	//Body
+		{
+			DamageVal *= 1;
+			break;
+		}
+		case EPhysicalSurface::SurfaceType3:	//Leg
+		{
+			DamageVal *= 0.7;
+			break;
+		}
+		case EPhysicalSurface::SurfaceType4:	//Arm
+		{
+			DamageVal *= 0.8;
+			break;
+		}
+		}
+
+		UGameplayStatics::ApplyPointDamage(
+			InDamageActor,
+			DamageVal,
+			InDamageFromDrection,
+			InHitResult,
+			GetController(),
+			this,
+			UDamageType::StaticClass());
+	}
+}
+
+void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
+{
+	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+	{
+		//MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
+		MyPlayerState->Health -= Damage;
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Health : %f"), MyPlayerState->Health));
+	}
+}
+
+AFPSGamePlayerController* AFPSGameCharacterBase::GetFPSPlayerControllerOnServer()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (AFPSGamePlayerController * TmpPlayerController = Cast<AFPSGamePlayerController>(It->Get()))
+		{
+			if (this == Cast<AFPSGameCharacterBase>(TmpPlayerController->GetPawn()))
+			{
+				return TmpPlayerController;
+			}
+		}
+	}
+	return nullptr;
 }

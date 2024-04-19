@@ -35,6 +35,8 @@ public:
 	void PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake);
 	void CrosshairRecoil();
 
+	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+
 public:
 	UUI_Crosshair* CrosshairUI;
 };
