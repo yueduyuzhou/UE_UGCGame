@@ -96,12 +96,12 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 	return nullptr;
 }
 
-void AFPSGameCharacterBase::ChangeWalkWpeedOnServer_Implementation(float InValue)
+void AFPSGameCharacterBase::ChangeWalkWeaponOnServer_Implementation(float InValue)
 {
 	CharacterMovement->MaxWalkSpeed = InValue;
 }
 
-void AFPSGameCharacterBase::RifleWpeedFireOnServer_Implementation(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
+void AFPSGameCharacterBase::RifleWeaponFireOnServer_Implementation(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
 {
 	if (WeaponPrimaryServer)
 	{
@@ -162,6 +162,38 @@ void AFPSGameCharacterBase::ServerCallClientFireWeapon_Implementation()
 	}
 }
 
+void AFPSGameCharacterBase::ServerCallClientWeaponRecoil_Implementation()
+{
+	if (WeaponPrimaryServer)
+	{
+		CurveXRecoilValue += 0.1;
+
+		if (UCurveFloat * WeaponVerticalRecoilCurve = WeaponPrimaryServer->WeaponVerticalRecoilCurve)
+		{
+			NewVerticalRecoilValue = WeaponVerticalRecoilCurve->GetFloatValue(CurveXRecoilValue);
+			VerticalRecoilDiffValue = NewVerticalRecoilValue - OldVerticalRecoilValue;
+			OldVerticalRecoilValue = NewVerticalRecoilValue;
+		}
+
+		if (UCurveFloat * WeaponHorizontalRecoilCurve = WeaponPrimaryServer->WeaponHorizontalRecoilCurve)
+		{
+			NewHorizontalRecoilValue = WeaponHorizontalRecoilCurve->GetFloatValue(CurveXRecoilValue);
+			HorizontalRecoilDiffValue = NewHorizontalRecoilValue - OldHorizontalRecoilValue;
+			OldHorizontalRecoilValue = NewHorizontalRecoilValue;
+		}
+
+		if (FPSPlayerController)
+		{
+			FRotator OldRotataion = FPSPlayerController->GetControlRotation();
+			FPSPlayerController->SetControlRotation(
+				FRotator(
+					OldRotataion.Pitch + VerticalRecoilDiffValue,
+					OldRotataion.Yaw + HorizontalRecoilDiffValue,
+					OldRotataion.Roll));
+		}
+	}
+}
+
 void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -176,6 +208,24 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 		if (FPSPlayerController)
 		{
 			FPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::ServerCallClientUpdateHealth_Implementation(const float& InHealth, const float& InMaxHealth)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
+		{
+			TmpFPSPlayerController->UpdateHealth(InHealth, InMaxHealth);
+		}
+	}
+	else
+	{
+		if (FPSPlayerController)
+		{
+			FPSPlayerController->UpdateHealth(InHealth, InMaxHealth);
 		}
 	}
 }
@@ -239,13 +289,13 @@ void AFPSGameCharacterBase::WeaponFireReleassed()
 void AFPSGameCharacterBase::LowSpeedWalk()
 {
 	CharacterMovement->MaxWalkSpeed = 300.f;
-	ChangeWalkWpeedOnServer(300.f);
+	ChangeWalkWeaponOnServer(300.f);
 }
 
 void AFPSGameCharacterBase::NormalSpeedWalk()
 {
 	CharacterMovement->MaxWalkSpeed = 600.f;
-	ChangeWalkWpeedOnServer(600.f);
+	ChangeWalkWeaponOnServer(600.f);
 }
 
 void AFPSGameCharacterBase::MoveForward(float Value)
@@ -308,22 +358,35 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 
 void AFPSGameCharacterBase::PrimaryWeaponFire()
 {
-	//子弹
-	if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
+	if (WeaponPrimaryServer)
 	{
-		//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
-		RifleWpeedFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Client CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
+		//子弹
+		if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
+		{
+			//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
+			RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
 
-		//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
-		ServerCallClientFireWeapon();
+			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
+			ServerCallClientFireWeapon();
+			ServerCallClientWeaponRecoil();
 
-		//III.连击
+			if (WeaponPrimaryServer->IsAutomaticWeapon())
+			{
+				//III.连击
+				GetWorldTimerManager().SetTimer(AutomaticFireTimerHandle, this, &AFPSGameCharacterBase::AutomaticFire, WeaponPrimaryServer->GetAutomaticFireRate(), true);
+			}
+		}
 	}
 }
 
 void AFPSGameCharacterBase::PrimaryWeaponStopFire()
 {
+	//清除连击计时器
+	GetWorldTimerManager().ClearTimer(AutomaticFireTimerHandle);
+	
+	//重置后坐力
+	ResetRecoil();
+	
 	//弹头延时销毁
 }
 
@@ -377,6 +440,38 @@ void AFPSGameCharacterBase::RifleLineTrace(FVector InCamreaLocation, FRotator In
 	}
 }
 
+void AFPSGameCharacterBase::AutomaticFire()
+{
+	if (WeaponPrimaryServer)
+	{
+		//子弹
+		if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
+		{
+			//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
+			RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+
+			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
+			ServerCallClientFireWeapon();
+			ServerCallClientWeaponRecoil();
+		}
+		else
+		{
+			PrimaryWeaponStopFire();
+		}
+	}
+}
+
+void AFPSGameCharacterBase::ResetRecoil()
+{
+	NewVerticalRecoilValue = 0;
+	OldVerticalRecoilValue = 0;
+	VerticalRecoilDiffValue = 0;
+	CurveXRecoilValue = 0;
+	NewHorizontalRecoilValue = 0;
+	OldHorizontalRecoilValue = 0;
+	HorizontalRecoilDiffValue = 0;
+}
+
 void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult)
 {
 	if (WeaponPrimaryServer)
@@ -422,9 +517,12 @@ void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AControlle
 {
 	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
 	{
-		//MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
-		MyPlayerState->Health -= Damage;
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Health : %f"), MyPlayerState->Health));
+		MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
+		ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+		if (MyPlayerState->Health <= 0)
+		{
+			//死亡
+		}
 	}
 }
 

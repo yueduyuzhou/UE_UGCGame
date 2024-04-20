@@ -45,10 +45,10 @@ public:
 	//RPG
 private:
 	UFUNCTION(server, reliable)
-		void ChangeWalkWpeedOnServer(float InValue);
+		void ChangeWalkWeaponOnServer(float InValue);
 
 	UFUNCTION(server, reliable)
-		void RifleWpeedFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+		void RifleWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientEquipPrimaryWeapon();
@@ -57,7 +57,13 @@ private:
 		void ServerCallClientFireWeapon();
 
 	UFUNCTION(client, reliable)
+		void ServerCallClientWeaponRecoil();
+
+	UFUNCTION(client, reliable)
 		void ServerCallClientUpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdateHealth(const float& InHealth, const float& InMaxHealth);
 
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
@@ -86,6 +92,12 @@ public:
 	void PrimaryWeaponFire();
 	void PrimaryWeaponStopFire();
 	void RifleLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
+	/*ÎäÆ÷Á¬»÷*/
+	void AutomaticFire();
+
+	/**/
+	void ResetRecoil();
 
 public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
@@ -120,4 +132,17 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		AFPSGamePlayerController* FPSPlayerController;
+
+private:
+	FTimerHandle AutomaticFireTimerHandle;
+
+	/*ºó×øÁ¦*/
+	float NewVerticalRecoilValue;
+	float OldVerticalRecoilValue;
+	float VerticalRecoilDiffValue;
+	float CurveXRecoilValue;
+
+	float NewHorizontalRecoilValue;
+	float OldHorizontalRecoilValue;
+	float HorizontalRecoilDiffValue;
 };

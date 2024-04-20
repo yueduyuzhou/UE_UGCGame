@@ -114,5 +114,16 @@ void AFPSGamePlayerController::CrosshairRecoil()
 
 void AFPSGamePlayerController::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
-	CrosshairUI->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+	if (CrosshairUI)
+	{
+		CrosshairUI->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+	}
+}
+
+void AFPSGamePlayerController::UpdateHealth(const float& InHealth, const float& InMaxHealth)
+{
+	if (CrosshairUI)
+	{
+		CrosshairUI->UpdateHealth(InHealth, InMaxHealth);
+	}
 }

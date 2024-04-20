@@ -48,6 +48,12 @@ public:
 	UPROPERTY(EditAnywhere)
 		float BaseDamage;
 
+	UPROPERTY(EditAnywhere)
+		UCurveFloat* WeaponVerticalRecoilCurve;
+
+	UPROPERTY(EditAnywhere)
+		UCurveFloat* WeaponHorizontalRecoilCurve;
+
 public:	
 	AWeaponBaseServer();
 
@@ -77,6 +83,9 @@ public:
 	FORCEINLINE void ExpendAmmo() { CurrentClipAmmo--; }
 	FORCEINLINE const int32& GetCurrentAmmo() { return CurrentAmmo; }
 
+	FORCEINLINE const float& GetAutomaticFireRate() { return AutomaticFireRate; }
+	FORCEINLINE bool IsAutomaticWeapon() { return IsAutomatic; }
+
 private:
 	UPROPERTY(EditAnywhere)
 		int32 CurrentAmmo;	//当前的弹药量
@@ -86,4 +95,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		int32 MaxClipAmmo;	//弹夹最大弹药量
+
+	UPROPERTY(EditAnywhere)
+		bool IsAutomatic;
+
+	UPROPERTY(EditAnywhere)
+		float AutomaticFireRate;
 };

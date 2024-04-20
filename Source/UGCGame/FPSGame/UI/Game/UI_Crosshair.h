@@ -9,6 +9,7 @@
 class UImage;
 class UOverlay;
 class UTextBlock;
+class UProgressBar;
 
 /**
  * 
@@ -21,6 +22,7 @@ class UGCGAME_API UUI_Crosshair : public UUI_FPSBase
 	UPROPERTY(meta = (BindWidget))
 		UOverlay* CrosshairOverlay;
 
+	/*×¼ÐÇ*/
 	UPROPERTY(meta = (BindWidget))
 		UImage* Top;
 
@@ -33,17 +35,39 @@ class UGCGAME_API UUI_Crosshair : public UUI_FPSBase
 	UPROPERTY(meta = (BindWidget))
 		UImage* Right;
 
+	/*×Óµ¯*/
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* CurrentClipAmmo;
 
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* CurrentAmmo;
 
+	/*ÑªÌõ*/
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		UTextBlock* HealthVal;
+
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		UProgressBar* HealthBar;
+
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		UImage* HealthIcon;
+
 public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void DoCrosshairRecoil();
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void DoHealthAnim(const int32& InHealth);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void InjureState();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void AgonalState();
+
+public:
 	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+	void UpdateHealth(const float& InHealth, const float& InMaxHealth);
 
 protected:
 	virtual void NativeConstruct();
