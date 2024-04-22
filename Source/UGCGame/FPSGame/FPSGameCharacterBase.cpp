@@ -14,13 +14,15 @@
 #include "FPSGamePlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
+#include "ThreadManage.h"
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
 	:BaseTurnRate(45.f)
-	,BaseLookUpRate(45.f)
+	, BaseLookUpRate(45.f)
+	, IsFireing(false)
+	, IsReloading(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
-
 
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 	PlayerCamera->SetupAttachment(RootComponent);
@@ -34,6 +36,15 @@ AFPSGameCharacterBase::AFPSGameCharacterBase()
 	Mesh->SetOwnerNoSee(true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+}
+
+void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsFireing, COND_None);
+	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsReloading, COND_None);
+
 }
 
 void AFPSGameCharacterBase::BeginPlay()
@@ -96,6 +107,18 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 	return nullptr;
 }
 
+AWeaponBaseServer* AFPSGameCharacterBase::GetCurrentServerWeapon()
+{
+	switch (ActiveWeapon)
+	{
+	case EWeaponType::AK47:
+	{
+		return WeaponPrimaryServer;
+	}
+	}
+	return nullptr;
+}
+
 void AFPSGameCharacterBase::ChangeWalkWeaponOnServer_Implementation(float InValue)
 {
 	CharacterMovement->MaxWalkSpeed = InValue;
@@ -103,6 +126,9 @@ void AFPSGameCharacterBase::ChangeWalkWeaponOnServer_Implementation(float InValu
 
 void AFPSGameCharacterBase::RifleWeaponFireOnServer_Implementation(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
 {
+	//Server设置开火标记
+	IsFireing = true;
+
 	if (WeaponPrimaryServer)
 	{
 		//广播枪口火花(多播)
@@ -113,11 +139,38 @@ void AFPSGameCharacterBase::RifleWeaponFireOnServer_Implementation(FVector InCam
 		MulticastFire();
 		
 		ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
-
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Server CurrentClipAmmo : %d"), WeaponPrimaryServer->GetCurrentClipAmmo()));
 	}
 
 	RifleLineTrace(InCamreaLocation, InCameraRotation, IsMoveing);
+}
+
+void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation()
+{
+	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	{
+		if (WeaponPrimaryServer)
+		{
+			if (WeaponPrimaryServer->GetCurrentAmmo() > 0 && WeaponPrimaryServer->GetCurrentClipAmmo() < WeaponPrimaryServer->GetMaxClipAmmo())
+			{
+				//设置换弹标志
+				IsReloading = true;
+
+				//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
+				ServerCallClientReloadAnimation();
+				MulticastReload();
+
+				GThread::Get()->GetCoroutines().BindUObject(
+					ClientWeapon->ClientArmReloadMontage->GetPlayLength(),
+					this,
+					&AFPSGameCharacterBase::ReloadDelayCallBack);
+			}
+		}
+	}
+}
+
+void AFPSGameCharacterBase::StopFireingOnServer_Implementation()
+{
+	IsFireing = false;
 }
 
 void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
@@ -230,6 +283,19 @@ void AFPSGameCharacterBase::ServerCallClientUpdateHealth_Implementation(const fl
 	}
 }
 
+void AFPSGameCharacterBase::ServerCallClientReloadAnimation_Implementation()
+{
+	if (AWeaponBaseClient * CurClientWeapon = GetCurrentClientWeapon())
+	{
+		if (UAnimMontage * ClientArmReloadMontage = CurClientWeapon->ClientArmReloadMontage)
+		{
+			//手臂播放动画
+			ClientArmAnimBP->Montage_Play(ClientArmReloadMontage);
+			CurClientWeapon->PlayReloadAnimation();
+		}
+	}
+}
+
 void AFPSGameCharacterBase::MulticastFire_Implementation()
 {
 	if (ClientBodyAnimBP)
@@ -237,6 +303,17 @@ void AFPSGameCharacterBase::MulticastFire_Implementation()
 		if (WeaponPrimaryServer)
 		{
 			ClientBodyAnimBP->Montage_Play(WeaponPrimaryServer->ClientBodyFireMontage);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::MulticastReload_Implementation()
+{
+	if (ClientBodyAnimBP)
+	{
+		if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
+		{
+			ClientBodyAnimBP->Montage_Play(ServerWeapon->ClientBodyReloadMontage);
 		}
 	}
 }
@@ -296,6 +373,28 @@ void AFPSGameCharacterBase::NormalSpeedWalk()
 {
 	CharacterMovement->MaxWalkSpeed = 600.f;
 	ChangeWalkWeaponOnServer(600.f);
+}
+
+void AFPSGameCharacterBase::AmmoReload()
+{
+	if (!IsFireing)
+	{
+		if (!IsReloading)
+		{
+			switch (ActiveWeapon)
+			{
+			case EWeaponType::AK47:
+			{
+				PrimaryWeaponReloadOnServer();
+				break;
+			}
+			case EWeaponType::DESERTEAGLE:
+			{
+				break;
+			}
+			}
+		}
+	}
 }
 
 void AFPSGameCharacterBase::MoveForward(float Value)
@@ -361,10 +460,17 @@ void AFPSGameCharacterBase::PrimaryWeaponFire()
 	if (WeaponPrimaryServer)
 	{
 		//子弹
-		if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
+		if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0 && !IsReloading)
 		{
 			//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
-			RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+			if (UKismetMathLibrary::VSize(GetVelocity()) > 0.1f)
+			{
+				RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), true);
+			}
+			else
+			{
+				RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+			}
 
 			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
 			ServerCallClientFireWeapon();
@@ -381,6 +487,9 @@ void AFPSGameCharacterBase::PrimaryWeaponFire()
 
 void AFPSGameCharacterBase::PrimaryWeaponStopFire()
 {
+	//Server清除开火标记
+	StopFireingOnServer();
+
 	//清除连击计时器
 	GetWorldTimerManager().ClearTimer(AutomaticFireTimerHandle);
 	
@@ -401,7 +510,13 @@ void AFPSGameCharacterBase::RifleLineTrace(FVector InCamreaLocation, FRotator In
 	{
 		if (IsMoveing)
 		{
-
+			EndLocation = InCamreaLocation + UKismetMathLibrary::GetForwardVector(InCameraRotation) * WeaponPrimaryServer->BulletDistance;
+			float RandomX = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponPrimaryServer->GetMoveingFireRandomRange(), WeaponPrimaryServer->GetMoveingFireRandomRange());
+			float RandomY = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponPrimaryServer->GetMoveingFireRandomRange(), WeaponPrimaryServer->GetMoveingFireRandomRange());
+			float RandomZ = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponPrimaryServer->GetMoveingFireRandomRange(), WeaponPrimaryServer->GetMoveingFireRandomRange());
+			EndLocation.X += RandomX;
+			EndLocation.Y += RandomY;
+			EndLocation.Z += RandomZ;
 		}
 		else
 		{
@@ -448,7 +563,14 @@ void AFPSGameCharacterBase::AutomaticFire()
 		if (WeaponPrimaryServer->GetCurrentClipAmmo() > 0)
 		{
 			//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
-			RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+			if (UKismetMathLibrary::VSize(GetVelocity()) > 0.1f)
+			{
+				RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), true);
+			}
+			else
+			{
+				RifleWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+			}
 
 			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
 			ServerCallClientFireWeapon();
@@ -470,6 +592,23 @@ void AFPSGameCharacterBase::ResetRecoil()
 	NewHorizontalRecoilValue = 0;
 	OldHorizontalRecoilValue = 0;
 	HorizontalRecoilDiffValue = 0;
+}
+
+void AFPSGameCharacterBase::ReloadDelayCallBack()
+{
+	if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
+	{
+		//换弹
+		ServerWeapon->ReloadAmmo();
+
+		//更新UI
+		ServerCallClientUpdateAmmo(
+			ServerWeapon->GetCurrentClipAmmo(),
+			ServerWeapon->GetCurrentAmmo());
+
+		//清除换弹标志
+		IsReloading = false;
+	}
 }
 
 void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult)

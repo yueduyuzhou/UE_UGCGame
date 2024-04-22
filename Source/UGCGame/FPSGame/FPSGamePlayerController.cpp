@@ -19,7 +19,7 @@ void AFPSGamePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Pressed, this, &AFPSGamePlayerController::Jump);
 	InputComponent->BindAction("LowSpeedWalk", IE_Pressed, this, &AFPSGamePlayerController::OnLeftShiftButtonDown);
 	InputComponent->BindAction("LowSpeedWalk", IE_Released, this, &AFPSGamePlayerController::OnLeftShiftButtonUp);
-	
+	InputComponent->BindAction("AmmoReload", IE_Pressed, this, &AFPSGamePlayerController::AmmoReload);
 
 	InputComponent->BindAxis("MoveForward", this, &AFPSGamePlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AFPSGamePlayerController::MoveRight);
@@ -64,6 +64,14 @@ void AFPSGamePlayerController::OnLeftShiftButtonUp()
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
 		MyCharacter->NormalSpeedWalk();
+	}
+}
+
+void AFPSGamePlayerController::AmmoReload()
+{
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->AmmoReload();
 	}
 }
 

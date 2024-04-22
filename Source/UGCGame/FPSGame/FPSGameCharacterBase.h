@@ -22,10 +22,10 @@ class UGCGAME_API AFPSGameCharacterBase : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* ArmMesh;
 
-	
-
 public:
 	AFPSGameCharacterBase();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,6 +41,7 @@ public:
 	void PurchaseWeapon(EWeaponType InWeaponType);
 
 	AWeaponBaseClient* GetCurrentClientWeapon();
+	AWeaponBaseServer* GetCurrentServerWeapon();
 
 	//RPG
 private:
@@ -49,6 +50,12 @@ private:
 
 	UFUNCTION(server, reliable)
 		void RifleWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+	
+	UFUNCTION(server, reliable)
+		void PrimaryWeaponReloadOnServer();
+
+	UFUNCTION(server, reliable)
+		void StopFireingOnServer();
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientEquipPrimaryWeapon();
@@ -65,8 +72,14 @@ private:
 	UFUNCTION(client, reliable)
 		void ServerCallClientUpdateHealth(const float& InHealth, const float& InMaxHealth);
 
+	UFUNCTION(client, reliable)
+		void ServerCallClientReloadAnimation();
+
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
+
+	UFUNCTION(NetMulticast, unreliable)
+		void MulticastReload();
 
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastBulletHole(const FVector& InLocation, const FRotator& InRotation);
@@ -77,6 +90,8 @@ public:
 
 	void LowSpeedWalk();
 	void NormalSpeedWalk();
+
+	void AmmoReload();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -96,8 +111,11 @@ public:
 	/*武器连击*/
 	void AutomaticFire();
 
-	/**/
+	/*重置后坐力*/
 	void ResetRecoil();
+
+	/*延时装载*/
+	void ReloadDelayCallBack();
 
 public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
@@ -132,6 +150,12 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		AFPSGamePlayerController* FPSPlayerController;
+	
+	UPROPERTY(Replicated)
+		bool IsFireing;
+
+	UPROPERTY(Replicated)
+		bool IsReloading;
 
 private:
 	FTimerHandle AutomaticFireTimerHandle;

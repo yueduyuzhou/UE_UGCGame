@@ -55,6 +55,20 @@ void AWeaponBaseServer::EquipWeapon()
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AWeaponBaseServer::ReloadAmmo()
+{
+	if (CurrentAmmo >= MaxClipAmmo - CurrentClipAmmo)
+	{
+		CurrentAmmo -= MaxClipAmmo - CurrentClipAmmo;
+		CurrentClipAmmo = MaxClipAmmo;
+	}
+	else
+	{
+		CurrentClipAmmo += CurrentAmmo;
+		CurrentAmmo = 0;
+	}
+}
+
 void AWeaponBaseServer::MulticastFireEffect_Implementation()
 {
 	if (GetOwner() != UGameplayStatics::GetPlayerPawn(GetWorld(), 0))

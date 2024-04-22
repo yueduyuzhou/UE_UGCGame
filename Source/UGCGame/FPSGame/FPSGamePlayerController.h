@@ -25,6 +25,7 @@ private:
 	void Jump();
 	void OnLeftShiftButtonDown();
 	void OnLeftShiftButtonUp();
+	void AmmoReload();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

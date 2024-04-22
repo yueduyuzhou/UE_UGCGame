@@ -40,6 +40,9 @@ public:
 		UAnimMontage* ClientBodyFireMontage;
 
 	UPROPERTY(EditAnywhere)
+		UAnimMontage* ClientBodyReloadMontage;
+
+	UPROPERTY(EditAnywhere)
 		float BulletDistance;
 
 	UPROPERTY(EditAnywhere)
@@ -68,6 +71,8 @@ public:
 	UFUNCTION()
 		void EquipWeapon();
 
+	void ReloadAmmo();
+
 public:
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFireEffect();
@@ -80,12 +85,14 @@ public:
 
 public:
 	FORCEINLINE const int32& GetCurrentClipAmmo() { return CurrentClipAmmo; }
-	FORCEINLINE void ExpendAmmo() { CurrentClipAmmo--; }
 	FORCEINLINE const int32& GetCurrentAmmo() { return CurrentAmmo; }
+	FORCEINLINE const int32& GetMaxClipAmmo() { return MaxClipAmmo; }
+	FORCEINLINE void ExpendAmmo() { CurrentClipAmmo--; }
 
 	FORCEINLINE const float& GetAutomaticFireRate() { return AutomaticFireRate; }
+	FORCEINLINE const float& GetMoveingFireRandomRange() { return MoveingFireRandomRange; }
 	FORCEINLINE bool IsAutomaticWeapon() { return IsAutomatic; }
-
+	
 private:
 	UPROPERTY(EditAnywhere)
 		int32 CurrentAmmo;	//当前的弹药量
@@ -101,4 +108,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		float AutomaticFireRate;
+
+	UPROPERTY(EditAnywhere)
+		float MoveingFireRandomRange;
 };

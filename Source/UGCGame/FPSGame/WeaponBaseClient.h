@@ -21,6 +21,9 @@ public:
 	UAnimMontage* ClientArmFireMontage;
 
 	UPROPERTY(EditAnywhere)
+	UAnimMontage* ClientArmReloadMontage;
+
+	UPROPERTY(EditAnywhere)
 	USoundBase* ClientWeaponFireSound;
 
 	UPROPERTY(EditAnywhere)
@@ -41,6 +44,9 @@ public:
 public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "FPSAnim")
 		void PlayShootAnimation();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "FPSAnim")
+		void PlayReloadAnimation();
 
 	void DisplayWeaponEffect();
 };
