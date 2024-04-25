@@ -118,6 +118,10 @@ public:
 	void ReloadDelayCallBack();
 
 public:
+	UFUNCTION(BlueprintImplementableEvent)
+		void UpdateFPSArmAnimBlend(const int32& InBlendIndex);
+
+public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
 	
 	UFUNCTION()
@@ -127,8 +131,11 @@ public:
 	AFPSGamePlayerController* GetFPSPlayerControllerOnServer();
 
 private:
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Replicated, meta = (AllowPrivateAccess = "true"))
 		EWeaponType ActiveWeapon;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+		EWeaponType StartWeaponType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		float BaseTurnRate;

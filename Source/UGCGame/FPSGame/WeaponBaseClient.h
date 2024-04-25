@@ -31,7 +31,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UCameraShake> CameraShakeClass;
-		
+	
+	UPROPERTY(EditAnywhere)
+	int32 ArmAnimBlendIndex;
+
 public:	
 	AWeaponBaseClient();
 

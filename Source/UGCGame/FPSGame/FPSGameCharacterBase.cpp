@@ -44,6 +44,7 @@ void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsFireing, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsReloading, COND_None);
+	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, ActiveWeapon, COND_None);
 
 }
 
@@ -69,7 +70,7 @@ void AFPSGameCharacterBase::StartWeapon()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		PurchaseWeapon(EWeaponType::AK47);
+		PurchaseWeapon(StartWeaponType);
 	}
 }
 
@@ -81,17 +82,37 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 	switch (InWeaponType)
 	{
 	case EWeaponType::AK47:
-	{
-		UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/Ak47/BP_Ak47_Server.BP_Ak47_Server_c'"));
-		AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
-		ServerWeapon->EquipWeapon();
-		EquipPrimaryWeapon(ServerWeapon);
-		break;
-	}
-	case EWeaponType::DESERTEAGLE:
-	{
+		{
+			//生成
+			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/Ak47/BP_Ak47_Server.BP_Ak47_Server_c'"));
+			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
+			
+			//设置当前持有武器类型
+			ActiveWeapon = EWeaponType::AK47;
+			
+			//预处理并装备当前持有武器
+			ServerWeapon->EquipWeapon();
+			EquipPrimaryWeapon(ServerWeapon);
+			break;
+		}
+	case EWeaponType::M4A1:
+		{
+			//生成
+			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/M4A1/BP_M4A1_Server.BP_M4A1_Server_c'"));
+			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
+			
+			//设置当前持有武器类型
+			ActiveWeapon = EWeaponType::M4A1;
 
-	}
+			//预处理并装备当前持有武器
+			ServerWeapon->EquipWeapon();
+			EquipPrimaryWeapon(ServerWeapon);
+			break;
+		}
+	case EWeaponType::DESERTEAGLE:
+		{
+
+		}
 	}
 }
 
@@ -100,9 +121,13 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
-	{
-		return WeaponPrimaryClient;
-	}
+		{
+			return WeaponPrimaryClient;
+		}
+	case EWeaponType::M4A1:
+		{
+			return WeaponPrimaryClient;
+		}
 	}
 	return nullptr;
 }
@@ -112,6 +137,10 @@ AWeaponBaseServer* AFPSGameCharacterBase::GetCurrentServerWeapon()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
+	{
+		return WeaponPrimaryServer;
+	}
+	case EWeaponType::M4A1:
 	{
 		return WeaponPrimaryServer;
 	}
@@ -182,9 +211,19 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
 		
-		WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, TEXT("WeaponSocket"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		FName SocketName = TEXT("WeaponSocket");
+		if (ActiveWeapon == EWeaponType::M4A1)
+		{
+			SocketName = TEXT("M4A1WeaponSocket");
+		}
+
+		WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
 		//调整手臂动画
+		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+			{
+				UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
+			});
 	}
 }
 
@@ -340,6 +379,11 @@ void AFPSGameCharacterBase::WeaponFirePressed()
 		PrimaryWeaponFire();
 		break;
 	}
+	case EWeaponType::M4A1:
+	{
+		PrimaryWeaponFire();
+		break;
+	}
 	case EWeaponType::DESERTEAGLE:
 	{
 		break;
@@ -352,6 +396,11 @@ void AFPSGameCharacterBase::WeaponFireReleassed()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
+	{
+		PrimaryWeaponStopFire();
+		break;
+	}
+	case EWeaponType::M4A1:
 	{
 		PrimaryWeaponStopFire();
 		break;
@@ -384,6 +433,11 @@ void AFPSGameCharacterBase::AmmoReload()
 			switch (ActiveWeapon)
 			{
 			case EWeaponType::AK47:
+			{
+				PrimaryWeaponReloadOnServer();
+				break;
+			}
+			case EWeaponType::M4A1:
 			{
 				PrimaryWeaponReloadOnServer();
 				break;
@@ -441,12 +495,13 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 {
 	if (WeaponPrimaryServer)
 	{
-
+		//切枪
 	}
 	else
 	{
 		WeaponPrimaryServer = InWeaponBaseServer;
 		WeaponPrimaryServer->SetOwner(this);
+
 		WeaponPrimaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 	
 		ServerCallClientEquipPrimaryWeapon();
