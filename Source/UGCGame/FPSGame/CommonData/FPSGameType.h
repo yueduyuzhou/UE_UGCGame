@@ -9,5 +9,6 @@ enum class EWeaponType : uint8
 {
 	AK47			UMETA(DisplayName = "Ak47"),
 	DESERTEAGLE		UMETA(DisplayName = "DesertEagle"),
-	M4A1			UMETA(DisplayName = "M4A1")
+	M4A1			UMETA(DisplayName = "M4A1"),
+	MP7				UMETA(DisplayName = "MP7")
 };

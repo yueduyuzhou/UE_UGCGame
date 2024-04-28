@@ -52,13 +52,22 @@ private:
 		void RifleWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 	
 	UFUNCTION(server, reliable)
+		void PsitolWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
+	UFUNCTION(server, reliable)
 		void PrimaryWeaponReloadOnServer();
+
+	UFUNCTION(server, reliable)
+		void SecondaryWeaponReloadOnServer();
 
 	UFUNCTION(server, reliable)
 		void StopFireingOnServer();
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientEquipPrimaryWeapon();
+
+	UFUNCTION(client, reliable)
+		void ServerCallClientEquipSecondaryWeapon();
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientFireWeapon();
@@ -100,13 +109,21 @@ public:
 	void LookUpAtRate(float Rate);
 
 public:
-	/*准备主武器*/
+	/*装备主武器*/
 	void EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
+
+	/*装备副武器*/
+	void EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
 
 	/*主武器（步枪）开/停火*/
 	void PrimaryWeaponFire();
 	void PrimaryWeaponStopFire();
 	void RifleLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
+	/*副武器（手枪）开/停火*/
+	void SecondaryWeaponFire();
+	void SecondaryWeaponStopFire();
+	void PistolLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 
 	/*武器连击*/
 	void AutomaticFire();
@@ -131,7 +148,7 @@ public:
 	AFPSGamePlayerController* GetFPSPlayerControllerOnServer();
 
 private:
-	UPROPERTY(EditAnywhere, Replicated, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, meta = (AllowPrivateAccess = "true"))
 		EWeaponType ActiveWeapon;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
@@ -143,12 +160,24 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		float BaseLookUpRate;
 
+	/*************
+	*	Weapon
+	**************/
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 		AWeaponBaseServer * WeaponPrimaryServer;
 
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 		AWeaponBaseClient * WeaponPrimaryClient;
 
+	UPROPERTY(meta = (AllowPrivateAccess = "true"))
+		AWeaponBaseServer * WeaponSecondServer;
+
+	UPROPERTY(meta = (AllowPrivateAccess = "true"))
+		AWeaponBaseClient * WeaponSecondClient;
+
+	/*************
+	*	Anim
+	**************/
 	UPROPERTY(BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UAnimInstance* ClientArmAnimBP;
 

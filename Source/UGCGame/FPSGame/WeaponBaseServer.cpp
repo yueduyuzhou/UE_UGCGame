@@ -42,17 +42,35 @@ void AWeaponBaseServer::OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedCo
 {
 	if (AFPSGameCharacterBase * FPSCharacter = Cast<AFPSGameCharacterBase>(OtherActor))
 	{
-		EquipWeapon();
-		FPSCharacter->EquipPrimaryWeapon(this);
+		//if (!GetOwner())
+		{
+			EquipWeapon();
+
+			if (WeapType == EWeaponType::DESERTEAGLE)
+			{
+				FPSCharacter->EquipSecondaryWeapon(this);
+			}
+			else
+			{
+				FPSCharacter->EquipPrimaryWeapon(this);
+			}
+		}
 	}
 }
 
 void AWeaponBaseServer::EquipWeapon()
 {
-	WeaponMesh->SetEnableGravity(false);
-	WeaponMesh->SetSimulatePhysics(false);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetEnableGravity(false);
+		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+			
+	if (SphereCollision)
+	{
+		SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void AWeaponBaseServer::ReloadAmmo()

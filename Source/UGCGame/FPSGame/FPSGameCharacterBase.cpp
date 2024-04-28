@@ -36,6 +36,12 @@ AFPSGameCharacterBase::AFPSGameCharacterBase()
 	Mesh->SetOwnerNoSee(true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+
+	WeaponPrimaryServer = nullptr;
+	WeaponPrimaryClient = nullptr;
+	WeaponSecondServer = nullptr;
+	WeaponSecondClient = nullptr;
+
 }
 
 void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,7 +51,6 @@ void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsFireing, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsReloading, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, ActiveWeapon, COND_None);
-
 }
 
 void AFPSGameCharacterBase::BeginPlay()
@@ -63,7 +68,6 @@ void AFPSGameCharacterBase::BeginPlay()
 void AFPSGameCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AFPSGameCharacterBase::StartWeapon()
@@ -109,9 +113,33 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			EquipPrimaryWeapon(ServerWeapon);
 			break;
 		}
+	case EWeaponType::MP7:
+		{
+			//生成
+			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/MP7/BP_MP7_Server.BP_MP7_Server_c'"));
+			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
+
+			//设置当前持有武器类型
+			ActiveWeapon = EWeaponType::MP7;
+
+			//预处理并装备当前持有武器
+			ServerWeapon->EquipWeapon();
+			EquipPrimaryWeapon(ServerWeapon);
+			break;
+		}
 	case EWeaponType::DESERTEAGLE:
 		{
+			//生成
+			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/DesertEagle/BP_DesertEagle_Server.BP_DesertEagle_Server_c'"));
+			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
 
+			//设置当前持有武器类型
+			ActiveWeapon = EWeaponType::DESERTEAGLE;
+
+			//预处理并装备当前持有武器
+			ServerWeapon->EquipWeapon();
+			EquipSecondaryWeapon(ServerWeapon);
+			break;
 		}
 	}
 }
@@ -128,6 +156,14 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 		{
 			return WeaponPrimaryClient;
 		}
+	case EWeaponType::MP7:
+		{
+			return WeaponPrimaryClient;
+		}
+	case EWeaponType::DESERTEAGLE:
+		{
+			return WeaponSecondClient;
+		}
 	}
 	return nullptr;
 }
@@ -137,13 +173,21 @@ AWeaponBaseServer* AFPSGameCharacterBase::GetCurrentServerWeapon()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
-	{
-		return WeaponPrimaryServer;
-	}
+		{
+			return WeaponPrimaryServer;
+		}
 	case EWeaponType::M4A1:
-	{
-		return WeaponPrimaryServer;
-	}
+		{
+			return WeaponPrimaryServer;
+		}
+	case EWeaponType::MP7:
+		{
+			return WeaponPrimaryServer;
+		}
+	case EWeaponType::DESERTEAGLE:
+		{
+			return WeaponSecondServer;
+		}
 	}
 	return nullptr;
 }
@@ -173,6 +217,26 @@ void AFPSGameCharacterBase::RifleWeaponFireOnServer_Implementation(FVector InCam
 	RifleLineTrace(InCamreaLocation, InCameraRotation, IsMoveing);
 }
 
+void AFPSGameCharacterBase::PsitolWeaponFireOnServer_Implementation(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
+{
+	//Server设置开火标记
+	IsFireing = true;
+
+	if (WeaponSecondServer)
+	{
+		//广播枪口火花(多播)
+		WeaponSecondServer->MulticastFireEffect();
+		WeaponSecondServer->ExpendAmmo();
+
+		//第三人称身体射击动画(多播)
+		MulticastFire();
+
+		ServerCallClientUpdateAmmo(WeaponSecondServer->GetCurrentClipAmmo(), WeaponSecondServer->GetCurrentAmmo());
+	}
+
+	PistolLineTrace(InCamreaLocation, InCameraRotation, IsMoveing);
+}
+
 void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation()
 {
 	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
@@ -180,6 +244,30 @@ void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation()
 		if (WeaponPrimaryServer)
 		{
 			if (WeaponPrimaryServer->GetCurrentAmmo() > 0 && WeaponPrimaryServer->GetCurrentClipAmmo() < WeaponPrimaryServer->GetMaxClipAmmo())
+			{
+				//设置换弹标志
+				IsReloading = true;
+
+				//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
+				ServerCallClientReloadAnimation();
+				MulticastReload();
+
+				GThread::Get()->GetCoroutines().BindUObject(
+					ClientWeapon->ClientArmReloadMontage->GetPlayLength(),
+					this,
+					&AFPSGameCharacterBase::ReloadDelayCallBack);
+			}
+		}
+	}
+}
+
+void AFPSGameCharacterBase::SecondaryWeaponReloadOnServer_Implementation()
+{
+	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	{
+		if (WeaponSecondServer)
+		{
+			if (WeaponSecondServer->GetCurrentAmmo() > 0 && WeaponSecondServer->GetCurrentClipAmmo() < WeaponSecondServer->GetMaxClipAmmo())
 			{
 				//设置换弹标志
 				IsReloading = true;
@@ -206,24 +294,68 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 {
 	if (WeaponPrimaryServer)
 	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.Owner = this;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
-		
-		FName SocketName = TEXT("WeaponSocket");
-		if (ActiveWeapon == EWeaponType::M4A1)
+		if (WeaponPrimaryClient)
 		{
-			SocketName = TEXT("M4A1WeaponSocket");
+
 		}
+		else
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = this;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
 
-		WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
-
-		//调整手臂动画
-		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+			FName SocketName = TEXT("WeaponSocket");
+			if (ActiveWeapon == EWeaponType::M4A1)
 			{
-				UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
-			});
+				SocketName = TEXT("M4A1WeaponSocket");
+			}
+			else if (ActiveWeapon == EWeaponType::MP7)
+			{
+				SocketName = TEXT("MP7WeaponSocket");
+			}
+
+			if (WeaponPrimaryClient)
+			{
+				WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+				//调整手臂动画
+				GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+					{
+						UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
+					});
+			}
+		}
+	}
+}
+
+void AFPSGameCharacterBase::ServerCallClientEquipSecondaryWeapon_Implementation()
+{
+	if (WeaponSecondServer)
+	{
+		if (WeaponSecondClient)
+		{
+
+		}
+		else
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = this;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			WeaponSecondClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponSecondServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
+
+			FName SocketName = TEXT("DesertEagleWeaponSocket");
+			if (WeaponSecondClient)
+			{
+				WeaponSecondClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+				//调整手臂动画
+				GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+					{
+						UpdateFPSArmAnimBlend(WeaponSecondClient->ArmAnimBlendIndex);
+					});
+			}			
+		}
 	}
 }
 
@@ -339,9 +471,9 @@ void AFPSGameCharacterBase::MulticastFire_Implementation()
 {
 	if (ClientBodyAnimBP)
 	{
-		if (WeaponPrimaryServer)
+		if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
 		{
-			ClientBodyAnimBP->Montage_Play(WeaponPrimaryServer->ClientBodyFireMontage);
+			ClientBodyAnimBP->Montage_Play(ServerWeapon->ClientBodyFireMontage);
 		}
 	}
 }
@@ -359,9 +491,9 @@ void AFPSGameCharacterBase::MulticastReload_Implementation()
 
 void AFPSGameCharacterBase::MulticastBulletHole_Implementation(const FVector& InLocation, const FRotator& InRotation)
 {
-	if (WeaponPrimaryServer)
+	if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
 	{
-		UDecalComponent* Decle = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), WeaponPrimaryServer->BulletHoleDecal, FVector(8, 8, 8), InLocation, InRotation, 10.f);
+		UDecalComponent* Decle = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), ServerWeapon->BulletHoleDecal, FVector(8, 8, 8), InLocation, InRotation, 10.f);
 		if (Decle)
 		{
 			//FadeScreenSize越小贴花显示的距离越远
@@ -375,19 +507,25 @@ void AFPSGameCharacterBase::WeaponFirePressed()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
-	{
-		PrimaryWeaponFire();
-		break;
-	}
+		{
+			PrimaryWeaponFire();
+			break;
+		}
 	case EWeaponType::M4A1:
-	{
-		PrimaryWeaponFire();
-		break;
-	}
+		{
+			PrimaryWeaponFire();
+			break;
+		}
+	case EWeaponType::MP7:
+		{
+			PrimaryWeaponFire();
+			break;
+		}
 	case EWeaponType::DESERTEAGLE:
-	{
-		break;
-	}
+		{
+			SecondaryWeaponFire();
+			break;
+		}
 	}
 }
 
@@ -396,19 +534,25 @@ void AFPSGameCharacterBase::WeaponFireReleassed()
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
-	{
-		PrimaryWeaponStopFire();
-		break;
-	}
+		{
+			PrimaryWeaponStopFire();
+			break;
+		}
 	case EWeaponType::M4A1:
-	{
-		PrimaryWeaponStopFire();
-		break;
-	}
+		{
+			PrimaryWeaponStopFire();
+			break;
+		}
+	case EWeaponType::MP7:
+		{
+			PrimaryWeaponStopFire();
+			break;
+		}
 	case EWeaponType::DESERTEAGLE:
-	{
-		break;
-	}
+		{
+			SecondaryWeaponStopFire();
+			break;
+		}
 	}
 }
 
@@ -433,19 +577,25 @@ void AFPSGameCharacterBase::AmmoReload()
 			switch (ActiveWeapon)
 			{
 			case EWeaponType::AK47:
-			{
-				PrimaryWeaponReloadOnServer();
-				break;
-			}
+				{
+					PrimaryWeaponReloadOnServer();
+					break;
+				}
 			case EWeaponType::M4A1:
-			{
-				PrimaryWeaponReloadOnServer();
-				break;
-			}
+				{
+					PrimaryWeaponReloadOnServer();
+					break;
+				}
+			case EWeaponType::MP7:
+				{
+					PrimaryWeaponReloadOnServer();
+					break;
+				}
 			case EWeaponType::DESERTEAGLE:
-			{
-				break;
-			}
+				{
+					SecondaryWeaponReloadOnServer();
+					break;
+				}
 			}
 		}
 	}
@@ -482,7 +632,6 @@ void AFPSGameCharacterBase::MoveRight(float Value)
 
 void AFPSGameCharacterBase::TurnAtRate(float Rate)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%f"), Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()));
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
@@ -507,6 +656,25 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 		ServerCallClientEquipPrimaryWeapon();
 
 		ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
+	}
+}
+
+void AFPSGameCharacterBase::EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBaseServer)
+{
+	if (WeaponSecondServer)
+	{
+		//切枪
+	}
+	else
+	{
+		WeaponSecondServer = InWeaponBaseServer;
+		WeaponSecondServer->SetOwner(this);
+
+		WeaponSecondServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+		ServerCallClientEquipSecondaryWeapon();
+
+		ServerCallClientUpdateAmmo(WeaponSecondServer->GetCurrentClipAmmo(), WeaponSecondServer->GetCurrentAmmo());
 	}
 }
 
@@ -589,8 +757,93 @@ void AFPSGameCharacterBase::RifleLineTrace(FVector InCamreaLocation, FRotator In
 		EDrawDebugTrace::Persistent,
 		HitResult,
 		true,
-		FLinearColor::Green,
 		FLinearColor::Red,
+		FLinearColor::Green,
+		5.f);
+
+	if (HitSuccess)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("%s"), *HitResult.Actor->GetName()));
+		if (AFPSGameCharacterBase * DamageCharacter = Cast<AFPSGameCharacterBase>(HitResult.Actor))
+		{
+			//应用伤害（Server）
+			DamagePlayer(HitResult.PhysMaterial.Get(), HitResult.Actor.Get(), InCamreaLocation, HitResult);
+		}
+		else
+		{
+			//生成弹孔（Multicast）
+			FRotator XRotation = UKismetMathLibrary::MakeRotFromX(HitResult.Normal);
+			MulticastBulletHole(HitResult.Location, XRotation);
+		}
+	}
+}
+
+void AFPSGameCharacterBase::SecondaryWeaponFire()
+{
+	if (WeaponSecondServer)
+	{
+		//子弹
+		if (WeaponSecondServer->GetCurrentClipAmmo() > 0 && !IsReloading)
+		{
+			//I.服务器：播放射击音效、枪口火花、减少弹药、射线检测、应用伤害、弹孔生成
+			if (UKismetMathLibrary::VSize(GetVelocity()) > 0.1f)
+			{
+				PsitolWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), true);
+			}
+			else
+			{
+				PsitolWeaponFireOnServer(PlayerCamera->GetComponentLocation(), PlayerCamera->GetComponentRotation(), false);
+			}
+
+			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
+			ServerCallClientFireWeapon();
+		}
+	}
+}
+
+void AFPSGameCharacterBase::SecondaryWeaponStopFire()
+{
+	//Server清除开火标记
+	StopFireingOnServer();
+}
+
+void AFPSGameCharacterBase::PistolLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing)
+{
+	FVector EndLocation;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(this);
+	FHitResult HitResult;
+
+	if (WeaponSecondServer)
+	{
+		if (IsMoveing)
+		{
+			EndLocation = InCamreaLocation + UKismetMathLibrary::GetForwardVector(InCameraRotation) * WeaponSecondServer->BulletDistance;
+			float RandomX = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponSecondServer->GetMoveingFireRandomRange(), WeaponSecondServer->GetMoveingFireRandomRange());
+			float RandomY = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponSecondServer->GetMoveingFireRandomRange(), WeaponSecondServer->GetMoveingFireRandomRange());
+			float RandomZ = UKismetMathLibrary::RandomFloatInRange(-1 * WeaponSecondServer->GetMoveingFireRandomRange(), WeaponSecondServer->GetMoveingFireRandomRange());
+			EndLocation.X += RandomX;
+			EndLocation.Y += RandomY;
+			EndLocation.Z += RandomZ;
+		}
+		else
+		{
+			EndLocation = InCamreaLocation + UKismetMathLibrary::GetForwardVector(InCameraRotation) * WeaponSecondServer->BulletDistance;
+		}
+	}
+
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(
+		GetWorld(),
+		InCamreaLocation,
+		EndLocation,
+		ETraceTypeQuery::TraceTypeQuery1,
+		false,
+		IgnoreActors,
+		EDrawDebugTrace::Persistent,
+		HitResult,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
 		5.f);
 
 	if (HitSuccess)
@@ -668,9 +921,9 @@ void AFPSGameCharacterBase::ReloadDelayCallBack()
 
 void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult)
 {
-	if (WeaponPrimaryServer)
+	if (AWeaponBaseServer * WeaponServer = GetCurrentServerWeapon())
 	{
-		float DamageVal = WeaponPrimaryServer->BaseDamage;
+		float DamageVal = WeaponServer->BaseDamage;
 
 		switch (InPhysicsMaterial->SurfaceType)
 		{
