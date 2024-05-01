@@ -22,14 +22,19 @@ AFPSGameGameMode::AFPSGameGameMode()
 	HUDClass = AFPSGameHUD::StaticClass();
 
 	PlayerStateClass = AFPSGamePlayerState::StaticClass();
+
+	GameStateClass = AUGCGameState::StaticClass();
 }
 
 void AFPSGameGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
-	{
-		UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
-	}
+	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+		{
+			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+			{
+				UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
+			}
+		});
 }

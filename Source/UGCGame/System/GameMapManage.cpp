@@ -92,11 +92,13 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 {
 	if (InWorld)
 	{
-		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
+		AUGCGameState* MyGameState = MethodUnit::GetGameState(InWorld);
+		if (MyGameState)
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Flag"));
 			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
-				//生成Elements
+				//生成Elements BUG
 				for (auto& Tmp : SaveMapData->Elements)
 				{
 					if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.ElementID))

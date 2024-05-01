@@ -35,6 +35,15 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 ArmAnimBlendIndex;
 
+	UPROPERTY(EditAnywhere)
+	float FieldOfView;
+
+	UPROPERTY(VisibleAnywhere, Category = "SinperUI")
+	UUserWidget* SinperScope;
+
+	UPROPERTY(EditAnywhere, Category = "SinperUI")
+	TSubclassOf<UUserWidget> SinperScopeClass;
+
 public:	
 	AWeaponBaseClient();
 

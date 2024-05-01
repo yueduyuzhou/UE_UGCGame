@@ -52,6 +52,9 @@ private:
 		void RifleWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 	
 	UFUNCTION(server, reliable)
+		void SniperWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
+	UFUNCTION(server, reliable)
 		void PsitolWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 
 	UFUNCTION(server, reliable)
@@ -62,6 +65,9 @@ private:
 
 	UFUNCTION(server, reliable)
 		void StopFireingOnServer();
+
+	UFUNCTION(server, reliable)
+		void SetIsAimingOnServer(bool InIsAiming);
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientEquipPrimaryWeapon();
@@ -84,6 +90,12 @@ private:
 	UFUNCTION(client, reliable)
 		void ServerCallClientReloadAnimation();
 
+	UFUNCTION(client, reliable)
+		void ClientAiming();
+
+	UFUNCTION(client, reliable)
+		void ClientEndAiming();
+
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
 
@@ -96,6 +108,9 @@ private:
 public:
 	void WeaponFirePressed();
 	void WeaponFireReleassed();
+
+	void WeaponAimingPressed();
+	void WeaponEndAimingReleassed();
 
 	void LowSpeedWalk();
 	void NormalSpeedWalk();
@@ -120,6 +135,11 @@ public:
 	void PrimaryWeaponStopFire();
 	void RifleLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 
+	/*Ö÷ÎäÆ÷£¨¾Ñ»÷Ç¹£©¿ª/Í£»ð*/
+	void SniperWeaponFire();
+	void SniperWeaponStopFire();
+	void SniperLineTrace(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
+
 	/*¸±ÎäÆ÷£¨ÊÖÇ¹£©¿ª/Í£»ð*/
 	void SecondaryWeaponFire();
 	void SecondaryWeaponStopFire();
@@ -133,6 +153,9 @@ public:
 
 	/*ÑÓÊ±×°ÔØ*/
 	void ReloadDelayCallBack();
+
+	/*¾Ñ»÷Ç¹¿ª»ð¼ä¸ô*/
+	void SniperFireDelayCallBack();
 
 public:
 	UFUNCTION(BlueprintImplementableEvent)
@@ -170,10 +193,10 @@ private:
 		AWeaponBaseClient * WeaponPrimaryClient;
 
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
-		AWeaponBaseServer * WeaponSecondServer;
+		AWeaponBaseServer * WeaponSecondaryServer;
 
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
-		AWeaponBaseClient * WeaponSecondClient;
+		AWeaponBaseClient * WeaponSecondaryClient;
 
 	/*************
 	*	Anim
@@ -193,6 +216,9 @@ private:
 	UPROPERTY(Replicated)
 		bool IsReloading;
 
+	UPROPERTY(Replicated)
+		bool IsAiming;
+
 private:
 	FTimerHandle AutomaticFireTimerHandle;
 
@@ -205,4 +231,7 @@ private:
 	float NewHorizontalRecoilValue;
 	float OldHorizontalRecoilValue;
 	float HorizontalRecoilDiffValue;
+
+	float PsitolRecoilMin;
+	float PsitolRecoilMax;
 };

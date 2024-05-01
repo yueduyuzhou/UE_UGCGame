@@ -57,6 +57,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		UCurveFloat* WeaponHorizontalRecoilCurve;
 
+	UPROPERTY(EditAnywhere, Category = "Psitol Weapon Data")
+		float PsitolRecoilRate;
+
 public:	
 	AWeaponBaseServer();
 
@@ -92,7 +95,8 @@ public:
 	FORCEINLINE const float& GetAutomaticFireRate() { return AutomaticFireRate; }
 	FORCEINLINE const float& GetMoveingFireRandomRange() { return MoveingFireRandomRange; }
 	FORCEINLINE bool IsAutomaticWeapon() { return IsAutomatic; }
-	
+	FORCEINLINE const float& GetResetRecoilFrequency() { return ResetRecoilFrequency; }
+
 private:
 	UPROPERTY(EditAnywhere)
 		int32 CurrentAmmo;	//当前的弹药量
@@ -111,4 +115,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		float MoveingFireRandomRange;
+
+	UPROPERTY(EditAnywhere, Category = "Psitol Weapon Data")
+		float ResetRecoilFrequency;
 };

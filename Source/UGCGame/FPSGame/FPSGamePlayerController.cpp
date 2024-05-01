@@ -16,9 +16,15 @@ void AFPSGamePlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("LeftMouseButton", IE_Pressed, this, &AFPSGamePlayerController::OnLeftMouseButtonDown);
 	InputComponent->BindAction("LeftMouseButton", IE_Released, this, &AFPSGamePlayerController::OnLeftMouseButtonUp);
+
+	InputComponent->BindAction("RightMouseButton", IE_Pressed, this, &AFPSGamePlayerController::OnRightMouseButtonDown);
+	InputComponent->BindAction("RightMouseButton", IE_Released, this, &AFPSGamePlayerController::OnRightMouseButtonUp);
+
 	InputComponent->BindAction("Jump", IE_Pressed, this, &AFPSGamePlayerController::Jump);
+
 	InputComponent->BindAction("LowSpeedWalk", IE_Pressed, this, &AFPSGamePlayerController::OnLeftShiftButtonDown);
 	InputComponent->BindAction("LowSpeedWalk", IE_Released, this, &AFPSGamePlayerController::OnLeftShiftButtonUp);
+
 	InputComponent->BindAction("AmmoReload", IE_Pressed, this, &AFPSGamePlayerController::AmmoReload);
 
 	InputComponent->BindAxis("MoveForward", this, &AFPSGamePlayerController::MoveForward);
@@ -40,6 +46,22 @@ void AFPSGamePlayerController::OnLeftMouseButtonUp()
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
 		MyCharacter->WeaponFireReleassed();
+	}
+}
+
+void AFPSGamePlayerController::OnRightMouseButtonDown()
+{
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->WeaponAimingPressed();
+	}
+}
+
+void AFPSGamePlayerController::OnRightMouseButtonUp()
+{
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->WeaponEndAimingReleassed();
 	}
 }
 
