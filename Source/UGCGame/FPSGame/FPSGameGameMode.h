@@ -17,6 +17,9 @@ class UGCGAME_API AFPSGameGameMode : public AGameModeBase
 public:
 	AFPSGameGameMode();
 
+private:
+	void SpawnPlayerCharacters();
+
 protected:
 	virtual void BeginPlay() override;
 };

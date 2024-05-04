@@ -28,7 +28,6 @@ class UGCGAME_API UUI_SearchPanel : public UUI_Base
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUI_MapSearchSlot> MapSearchSlotClass;
 
-
 protected:
 	virtual void NativeConstruct() override;
 

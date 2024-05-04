@@ -19,6 +19,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* PingMs;
 
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* PlayerCount;
+
 	UPROPERTY(BlueprintReadOnly)
 	FBlueprintSessionResult SessionRes;
 
@@ -26,6 +29,7 @@ public:
 	virtual void OnClickedWidget();
 
 public:
+	UFUNCTION(BlueprintCallable)
 	void SetInfo(FBlueprintSessionResult InSessionRes);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)

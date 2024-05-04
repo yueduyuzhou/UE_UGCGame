@@ -19,7 +19,15 @@ void UUI_MapSearchSlot::OnClickedWidget()
 void UUI_MapSearchSlot::SetInfo(FBlueprintSessionResult InSessionRes)
 {
 	SessionRes = InSessionRes;
-	PingMs->SetText(FText::FromString(FString::FromInt(InSessionRes.OnlineResult.PingInMs)));
+	PingMs->SetText(FText::FromString(FString::FromInt(InSessionRes.OnlineResult.PingInMs) + TEXT("Ms")));
 	MapName->SetText(FText::FromString(InSessionRes.OnlineResult.GetSessionIdStr()));
 	
+	int32 MaxPlayers = InSessionRes.OnlineResult.Session.SessionSettings.NumPublicConnections + InSessionRes.OnlineResult.Session.SessionSettings.NumPrivateConnections;
+	int32 CurPlayers = MaxPlayers - InSessionRes.OnlineResult.Session.NumOpenPublicConnections;
+	PlayerCount->SetText(
+		FText::FromString(
+			FString::FromInt(CurPlayers) + 
+			TEXT("/") + 
+			FString::FromInt(MaxPlayers))
+	);
 }
