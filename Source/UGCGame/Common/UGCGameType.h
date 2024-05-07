@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UGCGameType.generated.h"
 
 UENUM(BlueprintType)
 enum class EElementModifyType : uint8
@@ -20,3 +21,26 @@ enum class ESlotType : uint8
 	EFFECT_PROP			UMETA(DisplayName = "Effect Prop")
 };
 
+UENUM(BlueprintType)
+enum class ETeamType : uint8
+{
+	TEAM_RED,
+	TEAM_BLUE,
+};
+
+USTRUCT(BlueprintType)
+struct FPlayerNetData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	int32 PlayerID;
+
+	UPROPERTY()
+	ETeamType Team;
+};
+
+FORCEINLINE bool operator==(const FPlayerNetData& InA, const FPlayerNetData& InB)
+{
+	return InA.PlayerID == InB.PlayerID;
+}

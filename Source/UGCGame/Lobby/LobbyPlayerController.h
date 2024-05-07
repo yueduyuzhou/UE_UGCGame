@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "LobbyPlayerController.generated.h"
+
+class UUI_PlayerList;
 
 /**
  * 
@@ -16,4 +19,23 @@ class UGCGAME_API ALobbyPlayerController : public APlayerController
 
 	ALobbyPlayerController();
 
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
+
+public:
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdatePlayerList(const TArray<FPlayerNetData>& InPlayerDatas);
+
+	UFUNCTION(server, reliable)
+		void PlayerListChangeOnServer(const FPlayerNetData& InPlayerData);
+
+public:
+	void SetPlayerList(UUI_PlayerList* InPlayerList);
+
+public:
+	UPROPERTY(Replicated)
+	int32 PlayerID;
+
+private:
+	UUI_PlayerList* PlayerList;
 };

@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Common/UGCGameType.h"
 #include "UGCGameInstance.generated.h"
+
 
 /**
  * 
@@ -16,4 +18,5 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 
 public:
 	FString LoadMapName;
+	TArray<FPlayerNetData> PlayerDatas;
 };

@@ -6,12 +6,7 @@
 #include "../EffectElement.h"
 #include "EE_SpawnPoint.generated.h"
 
-UENUM()
-enum class ETeamType : uint8
-{
-	TEAM_RED,
-	TEAM_BLUE,
-};
+enum class ETeamType : uint8;
 
 /**
  * 
