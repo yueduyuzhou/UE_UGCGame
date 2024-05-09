@@ -6,6 +6,7 @@
 #include "../LobbyPlayerState.h"
 #include "../LobbyGameState.h"
 #include "../LobbyPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "ThreadManage.h"
 
 ALobbyPlayersGameMode::ALobbyPlayersGameMode()
@@ -14,7 +15,12 @@ ALobbyPlayersGameMode::ALobbyPlayersGameMode()
 
 	PlayerStateClass = ALobbyPlayerState::StaticClass();
 
-	PlayerControllerClass = ALobbyPlayerController::StaticClass();
+	static ConstructorHelpers::FClassFinder<APlayerController> PlayerControllerBPClass(TEXT("/Game/BP/Lobby/BP_LobbyPlayerController"));
+	if (PlayerControllerBPClass.Class != NULL)
+	{
+		PlayerControllerClass = PlayerControllerBPClass.Class;
+	}
+	//PlayerControllerClass = ALobbyPlayerController::StaticClass();
 
 	bUseSeamlessTravel = true;
 }
@@ -28,6 +34,34 @@ void ALobbyPlayersGameMode::NotifyAllPlayerUpdateList()
 			if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(It->Get()))
 			{
 				MyPC->ServerCallClientUpdatePlayerList(MyGameInstance->PlayerDatas);
+			}
+		}
+	}
+}
+
+void ALobbyPlayersGameMode::NotifyAllPlayerAddMassage(const FString& InMsg)
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(It->Get()))
+		{
+			MyPC->ServerCallClientAddMassage(InMsg);
+		}
+	}
+}
+
+void ALobbyPlayersGameMode::NotifyAllClientQuit()
+{
+	if (ALobbyPlayerController * LocalLobbyPC = GetLocalPlayerController())
+	{
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(It->Get()))
+			{
+				if (LocalLobbyPC->PlayerID != MyPC->PlayerID)
+				{
+					MyPC->ServerCallClientQuit();
+				}
 			}
 		}
 	}
@@ -64,6 +98,18 @@ void ALobbyPlayersGameMode::RemovePlayerDataInInstance(const FPlayerNetData& InP
 	}
 }
 
+ALobbyPlayerController* ALobbyPlayersGameMode::GetLocalPlayerController()
+{
+	if (AController * LocalPC = GetWorld()->GetFirstPlayerController())
+	{
+		if (ALobbyPlayerController * LocalLobbyPC = Cast<ALobbyPlayerController>(LocalPC))
+		{
+			return LocalLobbyPC;
+		}
+	}
+	return nullptr;
+}
+
 void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -74,7 +120,9 @@ void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)
 		FPlayerNetData TmpPlayerData;
 		TmpPlayerData.PlayerID = MyPC->PlayerID;
 		TmpPlayerData.Team = ETeamType::TEAM_RED;
+
 		AddPlayerDataInInstance(TmpPlayerData);
+		MyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
 
 		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
 			{
@@ -86,13 +134,15 @@ void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)
 void ALobbyPlayersGameMode::Logout(AController* Exiting)
 {
 	Super::Logout(Exiting);
-
+	
 	if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(Exiting))
 	{
 		FPlayerNetData TmpPlayerData;
 		TmpPlayerData.PlayerID = MyPC->PlayerID;
 		TmpPlayerData.Team = ETeamType::TEAM_RED;
+
 		RemovePlayerDataInInstance(TmpPlayerData);
+
 		NotifyAllPlayerUpdateList();
 	}
 }

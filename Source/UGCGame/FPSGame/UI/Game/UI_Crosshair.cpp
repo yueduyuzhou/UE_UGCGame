@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ThreadManage.h"
 #include "UI_Crosshair.h"
+#include "ThreadManage.h"
 #include "../../FPSGamePlayerController.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"

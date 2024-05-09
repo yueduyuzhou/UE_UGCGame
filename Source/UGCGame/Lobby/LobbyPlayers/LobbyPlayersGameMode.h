@@ -17,13 +17,27 @@ class UGCGAME_API ALobbyPlayersGameMode : public AGameModeBase
 public:
 	ALobbyPlayersGameMode();
 
+	/**********************************************************************
+	*	Notify All Client Method
+	**********************************************************************/
 	void NotifyAllPlayerUpdateList();
+	void NotifyAllPlayerAddMassage(const FString& InMsg);
 
+	UFUNCTION(BlueprintCallable)
+	void NotifyAllClientQuit();
+	
+	/**********************************************************************
+	*	Instance
+	**********************************************************************/
 	void AddPlayerDataInInstance(const FPlayerNetData& InPlayerData);
 	void RemovePlayerDataInInstance(const FPlayerNetData& InPlayerData);
 
+	/**********************************************************************
+	*	PlayerController
+	**********************************************************************/
+	ALobbyPlayerController* GetLocalPlayerController();
+
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer);
-
 	virtual void Logout(AController* Exiting);
 };

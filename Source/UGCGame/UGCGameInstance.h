@@ -19,4 +19,5 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 public:
 	FString LoadMapName;
 	TArray<FPlayerNetData> PlayerDatas;
+	FPlayerNetData LocalPlayerData;
 };

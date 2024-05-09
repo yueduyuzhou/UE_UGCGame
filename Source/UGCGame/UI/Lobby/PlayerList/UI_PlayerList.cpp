@@ -8,6 +8,9 @@
 #include "../../../Lobby/LobbyPlayerController.h"
 #include "Components/VerticalBox.h"
 #include "Components/Button.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "ThreadManage.h"
+#include "../../../Lobby/LobbyPlayers/LobbyPlayersGameMode.h"
 
 void UUI_PlayerList::NativeConstruct()
 {
@@ -19,6 +22,7 @@ void UUI_PlayerList::NativeConstruct()
 
 	RedSelectButton->OnClicked.AddDynamic(this, &UUI_PlayerList::RedSelectButtonClick);
 	BlueSelectButton->OnClicked.AddDynamic(this, &UUI_PlayerList::BlueSelectButtonClick);
+	StartGame->OnClicked.AddDynamic(this, &UUI_PlayerList::StartGameButtonClick);
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
@@ -32,55 +36,56 @@ void UUI_PlayerList::NativeConstruct()
 
 void UUI_PlayerList::AddNewPlayer(const ETeamType& InTeamType, const int32& InPlayerID)
 {
-	if (UUI_PlayerListSlot * SlotWidget = CreateWidget<UUI_PlayerListSlot>(GetWorld(), PlayerListSlotClass))
+	if (!GetWorld()->IsPendingKill())
 	{
-		if (InTeamType == ETeamType::TEAM_RED)
+		if (UUI_PlayerListSlot * SlotWidget = CreateWidget<UUI_PlayerListSlot>(GetWorld(), PlayerListSlotClass))
 		{
-			if (RedPlayers)
+			if (InTeamType == ETeamType::TEAM_RED)
 			{
-				if (UPanelSlot * PanelSlot = RedPlayers->AddChild(Cast<UWidget>(SlotWidget)))
+				if (RedPlayers)
 				{
-					SlotWidget->SetPlayerName(FString::FromInt(InPlayerID));
-
-
+					if (UPanelSlot * PanelSlot = RedPlayers->AddChild(Cast<UWidget>(SlotWidget)))
+					{
+						SlotWidget->SetPlayerName(FString::FromInt(InPlayerID));
+					}
 				}
 			}
-		}
-		else if (InTeamType == ETeamType::TEAM_BLUE)
-		{
-			if (BluePlayers)
+			else if (InTeamType == ETeamType::TEAM_BLUE)
 			{
-				if (UPanelSlot * PanelSlot = BluePlayers->AddChild(Cast<UWidget>(SlotWidget)))
+				if (BluePlayers)
 				{
-					SlotWidget->SetPlayerName(FString::FromInt(InPlayerID));
+					if (UPanelSlot * PanelSlot = BluePlayers->AddChild(Cast<UWidget>(SlotWidget)))
+					{
+						SlotWidget->SetPlayerName(FString::FromInt(InPlayerID));
+					}
 				}
 			}
-		}
 
-		if (GetLocalRole() == ROLE_Authority)
-		{
-			if (GetPlayerID() == InPlayerID)
+			if (GetLocalRole() == ROLE_Authority)
 			{
-				SlotWidget->SetButtonText(FString(TEXT("Self")));
+				if (GetPlayerID() == InPlayerID)
+				{
+					SlotWidget->SetButtonText(FString(TEXT("Self")));
+				}
+				else
+				{
+					SlotWidget->SetButtonText(FString(TEXT("Kick")));
+				}
 			}
 			else
 			{
-				SlotWidget->SetButtonText(FString(TEXT("Kick")));
+				if (GetPlayerID() == InPlayerID)
+				{
+					SlotWidget->SetButtonText(FString(TEXT("Self")));
+				}
+				else
+				{
+					SlotWidget->SetButtonText(FString(TEXT("Other")));
+					SlotWidget->SetPlayerButtonEnable(false);
+				}
 			}
+			SlotWidget->SetPlayerID(InPlayerID);
 		}
-		else
-		{
-			if (GetPlayerID() == InPlayerID)
-			{
-				SlotWidget->SetButtonText(FString(TEXT("Self")));
-			}
-			else
-			{
-				SlotWidget->SetButtonText(FString(TEXT("Other")));
-				SlotWidget->SetPlayerButtonEnable(false);
-			}
-		}
-		SlotWidget->SetPlayerID(InPlayerID);
 	}
 }
 
@@ -138,6 +143,11 @@ ENetRole UUI_PlayerList::GetLocalRole()
 	return ENetRole::ROLE_None;
 }
 
+bool UUI_PlayerList::IsAuthority()
+{
+	return GetLocalRole() == ROLE_Authority;
+}
+
 int32 UUI_PlayerList::GetPlayerID()
 {
 	if (APlayerController * MyPC = GetWorld()->GetFirstPlayerController())
@@ -159,6 +169,7 @@ void UUI_PlayerList::RedSelectButtonClick()
 			FPlayerNetData TmpPlayerData;
 			TmpPlayerData.PlayerID = LobbyPC->PlayerID;
 			TmpPlayerData.Team = ETeamType::TEAM_RED;
+			LobbyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
 			LobbyPC->PlayerListChangeOnServer(TmpPlayerData);
 		}
 	}
@@ -173,7 +184,27 @@ void UUI_PlayerList::BlueSelectButtonClick()
 			FPlayerNetData TmpPlayerData;
 			TmpPlayerData.PlayerID = LobbyPC->PlayerID;
 			TmpPlayerData.Team = ETeamType::TEAM_BLUE;
+			LobbyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
 			LobbyPC->PlayerListChangeOnServer(TmpPlayerData);
 		}
+	}
+}
+
+void UUI_PlayerList::StartGameButtonClick()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (UWorld * CurWorld = GetWorld())
+		{
+			GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+				{
+					FString Command = FString::Printf(TEXT("ServerTravel GameTemplateMap"));
+					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), *Command);
+				});
+		}
+	}
+	else
+	{
+
 	}
 }

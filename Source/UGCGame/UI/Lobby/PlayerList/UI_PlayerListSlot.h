@@ -36,6 +36,7 @@ public:
 	int32 GetPlayerIDFromName();
 
 	void SetPlayerID(const int32& InPlayerID);
+	int32 GetPlayerID();
 
 	ENetRole GetLocalRole();
 

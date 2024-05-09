@@ -4,6 +4,7 @@
 #include "UI_PlayerListSlot.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "../../../Lobby/LobbyPlayerController.h"
 
 void UUI_PlayerListSlot::NativeConstruct()
 {
@@ -39,6 +40,18 @@ void UUI_PlayerListSlot::SetPlayerID(const int32& InPlayerID)
 	PlayerID = InPlayerID;
 }
 
+int32 UUI_PlayerListSlot::GetPlayerID()
+{
+	if (APlayerController * MyPC = GetWorld()->GetFirstPlayerController())
+	{
+		if (ALobbyPlayerController * LobbyPC = Cast<ALobbyPlayerController>(MyPC))
+		{
+			return LobbyPC->PlayerID;
+		}
+	}
+	return INDEX_NONE;
+}
+
 ENetRole UUI_PlayerListSlot::GetLocalRole()
 {
 	if (APlayerController * MyPC = GetWorld()->GetFirstPlayerController())
@@ -50,6 +63,37 @@ ENetRole UUI_PlayerListSlot::GetLocalRole()
 
 void UUI_PlayerListSlot::PlayerButtonClick()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("Call PlayerButtonClick"));
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (GetPlayerID() == PlayerID)
+		{
+			//服务器的本地玩家
+		}
+		else
+		{
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(It->Get()))
+				{
+					if (MyPC->PlayerID == PlayerID)
+					{
+						MyPC->ServerCallClientQuit();
+						break;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		if (GetPlayerID() == PlayerID)
+		{
+			//客户端的本地玩家
+		}
+		else
+		{
+			//客户端的远端玩家
+		}
+	}
 	//Server:踢出房间
 }

@@ -5,7 +5,9 @@
 #include "Engine/World.h"
 #include "../System/GameMapManage.h"
 #include "../UI/Lobby/PlayerList/UI_PlayerList.h"
+#include "../UI/Lobby/ChatFrame/UI_ChatFrame.h"
 #include "LobbyPlayers/LobbyPlayersGameMode.h"
+#include "../UGCGameInstance.h"
 
 ALobbyPlayerController::ALobbyPlayerController()
 	:PlayerID(INDEX_NONE)
@@ -21,11 +23,44 @@ void ALobbyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME_CONDITION(ALobbyPlayerController, PlayerID, COND_None);
 }
 
+void ALobbyPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	/*if (UUGCGameInstance * MyGameInstance = GetGameInstance<UUGCGameInstance>())
+	{
+		if (MyGameInstance->LocalPlayerData.Team == ETeamType::TEAM_BLUE)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%d : Team Blue"), MyGameInstance->LocalPlayerData.PlayerID));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%d : Team Red"), MyGameInstance->LocalPlayerData.PlayerID));
+		}
+	}*/
+}
+
 void ALobbyPlayerController::ServerCallClientUpdatePlayerList_Implementation(const TArray<FPlayerNetData>& InPlayerDatas)
 {
 	if (PlayerList)
 	{
 		PlayerList->UpdatePlayerList(InPlayerDatas);
+	}
+}
+
+void ALobbyPlayerController::ServerCallClientQuit_Implementation()
+{
+	if (PlayerList)
+	{
+		PlayerList->QuitMap();
+	}
+}
+
+void ALobbyPlayerController::ServerCallClientUpdateLocalPlayerData_Implementation(const FPlayerNetData& InPlayerData)
+{
+	if (UUGCGameInstance * MyGameInstance = GetGameInstance<UUGCGameInstance>())
+	{
+		MyGameInstance->LocalPlayerData = InPlayerData;
 	}
 }
 
@@ -42,7 +77,31 @@ void ALobbyPlayerController::PlayerListChangeOnServer_Implementation(const FPlay
 	}
 }
 
+void ALobbyPlayerController::AddMassageOnServer_Implementation(const FString& InMsg)
+{
+	if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
+	{
+		if (ALobbyPlayersGameMode * LobbyGM = Cast<ALobbyPlayersGameMode>(MyGM))
+		{
+			LobbyGM->NotifyAllPlayerAddMassage(InMsg);
+		}
+	}
+}
+
+void ALobbyPlayerController::ServerCallClientAddMassage_Implementation(const FString& InMsg)
+{
+	if (ChatFrame)
+	{
+		ChatFrame->AddMassageToContent(InMsg);
+	}
+}
+
 void ALobbyPlayerController::SetPlayerList(UUI_PlayerList* InPlayerList)
 {
 	PlayerList = InPlayerList;
+}
+
+void ALobbyPlayerController::SetChatFrame(UUI_ChatFrame* InChatFrame)
+{
+	ChatFrame = InChatFrame;
 }

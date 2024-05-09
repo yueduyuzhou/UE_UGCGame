@@ -50,7 +50,16 @@ public:
 
 	void UpdatePlayerList(const TArray<FPlayerNetData>& InPlayersDatas);
 
-	UFUNCTION()
+	/***************************************************
+	*
+	****************************************************/
+	UFUNCTION(BlueprintCallable)
+	bool IsAuthority();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void QuitMap();
+	
+public:
 	ENetRole GetLocalRole();
 	int32 GetPlayerID();
 
@@ -59,4 +68,6 @@ private:
 	void RedSelectButtonClick();
 	UFUNCTION()
 	void BlueSelectButtonClick();
+	UFUNCTION()
+	void StartGameButtonClick();
 };

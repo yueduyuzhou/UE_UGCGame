@@ -26,6 +26,8 @@ AFPSGameGameMode::AFPSGameGameMode()
 	PlayerStateClass = AFPSGamePlayerState::StaticClass();
 
 	GameStateClass = AUGCGameState::StaticClass();
+
+	bUseSeamlessTravel = true;
 }
 
 void AFPSGameGameMode::SpawnPlayerCharacters()
