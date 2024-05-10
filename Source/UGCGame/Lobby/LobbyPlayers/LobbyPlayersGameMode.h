@@ -21,7 +21,7 @@ public:
 	*	Notify All Client Method
 	**********************************************************************/
 	void NotifyAllPlayerUpdateList();
-	void NotifyAllPlayerAddMassage(const FString& InMsg);
+	void NotifyAllPlayerAddMassage(const int32& InPlayerID, const FString& InMsg);
 
 	UFUNCTION(BlueprintCallable)
 	void NotifyAllClientQuit();

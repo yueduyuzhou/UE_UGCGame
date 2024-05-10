@@ -77,22 +77,22 @@ void ALobbyPlayerController::PlayerListChangeOnServer_Implementation(const FPlay
 	}
 }
 
-void ALobbyPlayerController::AddMassageOnServer_Implementation(const FString& InMsg)
+void ALobbyPlayerController::AddMassageOnServer_Implementation(const int32& InPlayerID, const FString& InMsg)
 {
 	if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
 	{
 		if (ALobbyPlayersGameMode * LobbyGM = Cast<ALobbyPlayersGameMode>(MyGM))
 		{
-			LobbyGM->NotifyAllPlayerAddMassage(InMsg);
+			LobbyGM->NotifyAllPlayerAddMassage(InPlayerID, InMsg);
 		}
 	}
 }
 
-void ALobbyPlayerController::ServerCallClientAddMassage_Implementation(const FString& InMsg)
+void ALobbyPlayerController::ServerCallClientAddMassage_Implementation(const int32& InPlayerID, const FString& InMsg)
 {
 	if (ChatFrame)
 	{
-		ChatFrame->AddMassageToContent(InMsg);
+		ChatFrame->AddMassageToContent(InPlayerID, InMsg);
 	}
 }
 

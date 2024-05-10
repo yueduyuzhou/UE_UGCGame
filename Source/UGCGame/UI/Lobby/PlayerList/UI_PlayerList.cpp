@@ -3,14 +3,16 @@
 
 #include "UI_PlayerList.h"
 #include "UI_PlayerListSlot.h"
+#include "UGCGame/UGCGameInstance.h"
 #include "../../../Common/UGCGameType.h"
 #include "../../../Lobby/LobbyGameState.h"
 #include "../../../Lobby/LobbyPlayerController.h"
+#include "../../../Lobby/LobbyPlayers/LobbyPlayersGameMode.h"
+#include "../Panel/NetSetting/UI_NetSetting.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Components/VerticalBox.h"
 #include "Components/Button.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "ThreadManage.h"
-#include "../../../Lobby/LobbyPlayers/LobbyPlayersGameMode.h"
 
 void UUI_PlayerList::NativeConstruct()
 {
@@ -196,11 +198,17 @@ void UUI_PlayerList::StartGameButtonClick()
 	{
 		if (UWorld * CurWorld = GetWorld())
 		{
-			GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-				{
-					FString Command = FString::Printf(TEXT("ServerTravel GameTemplateMap"));
-					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), *Command);
-				});
+			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(CurWorld->GetGameInstance()))
+			{
+				// ²Ù×÷Êý¾Ý
+				MyGameInstance->LoadMapName = Select_GameMap->GetCurrentValue().ToString();
+
+				GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+					{
+						FString Command = FString::Printf(TEXT("ServerTravel GameTemplateMap"));
+						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), *Command);
+					});
+			}
 		}
 	}
 	else

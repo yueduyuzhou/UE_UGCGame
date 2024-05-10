@@ -4,6 +4,8 @@
 #include "FPSGamePlayerController.h"
 #include "FPSGameCharacterBase.h"
 #include "FPSGameHUD.h"
+#include "UGCGame/UGCGameInstance.h"
+#include "FPSGameGameMode.h"
 
 AFPSGamePlayerController::AFPSGamePlayerController()
 {
@@ -126,6 +128,39 @@ void AFPSGamePlayerController::LookUpAtRate(float Rate)
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
 		MyCharacter->LookUpAtRate(Rate);
+	}
+}
+
+void AFPSGamePlayerController::ServerCallClientSendPlayerData_Implementation()
+{
+	if (UGameInstance * MyGI = GetWorld()->GetGameInstance())
+	{
+		if (UUGCGameInstance * MyUGCGI = Cast<UUGCGameInstance>(MyGI))
+		{
+			SendPlayerDataToServer(MyUGCGI->LocalPlayerData);
+		}
+	}
+}
+
+void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlayerNetData& InPlayerData)
+{
+	if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
+	{
+		if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
+		{
+			SpawnPlayerCharacter(
+				MyFPSGM->GetCharacterClass(InPlayerData.Team),
+				MyFPSGM->GetNextSpawnTransform(InPlayerData));
+		}
+	}
+}
+
+void AFPSGamePlayerController::SpawnPlayerCharacter(UClass* InCharacterClass, const FTransform& InTransform)
+{
+	APawn* NewCharacter = GetWorld()->SpawnActor<APawn>(InCharacterClass, InTransform);
+	if (NewCharacter)
+	{
+		Possess(NewCharacter);
 	}
 }
 

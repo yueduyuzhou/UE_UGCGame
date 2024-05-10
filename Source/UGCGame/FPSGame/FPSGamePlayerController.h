@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/Game/UI_Crosshair.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "FPSGamePlayerController.generated.h"
 
 /**
@@ -39,6 +40,21 @@ private:
 	void LookUpAtRate(float Rate);
 
 public:
+	UFUNCTION(client, reliable)
+		void ServerCallClientSendPlayerData();
+
+	UFUNCTION(server, reliable)
+		void SendPlayerDataToServer(const FPlayerNetData& InPlayerData);
+
+public:
+	/***********************************************************************
+	*	
+	***********************************************************************/
+	void SpawnPlayerCharacter(UClass* InCharacterClass, const FTransform& InTransform);
+
+	/***********************************************************************
+	*	Weapon
+	***********************************************************************/
 	void PlayerCameraShake(TSubclassOf<UCameraShake> InCameraShake);
 	void CrosshairRecoil();
 

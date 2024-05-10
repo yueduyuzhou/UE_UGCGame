@@ -39,13 +39,13 @@ void ALobbyPlayersGameMode::NotifyAllPlayerUpdateList()
 	}
 }
 
-void ALobbyPlayersGameMode::NotifyAllPlayerAddMassage(const FString& InMsg)
+void ALobbyPlayersGameMode::NotifyAllPlayerAddMassage(const int32& InPlayerID, const FString& InMsg)
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(It->Get()))
 		{
-			MyPC->ServerCallClientAddMassage(InMsg);
+			MyPC->ServerCallClientAddMassage(InPlayerID, InMsg);
 		}
 	}
 }

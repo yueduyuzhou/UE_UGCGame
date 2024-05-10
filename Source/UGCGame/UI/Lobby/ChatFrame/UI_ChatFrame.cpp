@@ -19,19 +19,16 @@ void UUI_ChatFrame::NativeConstruct()
 	SendButton->OnClicked.AddDynamic(this, &UUI_ChatFrame::SendButtonClick);
 }
 
-void UUI_ChatFrame::AddMassageToContent(const FString& InMsg)
+void UUI_ChatFrame::AddMassageToContent(const int32& InPlayerID, const FString& InMsg)
 {
 	if (MassageContent)
 	{
-		if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(GetWorld()->GetFirstPlayerController()))
+		//创建消息UI,添加到InputMassage
+		if (UUI_MassageText * SlotWidget = CreateWidget<UUI_MassageText>(GetWorld(), MassageTextClass))
 		{
-			//创建消息UI,添加到InputMassage
-			if (UUI_MassageText * SlotWidget = CreateWidget<UUI_MassageText>(GetWorld(), MassageTextClass))
-			{
-				SlotWidget->SetPlayer(FString::FromInt(MyPC->PlayerID));
-				SlotWidget->SetMassage(InMsg);
-				MassageContent->AddChild(Cast<UWidget>(SlotWidget));
-			}
+			SlotWidget->SetPlayer(FString::FromInt(InPlayerID));
+			SlotWidget->SetMassage(InMsg);
+			MassageContent->AddChild(Cast<UWidget>(SlotWidget));
 		}
 	}
 }
@@ -46,7 +43,7 @@ void UUI_ChatFrame::SendButtonClick()
 		{
 			if (ALobbyPlayerController * MyLobbyPC = Cast<ALobbyPlayerController>(MyPC))
 			{
-				MyLobbyPC->AddMassageOnServer(Msg);
+				MyLobbyPC->AddMassageOnServer(MyLobbyPC->PlayerID, Msg);
 			}
 		}
 	}

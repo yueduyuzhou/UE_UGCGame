@@ -37,10 +37,10 @@ public:
 		void PlayerListChangeOnServer(const FPlayerNetData& InPlayerData);
 
 	UFUNCTION(server, reliable)
-		void AddMassageOnServer(const FString& InMsg);
+		void AddMassageOnServer(const int32& InPlayerID, const FString& InMsg);
 
 	UFUNCTION(client, reliable)
-		void ServerCallClientAddMassage(const FString& InMsg);
+		void ServerCallClientAddMassage(const int32& InPlayerID, const FString& InMsg);
 
 public:
 	void SetPlayerList(UUI_PlayerList* InPlayerList);

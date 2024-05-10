@@ -18,4 +18,7 @@ class UGCGAME_API AEE_SpawnPoint : public AEffectElement
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Category = "EffectData")
 	ETeamType TeamType;
+
+public:
+	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
 };

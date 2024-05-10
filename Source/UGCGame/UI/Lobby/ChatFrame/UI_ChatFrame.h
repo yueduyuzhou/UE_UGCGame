@@ -35,7 +35,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void AddMassageToContent(const FString& InMsg);
+	void AddMassageToContent(const int32& InPlayerID, const FString& InMsg);
 
 private:
 	UFUNCTION()
