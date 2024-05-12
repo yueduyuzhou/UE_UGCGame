@@ -8,6 +8,9 @@
 
 void UUI_Crosshair::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[class UUI_Crosshair] : Call UpdateAmmo"));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class UUI_Crosshair] : Call UpdateAmmo")));
+	
 	CurrentClipAmmo->SetText(FText::FromString(FString::FromInt(InCurrentClipAmmo)));
 	CurrentAmmo->SetText(FText::FromString(FString::FromInt(InCurrentAmmo)));
 }
@@ -28,12 +31,24 @@ void UUI_Crosshair::UpdateHealth(const float& InHealth, const float& InMaxHealth
 	}
 }
 
-void UUI_Crosshair::NativeConstruct()
+void UUI_Crosshair::RegisterToPlayerController()
 {
-	Super::NativeConstruct();
-
 	if (AFPSGamePlayerController * PlayerController = Cast<AFPSGamePlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
 		PlayerController->CrosshairUI = this;
 	}
+	else
+	{
+		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
+			{
+				RegisterToPlayerController();
+			});
+	}
+}
+
+void UUI_Crosshair::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	RegisterToPlayerController();
 }

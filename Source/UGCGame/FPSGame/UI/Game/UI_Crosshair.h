@@ -69,6 +69,9 @@ public:
 	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
 	void UpdateHealth(const float& InHealth, const float& InMaxHealth);
 
+private:
+	void RegisterToPlayerController();
+
 protected:
 	virtual void NativeConstruct();
 

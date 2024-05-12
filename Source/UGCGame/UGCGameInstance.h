@@ -16,6 +16,8 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+	UUGCGameInstance();
+
 public:
 	FString LoadMapName;
 	TArray<FPlayerNetData> PlayerDatas;

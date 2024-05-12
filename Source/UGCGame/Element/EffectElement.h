@@ -13,5 +13,17 @@ UCLASS()
 class UGCGAME_API AEffectElement : public AElementBase
 {
 	GENERATED_BODY()
-	
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* VisiableMesh;
+
+public:
+	AEffectElement();
+
+	UFUNCTION(NetMulticast, reliable)
+	void SetNotVisibilityMulticast();
+
+public:
+	UFUNCTION(NetMulticast, reliable)
+		void MulticastDestroy();
 };

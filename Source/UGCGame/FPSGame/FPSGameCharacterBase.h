@@ -161,6 +161,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void UpdateFPSArmAnimBlend(const int32& InBlendIndex);
 
+	void UpdateAmmoForSuccessServer(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+	void UpdateAmmoForSuccessClient(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
+
 public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
 	

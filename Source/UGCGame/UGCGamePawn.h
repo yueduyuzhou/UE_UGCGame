@@ -26,6 +26,9 @@ class UGCGAME_API AUGCGamePawn : public ATransformerPawn
 public:
 	AUGCGamePawn();
 
+	virtual void OnComponentSelectionChange_Implementation(class USceneComponent* Component
+		, bool bSelected, bool bImplementsUFocusable);
+
 protected:
 	virtual void BeginPlay() override;
 

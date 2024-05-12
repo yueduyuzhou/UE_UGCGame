@@ -31,6 +31,9 @@ public:
 	//AFPSGamePlayerController* GetPlayerControllerByPlayerID(const int32& InPlayerID);
 	UClass* GetCharacterClass(const ETeamType& InType);
 
+	void AddSpawnCount();
+	FORCEINLINE const int32& GetSpawnCount() { return PlayerSpawnCount; }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer);
@@ -46,4 +49,6 @@ private:
 	TArray<AEE_SpawnPoint*> BlueSpawnPoints;
 	int32 RedIndex;
 	int32 BlueIndex;
+
+	int32 PlayerSpawnCount;
 };

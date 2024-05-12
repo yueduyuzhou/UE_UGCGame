@@ -2,3 +2,9 @@
 
 
 #include "UGCGameInstance.h"
+
+UUGCGameInstance::UUGCGameInstance()
+	:LoadMapName(TEXT("asd"))
+{
+
+}

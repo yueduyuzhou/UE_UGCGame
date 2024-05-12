@@ -6,7 +6,9 @@
 #include "../Element/BuildElement.h"
 #include "../Lobby/LobbyGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "../Element/EffectElement.h"
 #include "ThreadManage.h"
+
 
 TSharedPtr<UGameMapManage> UGameMapManage::GameMapManage = nullptr;
 
@@ -95,7 +97,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 		AUGCGameState* MyGameState = MethodUnit::GetGameState(InWorld);
 		if (MyGameState)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Flag"));
+			UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : Load Map Data And Spawn"));
 			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
 				//生成Elements BUG
@@ -106,9 +108,13 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 						if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
 						{
 							//TODO:分情况处理
-							if (ABuildElement * Element = Cast<ABuildElement>(MewElement))
+							if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
 							{
-								Element->SetElementMesh(ElementAttr->ElementMeth);
+								BElement->SetElementMesh(ElementAttr->ElementMeth);
+							}
+							else if(AEffectElement* EElement = Cast<AEffectElement>(MewElement))
+							{
+								EElement->SetNotVisibilityMulticast();
 							}
 						}
 					}

@@ -60,18 +60,28 @@ void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void AFPSGameCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	StartWeapon();
 
 	ClientArmAnimBP = ArmMesh->GetAnimInstance();
 	ClientBodyAnimBP = Mesh->GetAnimInstance();
 	FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
 
 	OnTakePointDamage.AddDynamic(this, &AFPSGameCharacterBase::OnHit);
+
+	StartWeapon();
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	/*if (GetLocalRole() == ROLE_Authority)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Authority Current ActiveWeapon = %d, Current StartWeapon = %d"), ActiveWeapon, StartWeaponType));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Current ActiveWeapon = %d, Current StartWeapon = %d"), ActiveWeapon, StartWeaponType));
+	}*/
 }
 
 void AFPSGameCharacterBase::StartWeapon()
@@ -371,30 +381,33 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
 
-			FName SocketName = TEXT("WeaponSocket");
-			if (ActiveWeapon == EWeaponType::M4A1)
-			{
-				SocketName = TEXT("M4A1WeaponSocket");
-			}
-			else if (ActiveWeapon == EWeaponType::MP7)
-			{
-				SocketName = TEXT("MP7WeaponSocket");
-			}
-			else if (ActiveWeapon == EWeaponType::SNIPER)
-			{
-				SocketName = TEXT("SniperWeaponSocket");
-			}
-
-			if (WeaponPrimaryClient)
-			{
-				WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
-
-				//调整手臂动画
-				GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+			GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+				{
+					FName SocketName = TEXT("WeaponSocket");
+					if (ActiveWeapon == EWeaponType::M4A1)
 					{
+						SocketName = TEXT("M4A1WeaponSocket");
+					}
+					else if (ActiveWeapon == EWeaponType::MP7)
+					{
+						SocketName = TEXT("MP7WeaponSocket");
+					}
+					else if (ActiveWeapon == EWeaponType::SNIPER)
+					{
+						SocketName = TEXT("SniperWeaponSocket");
+					}
+
+					if (WeaponPrimaryClient)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString());
+						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
+
+						WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+						//调整手臂动画
 						UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
-					});
-			}
+					}
+				});
 		}
 	}
 }
@@ -490,18 +503,40 @@ void AFPSGameCharacterBase::ServerCallClientWeaponRecoil_Implementation()
 
 void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
+	
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority Update Ammo"));
 		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo));
 			TmpFPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+		}
+		else
+		{
+			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
+				{
+					UpdateAmmoForSuccessServer(InCurrentClipAmmo, InCurrentAmmo);
+				}, InCurrentClipAmmo, InCurrentAmmo);
 		}
 	}
 	else
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Update Ammo"));
 		if (FPSPlayerController)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo));
 			FPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+		}
+		else
+		{
+			FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
+			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
+				{
+					UpdateAmmoForSuccessClient(InCurrentClipAmmo, InCurrentAmmo);
+				}, InCurrentClipAmmo, InCurrentAmmo);
 		}
 	}
 }
@@ -785,12 +820,19 @@ void AFPSGameCharacterBase::MoveRight(float Value)
 
 void AFPSGameCharacterBase::TurnAtRate(float Rate)
 {
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Current = %f"), Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()));
+	//Standalone Game视角转动变慢
+	float Tmp = Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds();
+
+	AddControllerYawInput(Tmp);
 }
 
 void AFPSGameCharacterBase::LookUpAtRate(float Rate)
 {
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Current = %f"), Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()));
+	float Tmp = Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds();
+	//Standalone Game视角转动变慢
+	AddControllerPitchInput(Tmp);
 }
 
 void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseServer)
@@ -801,6 +843,7 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 	}
 	else
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
 		WeaponPrimaryServer = InWeaponBaseServer;
 		WeaponPrimaryServer->SetOwner(this);
 
@@ -1185,6 +1228,41 @@ void AFPSGameCharacterBase::ReloadDelayCallBack()
 void AFPSGameCharacterBase::SniperFireDelayCallBack()
 {
 	IsFireing = false;
+}
+
+void AFPSGameCharacterBase::UpdateAmmoForSuccessServer(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
+{
+	if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo));
+		TmpFPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+	}
+	else
+	{
+		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
+			{
+				UpdateAmmoForSuccessServer(InCurrentClipAmmo, InCurrentAmmo);
+			}, InCurrentClipAmmo, InCurrentAmmo);
+	}
+}
+
+void AFPSGameCharacterBase::UpdateAmmoForSuccessClient(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
+{
+	if (FPSPlayerController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo));
+		FPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+	}
+	else
+	{
+		FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
+		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
+			{
+				UpdateAmmoForSuccessClient(InCurrentClipAmmo, InCurrentAmmo);
+			}, InCurrentClipAmmo, InCurrentAmmo);
+	}
 }
 
 void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult)

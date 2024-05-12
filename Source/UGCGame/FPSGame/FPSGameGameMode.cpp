@@ -16,6 +16,7 @@
 AFPSGameGameMode::AFPSGameGameMode()
 	:RedIndex(0)
 	, BlueIndex(0)
+	, PlayerSpawnCount(0)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
@@ -30,42 +31,60 @@ AFPSGameGameMode::AFPSGameGameMode()
 
 void AFPSGameGameMode::SpawnPlayerCharacters()
 {
-	// 获取游戏地图上的出生点数组
-	TArray<AActor*> SpawnPoints;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEE_SpawnPoint::StaticClass(), SpawnPoints);
-	//区分出生点
-	if (SpawnPoints.Num() > 0)
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 	{
-		for (auto* Tmp : SpawnPoints)
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]: Player Count: %d"), MyGameInstance->PlayerDatas.Num());
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Player Count: %d %d"), MyGameInstance->PlayerDatas.Num(), GetNumPlayers()));
+		
+#if !WITH_EDITOR
+		if (MyGameInstance->PlayerDatas.Num() == GetNumPlayers())
+#else 
+		if (2 == GetNumPlayers())
+#endif
 		{
-			if(AEE_SpawnPoint* CurPoint = Cast<AEE_SpawnPoint>(Tmp))
-			if (CurPoint->GetTeamType() == ETeamType::TEAM_RED)
+			// 获取游戏地图上的出生点数组
+			TArray<AActor*> SpawnPoints;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEE_SpawnPoint::StaticClass(), SpawnPoints);
+			//区分出生点
+			if (SpawnPoints.Num() > 0)
 			{
-				RedSpawnPoints.Add(CurPoint);
+				for (auto* Tmp : SpawnPoints)
+				{
+					if (AEE_SpawnPoint * CurPoint = Cast<AEE_SpawnPoint>(Tmp))
+					{
+						if (CurPoint->GetTeamType() == ETeamType::TEAM_RED)
+						{
+							RedSpawnPoints.Add(CurPoint);
+						}
+						else if (CurPoint->GetTeamType() == ETeamType::TEAM_BLUE)
+						{
+							BlueSpawnPoints.Add(CurPoint);
+						}
+					}
+				}
 			}
-			else if (CurPoint->GetTeamType() == ETeamType::TEAM_BLUE)
+
+			// 遍历所有玩家控制器，生成角色并分配到队伍
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 			{
-				BlueSpawnPoints.Add(CurPoint);
+				if (APlayerController * MyPC = It->Get())
+				{
+					if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+					{
+						MyFPSPC->ServerCallClientSendPlayerData();
+					}
+				}
 			}
 		}
-	}
-
-	// 遍历所有玩家控制器，生成角色并分配到队伍
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{	
-		if (APlayerController * MyPC = It->Get())
+		else
 		{
-			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
-			{
-				MyFPSPC->ServerCallClientSendPlayerData();
-			}
+			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
+				{
+					SpawnPlayerCharacters();
+				});
 		}
 	}
-
-	for (auto& Tmp : SpawnPoints)
-	{
-		Tmp->Destroy();
-	}
+	
 }
 
 const FTransform AFPSGameGameMode::GetNextSpawnTransform(const FPlayerNetData& InPlayerData)
@@ -100,6 +119,11 @@ UClass* AFPSGameGameMode::GetCharacterClass(const ETeamType& InType)
 	return nullptr;
 }
 
+void AFPSGameGameMode::AddSpawnCount()
+{
+	PlayerSpawnCount++;
+}
+
 void AFPSGameGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -111,12 +135,10 @@ void AFPSGameGameMode::BeginPlay()
 				UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
 				SpawnPlayerCharacters();
 			}
-		});
+		});	
 }
 
 void AFPSGameGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-
-
 }

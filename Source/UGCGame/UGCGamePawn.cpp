@@ -25,6 +25,11 @@ AUGCGamePawn::AUGCGamePawn()
 	BaseLookUpRate = 45.f;
 }
 
+void AUGCGamePawn::OnComponentSelectionChange_Implementation(USceneComponent* Component, bool bSelected, bool bImplementsUFocusable)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Component = %s, bSelected = %d, bImplementsUFocusable = %d"), *Component->GetOwner()->GetName(), bSelected, bImplementsUFocusable));
+}
+
 void AUGCGamePawn::BeginPlay()
 {
 	Super::BeginPlay();

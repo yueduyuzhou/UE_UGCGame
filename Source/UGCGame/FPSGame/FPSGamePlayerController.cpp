@@ -157,10 +157,17 @@ void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlay
 
 void AFPSGamePlayerController::SpawnPlayerCharacter(UClass* InCharacterClass, const FTransform& InTransform)
 {
-	APawn* NewCharacter = GetWorld()->SpawnActor<APawn>(InCharacterClass, InTransform);
-	if (NewCharacter)
+	if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
 	{
-		Possess(NewCharacter);
+		if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
+		{
+			if (APawn * NewCharacter = GetWorld()->SpawnActor<APawn>(InCharacterClass, InTransform))
+			{
+				UE_LOG(LogTemp, Display, TEXT("[class AFPSGamePlayerController] : PlayerController Possess Pawn"));
+				Possess(NewCharacter);
+				MyFPSGM->AddSpawnCount();
+			}
+		}
 	}
 }
 
@@ -179,6 +186,8 @@ void AFPSGamePlayerController::CrosshairRecoil()
 
 void AFPSGamePlayerController::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo"));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo")));
 	if (CrosshairUI)
 	{
 		CrosshairUI->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);

@@ -6,7 +6,7 @@
 
 AUGCGameHUD::AUGCGameHUD()
 {
-	static ConstructorHelpers::FClassFinder<UUI_MainScreen> UIMainScreen_Class(TEXT("/Game/UI/BP_MainScreen"));
+	static ConstructorHelpers::FClassFinder<UUI_MainScreen> UIMainScreen_Class(TEXT("/Game/UI/UGC/BP_MainScreen"));
 	MainScreenClass = UIMainScreen_Class.Class;
 }
 
