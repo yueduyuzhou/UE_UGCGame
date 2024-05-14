@@ -10,10 +10,14 @@
 class UImage;
 class UEditableText;
 class UCheckBox;
+class UUI_DetailVector;
 
 /**
  * 
  */
+
+
+
 UCLASS()
 class UGCGAME_API UUI_Item : public UUI_Base
 {
@@ -30,11 +34,21 @@ class UGCGAME_API UUI_Item : public UUI_Base
 
 	UPROPERTY(EditDefaultsOnly)
 		ETransformationType ModifyType;
+	
+	UPROPERTY(EditAnywhere)
+		EVectorDime Dime;
+
+	UUI_Item();
 
 public:
 	void SetModifyType(const ETransformationType& InModifyType);
-
 	void SetUsedCheckState(const ECheckBoxState& InCheckedState);
+	void SetIsSnappingValue(bool InIsSnappingValue);
+	void SetVectorText(const float InValue);
+	
+	void RegisterParentDetailVector(UUI_DetailVector* InParent);
+
+	void BindProperty(const EEditDetailType& InType, AElementBase* InElement);
 
 protected:
 	virtual void NativeConstruct();
@@ -47,4 +61,10 @@ private:
 	void OnCheckedStateChange(bool InbIsChecked);
 
 	void BindDelegate();
+
+private:
+	/*为顶部面板时为true*/
+	bool bIsSnappingValue;
+
+	UUI_DetailVector* ParentDetailVector;
 };

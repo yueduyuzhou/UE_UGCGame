@@ -7,6 +7,9 @@
 //#include "TransformerPawn.h"
 #include "ElementBase.generated.h"
 
+enum class EEditDetailType : uint8;
+class UUI_DetailVector;
+
 UCLASS()
 class UGCGAME_API AElementBase : public AActor
 {
@@ -31,9 +34,15 @@ public:
 	void ReturnControl();
 	void DestoryElement();
 
+	void UpdateVectorUI();
+
+	void RegisterDetailVectorByType(UUI_DetailVector* InUI);
+
 public:
 	FORCEINLINE const int32 GetElementID() { return ID; }
 	void SetElementID(const int32& InElementID);
+
+	const TArray<EEditDetailType>& GetEditDetails();
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
@@ -47,5 +56,10 @@ public:
 private:
 	int32 ID;
 
+	UUI_DetailVector* LocationUI;
+	UUI_DetailVector* RotationUI;
+	UUI_DetailVector* ScaleUI;
 
+	UPROPERTY(EditAnywhere)
+	TArray<EEditDetailType> EditDetails;
 };

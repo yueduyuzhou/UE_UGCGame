@@ -8,6 +8,8 @@
 #include "Components/SceneComponent.h"
 #include "UGCGamePlayerState.h"
 #include "Common/MethodUnit.h"
+#include "UI/Game/DetailPanel/UI_DetailsPanel.h"
+#include "UGCGame/Element/ElementBase.h"
 
 AUGCGamePawn::AUGCGamePawn()
 	:ZoomSpeed(50.f)
@@ -27,7 +29,18 @@ AUGCGamePawn::AUGCGamePawn()
 
 void AUGCGamePawn::OnComponentSelectionChange_Implementation(USceneComponent* Component, bool bSelected, bool bImplementsUFocusable)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Component = %s, bSelected = %d, bImplementsUFocusable = %d"), *Component->GetOwner()->GetName(), bSelected, bImplementsUFocusable));
+	if (bSelected)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Component = %s, bSelected = %d, bImplementsUFocusable = %d"), *Component->GetOwner()->GetName(), bSelected, bImplementsUFocusable));
+
+		if (DetailsPanel)
+		{
+			if (AElementBase * Element = Cast<AElementBase>(Component->GetOwner()))
+			{
+				DetailsPanel->SetSelectElement(Element);
+			}
+		}
+	}
 }
 
 void AUGCGamePawn::BeginPlay()
@@ -153,4 +166,9 @@ void AUGCGamePawn::MouseWheelCameraView(float Value)
 	FVector CurrentLocation = Camera->GetComponentLocation();
 	FVector NewLocation = CurrentLocation + (Camera->GetForwardVector() * Value * ZoomSpeed);
 	Camera->SetWorldLocation(NewLocation);
+}
+
+void AUGCGamePawn::SetDetailsPanel(UUI_DetailsPanel* InDetailsPanel)
+{
+	DetailsPanel = InDetailsPanel;
 }

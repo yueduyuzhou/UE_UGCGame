@@ -6,6 +6,10 @@
 #include "../../Core/UI_Base.h"
 #include "UI_DetailPanelSlot.generated.h"
 
+class UCanvasPanel;
+class UUI_DetailsPanel;
+class UUI_DetailVector;
+
 /**
  * 
  */
@@ -13,5 +17,18 @@ UCLASS()
 class UGCGAME_API UUI_DetailPanelSlot : public UUI_Base
 {
 	GENERATED_BODY()
-	
+
+	friend class UUI_DetailsPanel;
+
+	UPROPERTY(meta = (BindWidget))
+		UCanvasPanel* Canvas;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUI_DetailVector> DetailVectorClass;
+
+public:
+	void UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement);
+
+private:
+	AElementBase* SelectElement;
 };

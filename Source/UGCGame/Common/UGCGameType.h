@@ -44,3 +44,20 @@ FORCEINLINE bool operator==(const FPlayerNetData& InA, const FPlayerNetData& InB
 {
 	return InA.PlayerID == InB.PlayerID;
 }
+
+UENUM(BlueprintType)
+enum class EEditDetailType : uint8
+{
+	DETAIL_LOCATION		UMETA(DisplayName = "DetailLocation"),
+	DETAIL_ROTATION		UMETA(DisplayName = "DetailRotation"),
+	DETAIL_SCALE		UMETA(DisplayName = "DetailScale"),
+
+};
+
+UENUM(BlueprintType)
+enum class EVectorDime : uint8
+{
+	X,
+	Y,
+	Z
+};

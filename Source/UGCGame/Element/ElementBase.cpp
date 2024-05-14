@@ -6,11 +6,15 @@
 #include "../Common/MethodUnit.h"
 #include "../Common/UGCGameType.h"
 #include "../UGCGamePlayerController.h"
+#include "UGCGame/UI/Game/DetailPanel/Details/UI_DetailVector.h"
 
 // Sets default values
 AElementBase::AElementBase()
-	:bControlled(false),
-	ControllerID(INDEX_NONE)
+	:bControlled(false)
+	,ControllerID(INDEX_NONE)
+	, LocationUI(nullptr)
+	, RotationUI(nullptr)
+	, ScaleUI(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -52,11 +56,18 @@ void AElementBase::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	UpdateVectorUI();
 }
 
 void AElementBase::SetElementID(const int32& InElementID)
 {
 	ID = InElementID;
+}
+
+const TArray<EEditDetailType>& AElementBase::GetEditDetails()
+{
+	return EditDetails;
 }
 
 void AElementBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -87,5 +98,44 @@ void AElementBase::ReturnControl()
 void AElementBase::DestoryElement()
 {
 	Destroy();
+}
+
+void AElementBase::UpdateVectorUI()
+{
+	if (LocationUI)
+	{
+		LocationUI->UpdateVectorText(GetActorLocation());
+	}
+	if (RotationUI)
+	{
+		RotationUI->UpdateVectorText(GetActorRotation().Vector());
+	}
+	if (ScaleUI)
+	{
+		ScaleUI->UpdateVectorText(GetActorScale());
+	}
+}
+
+void AElementBase::RegisterDetailVectorByType(UUI_DetailVector* InUI)
+{
+	if (InUI)
+	{
+		if (InUI->GetDetailType() == EEditDetailType::DETAIL_LOCATION)
+		{
+			LocationUI = InUI;
+		}
+		else if (InUI->GetDetailType() == EEditDetailType::DETAIL_ROTATION)
+		{
+			RotationUI = InUI;
+		}
+		else if (InUI->GetDetailType() == EEditDetailType::DETAIL_SCALE)
+		{
+			ScaleUI = InUI;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[class AElementBase]: RegisterDetailVectorByType, InUI Is Null"));
+	}
 }
 

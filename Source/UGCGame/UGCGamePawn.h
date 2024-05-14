@@ -6,6 +6,8 @@
 #include "TransformerPawn.h"
 #include "UGCGamePawn.generated.h"
 
+class UUI_DetailsPanel;
+
 /**
  * 
  */
@@ -27,7 +29,7 @@ public:
 	AUGCGamePawn();
 
 	virtual void OnComponentSelectionChange_Implementation(class USceneComponent* Component
-		, bool bSelected, bool bImplementsUFocusable);
+		, bool bSelected, bool bImplementsUFocusable) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -52,6 +54,9 @@ public:
 	void MouseWheelCameraView(float Value);
 
 public:
+	void SetDetailsPanel(UUI_DetailsPanel* InDetailsPanel);
+
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseTurnRate;
 
@@ -63,4 +68,6 @@ public:
 
 private:
 	bool bMulitSelect;
+
+	UUI_DetailsPanel* DetailsPanel;
 };
