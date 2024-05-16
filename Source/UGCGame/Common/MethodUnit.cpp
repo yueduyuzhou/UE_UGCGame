@@ -50,5 +50,29 @@ namespace MethodUnit
 		}
 		return nullptr;
 	}
+
+	const FString EditDetailTypeToString(const EEditDetailType& InType)
+	{
+		switch (InType)
+		{
+			case EEditDetailType::DETAIL_LOCATION:
+			{
+				return FString(TEXT("DETAIL_LOCATION"));
+			}
+			case EEditDetailType::DETAIL_ROTATION:
+			{
+				return FString(TEXT("DETAIL_ROTATION"));
+			}
+			case EEditDetailType::DETAIL_SCALE:
+			{
+				return FString(TEXT("DETAIL_SCALE"));
+			}
+			case EEditDetailType::DETAIL_ENUM_TEAMTYPE:
+			{
+				return FString(TEXT("DETAIL_ENUM_TEAMTYPE"));
+			}
+		}
+		return FString();
+	}
 	
 }

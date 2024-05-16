@@ -58,6 +58,8 @@ void AElementBase::Tick(float DeltaTime)
 	}
 
 	UpdateVectorUI();
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::FromInt((int32)TeamType));
 }
 
 void AElementBase::SetElementID(const int32& InElementID)
@@ -137,5 +139,41 @@ void AElementBase::RegisterDetailVectorByType(UUI_DetailVector* InUI)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[class AElementBase]: RegisterDetailVectorByType, InUI Is Null"));
 	}
+}
+
+template<typename T>
+bool AElementBase::GetMemberVariableByName(const FString& VarName, T& OutValue)
+{
+	FProperty* Property = FindFProperty<FProperty>(this->GetClass(), *VarName);
+	if (!Property)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Property %s not found in %s"), *VarName, *GetClass()->GetName());
+		return false;
+	}
+
+	if (FEnumProperty * EnumProperty = CastField<FEnumProperty>(Property))
+	{
+		FNumericProperty* UnderlyingProperty = EnumProperty->GetUnderlyingProperty();
+		if (UnderlyingProperty)
+		{
+			void* ValuePtr = EnumProperty->ContainerPtrToValuePtr<void>(this);
+			int64 EnumValue = UnderlyingProperty->GetSignedIntPropertyValue(ValuePtr);
+			OutValue = static_cast<T>(EnumValue);
+			return true;
+		}
+	}
+	/*else if (FNumericProperty * NumericProperty = CastField<FNumericProperty>(Property))
+	{
+		if (NumericProperty->IsInteger())
+		{
+			void* ValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(this);
+			int64 IntValue = NumericProperty->GetSignedIntPropertyValue(ValuePtr);
+			OutValue = static_cast<T>(IntValue);
+			return true;
+		}
+	}*/
+
+	UE_LOG(LogTemp, Warning, TEXT("[class AElementBase]: GetMemberVariableByName, Failed to cast property %s in %s"), *VarName, *GetClass()->GetName());
+	return false;
 }
 

@@ -9,6 +9,7 @@
 class UCanvasPanel;
 class UUI_DetailsPanel;
 class UUI_DetailVector;
+class UUI_DetailEnum;
 
 /**
  * 
@@ -25,6 +26,9 @@ class UGCGAME_API UUI_DetailPanelSlot : public UUI_Base
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUI_DetailVector> DetailVectorClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUI_DetailEnum> DetailEnumClass;
 
 public:
 	void UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement);

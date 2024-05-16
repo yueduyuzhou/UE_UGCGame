@@ -48,10 +48,11 @@ FORCEINLINE bool operator==(const FPlayerNetData& InA, const FPlayerNetData& InB
 UENUM(BlueprintType)
 enum class EEditDetailType : uint8
 {
-	DETAIL_LOCATION		UMETA(DisplayName = "DetailLocation"),
-	DETAIL_ROTATION		UMETA(DisplayName = "DetailRotation"),
-	DETAIL_SCALE		UMETA(DisplayName = "DetailScale"),
-
+	DETAIL_LOCATION			UMETA(DisplayName = "DetailLocation"),
+	DETAIL_ROTATION			UMETA(DisplayName = "DetailRotation"),
+	DETAIL_SCALE			UMETA(DisplayName = "DetailScale"),
+	
+	DETAIL_ENUM_TEAMTYPE	UMETA(DisplayName = "DetailTeamType")
 };
 
 UENUM(BlueprintType)

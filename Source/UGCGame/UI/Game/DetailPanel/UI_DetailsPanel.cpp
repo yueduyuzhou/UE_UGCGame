@@ -31,7 +31,11 @@ void UUI_DetailsPanel::UpdateDetailsPanel()
 			if (UUI_DetailPanelSlot * DetailSlot = CreateWidget<UUI_DetailPanelSlot>(GetWorld(), DetailPanelSlotClass))
 			{
 				DetailSlot->UpdateDetailChild(Tmp, SelectElement);
-				Details->AddChild(DetailSlot);
+				if (UVerticalBoxSlot * VerSlot = Details->AddChildToVerticalBox(DetailSlot))
+				{
+					FMargin SlotPadding(0, 2, 0, 2); 
+					VerSlot->SetPadding(SlotPadding);
+				}
 			}
 		}
 	}

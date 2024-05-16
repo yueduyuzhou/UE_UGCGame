@@ -34,17 +34,50 @@ void UUI_DetailVector::BindElementProperty(const EEditDetailType& InType, AEleme
 
 void UUI_DetailVector::UpdateVector(const EVectorDime& InDime, const float InValue)
 {
-	if (InDime == EVectorDime::X)
+	if (DetailType == EEditDetailType::DETAIL_LOCATION)
 	{
-		BindElementPropertyXDelegate.Execute(InValue, SelectElement);
+		if (InDime == EVectorDime::X)
+		{
+			BindElementLocationXDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Y)
+		{
+			BindElementLocationYDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Z)
+		{
+			BindElementLocationZDelegate.Execute(InValue, SelectElement);
+		}
 	}
-	else if (InDime == EVectorDime::Y)
+	else if (DetailType == EEditDetailType::DETAIL_ROTATION)
 	{
-		BindElementPropertyYDelegate.Execute(InValue, SelectElement);
+		if (InDime == EVectorDime::X)
+		{
+			BindElementRotationXDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Y)
+		{
+			BindElementRotationYDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Z)
+		{
+			BindElementRotationZDelegate.Execute(InValue, SelectElement);
+		}
 	}
-	else if (InDime == EVectorDime::Z)
+	else if (DetailType == EEditDetailType::DETAIL_SCALE)
 	{
-		BindElementPropertyZDelegate.Execute(InValue, SelectElement);
+		if (InDime == EVectorDime::X)
+		{
+			BindElementScaleXDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Y)
+		{
+			BindElementScaleYDelegate.Execute(InValue, SelectElement);
+		}
+		else if (InDime == EVectorDime::Z)
+		{
+			BindElementScaleZDelegate.Execute(InValue, SelectElement);
+		}
 	}
 }
 

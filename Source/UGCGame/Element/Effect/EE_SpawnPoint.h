@@ -6,8 +6,6 @@
 #include "../EffectElement.h"
 #include "EE_SpawnPoint.generated.h"
 
-enum class ETeamType : uint8;
-
 /**
  * 
  */
@@ -16,9 +14,5 @@ class UGCGAME_API AEE_SpawnPoint : public AEffectElement
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Category = "EffectData")
-	ETeamType TeamType;
-
-public:
-	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
+	
 };

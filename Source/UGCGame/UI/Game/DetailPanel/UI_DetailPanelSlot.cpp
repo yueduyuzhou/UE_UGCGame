@@ -5,7 +5,10 @@
 #include "../../../Common/UGCGameType.h"
 #include "../../../Element/ElementBase.h"
 #include "Details/UI_DetailVector.h"
+#include "Details/DetailEnum/UI_DetailEnum.h"
 #include "Components/CanvasPanel.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Components/CanvasPanelSlot.h"
 
 void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement)
 {
@@ -18,24 +21,43 @@ void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElem
 		UE_LOG(LogTemp, Error, TEXT("[class UUI_DetailPanelSlot]: UpdateDetailChild, InElement Is Null"));
 		return;
 	}
-	//UUI_DetailVector::StaticClass()换成蓝图类
-	if (UUI_DetailVector * VectorUI = CreateWidget<UUI_DetailVector>(GetWorld(), DetailVectorClass))
+
+	if (InType >= EEditDetailType::DETAIL_LOCATION && InType <= EEditDetailType::DETAIL_SCALE)
 	{
-		Canvas->AddChild(VectorUI);
-		if (InType == EEditDetailType::DETAIL_LOCATION)
+		if (UUI_DetailVector * VectorUI = CreateWidget<UUI_DetailVector>(GetWorld(), DetailVectorClass))
 		{
-			VectorUI->SetVectorName(FString(TEXT("Location")));
+			if (UCanvasPanelSlot * CanvasSlot = Canvas->AddChildToCanvas(VectorUI))
+			{
+				CanvasSlot->SetSize(FVector2D(600, 45));
+
+				if (InType == EEditDetailType::DETAIL_LOCATION)
+				{
+					VectorUI->SetVectorName(FString(TEXT("Location")));
+				}
+				else if (InType == EEditDetailType::DETAIL_ROTATION)
+				{
+					VectorUI->SetVectorName(FString(TEXT("Rotation")));
+				}
+				else if (InType == EEditDetailType::DETAIL_SCALE)
+				{
+					VectorUI->SetVectorName(FString(TEXT("Scale")));
+				}
+				VectorUI->InitXYZ();
+				//绑定修改属性
+				VectorUI->BindElementProperty(InType, InElement);
+			}
 		}
-		else if (InType == EEditDetailType::DETAIL_ROTATION)
+	}
+	else if (InType == EEditDetailType::DETAIL_ENUM_TEAMTYPE)
+	{
+		if (UUI_DetailEnum * EnumUI = CreateWidget<UUI_DetailEnum>(GetWorld(), DetailEnumClass))
 		{
-			VectorUI->SetVectorName(FString(TEXT("Rotation")));
+			if (UCanvasPanelSlot * CanvasSlot = Canvas->AddChildToCanvas(EnumUI))
+			{
+				CanvasSlot->SetSize(FVector2D(600, 45));
+				EnumUI->SetEnumName();
+				EnumUI->BindElementProperty(InType, InElement);
+			}
 		}
-		else if (InType == EEditDetailType::DETAIL_SCALE)
-		{
-			VectorUI->SetVectorName(FString(TEXT("Scale")));
-		}
-		VectorUI->InitXYZ();
-		//绑定修改属性
-		VectorUI->BindElementProperty(InType, InElement);
 	}
 }

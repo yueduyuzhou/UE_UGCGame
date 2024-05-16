@@ -8,13 +8,14 @@
 #include "ElementBase.generated.h"
 
 enum class EEditDetailType : uint8;
+enum class ETeamType : uint8;
 class UUI_DetailVector;
 
 UCLASS()
 class UGCGAME_API AElementBase : public AActor
 {
 	GENERATED_BODY()
-
+	
 public:	
 	// Sets default values for this actor's properties
 	AElementBase();
@@ -22,7 +23,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -30,6 +31,9 @@ public:
 	FVector GetMouseLocationInWorld();
 
 public:
+	/****************
+	*	
+	****************/
 	bool TakeControl(const int32& InControlID);
 	void ReturnControl();
 	void DestoryElement();
@@ -38,7 +42,18 @@ public:
 
 	void RegisterDetailVectorByType(UUI_DetailVector* InUI);
 
-public:
+	/****************
+	*	template
+	****************/
+	template<typename T>
+	bool GetMemberVariableByName(const FString& VarName, T& OutValue);
+
+	/****************
+	*	
+	****************/
+	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
+	void SetTeamType(const ETeamType& InTeamType) { TeamType = InTeamType; }
+
 	FORCEINLINE const int32 GetElementID() { return ID; }
 	void SetElementID(const int32& InElementID);
 
@@ -62,4 +77,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TArray<EEditDetailType> EditDetails;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Category = "EffectData")
+	ETeamType TeamType;
 };

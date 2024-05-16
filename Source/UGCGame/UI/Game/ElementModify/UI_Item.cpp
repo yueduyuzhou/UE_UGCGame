@@ -8,6 +8,7 @@
 #include "../../../Common/MethodUnit.h"
 #include "../DetailPanel/Details/UI_DetailVector.h"
 #include "UGCGame/Element/ElementBase.h"
+#include "../../../Common/UGCGameMacro.h"
 
 UUI_Item::UUI_Item()
 	:bIsSnappingValue(true)
@@ -71,50 +72,48 @@ void UUI_Item::BindProperty(const EEditDetailType& InType, AElementBase* InEleme
 			{
 				if (Dime == EVectorDime::X)
 				{
-					ParentDetailVector->BindElementPropertyXDelegate.BindLambda([](const float InValue, AElementBase * InElement)
-						{
-							if (InElement)
-							{
-								FVector OldLocation = InElement->GetActorLocation();
-								OldLocation.X = InValue;
-								InElement->SetActorLocation(OldLocation);
-							}
-						});
+					BIND_DELEGATE_LOCATION(BindElementLocationZDelegate, X)
 				}
 				else if (Dime == EVectorDime::Y)
 				{
-					ParentDetailVector->BindElementPropertyYDelegate.BindLambda([](const float InValue, AElementBase * InElement)
-						{
-							if (InElement)
-							{
-								FVector OldLocation = InElement->GetActorLocation();
-								OldLocation.Y = InValue;
-								InElement->SetActorLocation(OldLocation);
-							}
-						});
+					BIND_DELEGATE_LOCATION(BindElementLocationZDelegate, Y)
 				}
 				else if (Dime == EVectorDime::Z)
 				{
-					ParentDetailVector->BindElementPropertyZDelegate.BindLambda([](const float InValue, AElementBase * InElement)
-						{
-							if (InElement)
-							{
-								FVector OldLocation = InElement->GetActorLocation();
-								OldLocation.Z = InValue;
-								InElement->SetActorLocation(OldLocation);
-							}
-						});
+					BIND_DELEGATE_LOCATION(BindElementLocationZDelegate, Z)
 				}
 				break;
 			}
 			case EEditDetailType::DETAIL_ROTATION:
 			{
-
+				if (Dime == EVectorDime::X)
+				{
+					BIND_DELEGATE_ROTATION(BindElementRotationXDelegate, Roll)
+				}
+				else if (Dime == EVectorDime::Y)
+				{
+					BIND_DELEGATE_ROTATION(BindElementRotationYDelegate, Pitch)
+				}
+				else if (Dime == EVectorDime::Z)
+				{
+					BIND_DELEGATE_ROTATION(BindElementRotationZDelegate, Yaw)
+				}
 				break;
 			}
 			case EEditDetailType::DETAIL_SCALE:
 			{
-
+				if (Dime == EVectorDime::X)
+				{
+					BIND_DELEGATE_SCALE(BindElementScaleXDelegate, X)
+				}
+				else if (Dime == EVectorDime::Y)
+				{
+					BIND_DELEGATE_SCALE(BindElementScaleYDelegate, Y)
+				}
+				else if (Dime == EVectorDime::Z)
+				{
+					BIND_DELEGATE_SCALE(BindElementScaleZDelegate, Z)
+				}
 				break;
 			}
 		}
@@ -137,28 +136,42 @@ void UUI_Item::NativeConstruct()
 
 void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod)
 {
-	if (bIsSnappingValue)
+	if (!InText.IsEmpty())
 	{
-		if (InText.ToString().IsNumeric())
+		if (bIsSnappingValue)
 		{
-			//修改对齐参数
-			if (AUGCGamePawn * MyPawn = MethodUnit::GetUGCPlayerPawn(GetWorld()))
+			if (InText.ToString().IsNumeric())
 			{
-				MyPawn->SetSnappingValue(ModifyType, FCString::Atof(*InText.ToString()));
+				//修改对齐参数
+				if (AUGCGamePawn * MyPawn = MethodUnit::GetUGCPlayerPawn(GetWorld()))
+				{
+					MyPawn->SetSnappingValue(ModifyType, FCString::Atof(*InText.ToString()));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit Set SnappingValue, Illegal Input"));
 			}
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Illegal Input"));
+			//Parent为DetailVector时，文本更新时调用
+			if (ParentDetailVector)
+			{
+				if (InText.ToString().IsNumeric())
+				{
+					ParentDetailVector->UpdateVector(Dime, FCString::Atof(*InText.ToString()));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit Detail Vector, Illegal Input"));
+				}
+			}
 		}
 	}
 	else
 	{
-		//Parent为DetailVector时，文本更新时调用
-		if (ParentDetailVector)
-		{
-			ParentDetailVector->UpdateVector(Dime, FCString::Atof(*InText.ToString()));
-		}
+		UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit InText Is Null"));
 	}
 }
 

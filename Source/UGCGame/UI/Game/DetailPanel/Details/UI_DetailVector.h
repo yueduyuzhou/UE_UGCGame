@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../../Core/UI_Base.h"
-#include "UGCGame/Common/UGCGameType.h"
+#include "../UI_DetailsBase.h"
 #include "UI_DetailVector.generated.h"
 
 class UTextBlock;
@@ -18,7 +17,7 @@ class AElementBase;
 DECLARE_DELEGATE_TwoParams(FBindElementPropertyDelegate, const float, AElementBase*)
 
 UCLASS()
-class UGCGAME_API UUI_DetailVector : public UUI_Base
+class UGCGAME_API UUI_DetailVector : public UUI_DetailsBase
 {
 	GENERATED_BODY()
 	
@@ -38,26 +37,38 @@ protected:
 	virtual void NativeConstruct();
 
 public:
-	void BindElementProperty(const EEditDetailType& InType, AElementBase* InElement);
+	virtual void BindElementProperty(const EEditDetailType& InType, AElementBase* InElement) override;
 	
 	void UpdateVector(const EVectorDime& InDime, const float InValue);
 	void UpdateVectorText(const FVector& InVector);
 
 	void InitXYZ();
-	void RegisterElement(const EEditDetailType& InType, AElementBase* InElement);
+	virtual void RegisterElement(const EEditDetailType& InType, AElementBase* InElement) override;
 
 	void SetVectorName(const FString& InName);
 	FORCEINLINE const EEditDetailType& GetDetailType() { return DetailType; }
 
 
 public:
-	FBindElementPropertyDelegate BindElementPropertyXDelegate;
-	FBindElementPropertyDelegate BindElementPropertyYDelegate;
-	FBindElementPropertyDelegate BindElementPropertyZDelegate;
+	/*************
+	*  Location
+	*************/
+	FBindElementPropertyDelegate BindElementLocationXDelegate;
+	FBindElementPropertyDelegate BindElementLocationYDelegate;
+	FBindElementPropertyDelegate BindElementLocationZDelegate;
 
-private:
-	EEditDetailType DetailType;
+	/*************
+	*  Rotation
+	*************/
+	FBindElementPropertyDelegate BindElementRotationXDelegate;
+	FBindElementPropertyDelegate BindElementRotationYDelegate;
+	FBindElementPropertyDelegate BindElementRotationZDelegate;
 
-	AElementBase* SelectElement;
+	/*************
+	*  Scale
+	*************/
+	FBindElementPropertyDelegate BindElementScaleXDelegate;
+	FBindElementPropertyDelegate BindElementScaleYDelegate;
+	FBindElementPropertyDelegate BindElementScaleZDelegate;
 
 };
