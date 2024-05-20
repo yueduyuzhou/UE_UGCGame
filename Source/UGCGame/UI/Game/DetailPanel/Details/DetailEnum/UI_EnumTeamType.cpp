@@ -2,6 +2,7 @@
 
 
 #include "UI_EnumTeamType.h"
+#include "UGCGame/Common/MethodUnit.h"
 
 void UUI_EnumTeamType::NativeConstruct()
 {
@@ -20,7 +21,14 @@ void UUI_EnumTeamType::PopulateComboBox()
 			EnumSelect->AddOption(EnumName);
 		}
 
-		EnumSelect->SetSelectedIndex(0);
+		FString TypeStr = MethodUnit::TeamTypeToString(SelectElement->GetTeamType());
+		for (int32 i = 0; i < Options.Num(); i++)
+		{
+			if (Options[i] == TypeStr) 
+			{
+				EnumSelect->SetSelectedIndex(i);
+			}
+		}
 	}
 }
 

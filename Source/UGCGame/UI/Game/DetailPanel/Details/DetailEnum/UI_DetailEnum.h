@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 		UComboBoxString* EnumSelect;
 
+	UPROPERTY(EditAnywhere)
+		TArray<FString> Options;
+
 protected:
 	virtual void NativeConstruct();
 

@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/Game/UI_Crosshair.h"
+#include "UI/Game/MiniMap/UI_MiniMap.h"
 #include "UGCGame/Common/UGCGameType.h"
+#include "UGCGame/Common/RenderingUtils.h"
 #include "FPSGamePlayerController.generated.h"
 
 /**
@@ -43,6 +45,9 @@ public:
 	UFUNCTION(client, reliable)
 		void ServerCallClientSendPlayerData();
 
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdateMiniMap(const FString& InMapName);
+
 	UFUNCTION(server, reliable)
 		void SendPlayerDataToServer(const FPlayerNetData& InPlayerData);
 
@@ -63,4 +68,8 @@ public:
 
 public:
 	UUI_Crosshair* CrosshairUI;
+	UUI_MiniMap* MiniMapUI;
+
+private:
+	FMinimapCapture MapCapture;
 };

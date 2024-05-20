@@ -26,6 +26,7 @@ enum class ETeamType : uint8
 {
 	TEAM_RED,
 	TEAM_BLUE,
+	TEAM_NONE
 };
 
 USTRUCT(BlueprintType)

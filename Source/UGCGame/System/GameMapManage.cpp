@@ -79,8 +79,13 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 				{
 					if (AElementBase * Elem = Cast<AElementBase>(Tmp))
 					{
-						SaveGameInstance->Elements.Add(FElemInfo(Elem->GetElementID(), Elem->GetActorLocation(), Elem->GetActorRotation()));
-						Elem->DestoryElement();
+						SaveGameInstance->Elements.Add(
+							FElemInfo(
+								Elem->GetElementID(), 
+								Elem->GetActorLocation(), 
+								Elem->GetActorRotation(),
+								Elem->GetActorScale3D(),
+								Elem->GetTeamType()));
 					}
 				}
 			}
@@ -98,27 +103,44 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 		if (MyGameState)
 		{
 			UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : Load Map Data And Spawn"));
+
 			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
-				//生成Elements BUG
-				for (auto& Tmp : SaveMapData->Elements)
+				if (SaveMapData->Elements.Num() > 0)
 				{
-					if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.ElementID))
+					//生成Elements BUG
+					for (auto& Tmp : SaveMapData->Elements)
 					{
-						if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
+						if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.ElementID))
 						{
-							//TODO:分情况处理
-							if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
+							if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
 							{
-								BElement->SetElementMesh(ElementAttr->ElementMeth);
-							}
-							else if(AEffectElement* EElement = Cast<AEffectElement>(MewElement))
-							{
-								EElement->SetNotVisibilityMulticast();
+								MewElement->SetActorScale3D(Tmp.Scale);
+								MewElement->SetTeamType(Tmp.TeamType);
+
+								//TODO:分情况处理
+								if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
+								{
+									BElement->SetElementMesh(ElementAttr->ElementMeth);
+								}
+								else if (AEffectElement * EElement = Cast<AEffectElement>(MewElement))
+								{
+									EElement->SetNotVisibilityMulticast();
+								}
 							}
 						}
 					}
 				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : SaveMapData->Elements Is Empty"));
+					return;
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : SaveMapData Is Null"));
+				return;
 			}
 		}
 	}

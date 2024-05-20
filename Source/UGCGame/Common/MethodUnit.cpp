@@ -74,5 +74,21 @@ namespace MethodUnit
 		}
 		return FString();
 	}
+
+	const FString TeamTypeToString(const ETeamType& InType)
+	{
+		switch (InType)
+		{
+			case ETeamType::TEAM_RED:
+			{
+				return FString(TEXT("TeamRed"));
+			}
+			case ETeamType::TEAM_BLUE:
+			{
+				return FString(TEXT("TeamBlue"));
+			}
+		}
+		return FString();
+	}
 	
 }

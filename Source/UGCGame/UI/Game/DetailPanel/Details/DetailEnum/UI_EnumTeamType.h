@@ -14,9 +14,6 @@ class UGCGAME_API UUI_EnumTeamType : public UUI_DetailEnum
 {
 	GENERATED_BODY()
 
-		UPROPERTY(EditAnywhere)
-		TArray<FString> Options;
-
 protected:
 	virtual void NativeConstruct();
 

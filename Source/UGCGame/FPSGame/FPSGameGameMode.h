@@ -26,6 +26,13 @@ private:
 	void SpawnPlayerCharacters();
 
 public:
+
+	void AllPlayerUpdateMiniMap();
+
+	/***************
+	*	
+	***************/
+
 	const FTransform GetNextSpawnTransform(const FPlayerNetData& InPlayerData);
 
 	//AFPSGamePlayerController* GetPlayerControllerByPlayerID(const int32& InPlayerID);
@@ -51,4 +58,6 @@ private:
 	int32 BlueIndex;
 
 	int32 PlayerSpawnCount;
+
+
 };

@@ -6,6 +6,7 @@
 #include "FPSGameHUD.h"
 #include "UGCGame/UGCGameInstance.h"
 #include "FPSGameGameMode.h"
+#include "Kismet/KismetRenderingLibrary.h"
 
 AFPSGamePlayerController::AFPSGamePlayerController()
 {
@@ -139,6 +140,37 @@ void AFPSGamePlayerController::ServerCallClientSendPlayerData_Implementation()
 		{
 			SendPlayerDataToServer(MyUGCGI->LocalPlayerData);
 		}
+	}
+}
+
+void AFPSGamePlayerController::ServerCallClientUpdateMiniMap_Implementation(const FString& InMapName)
+{
+	if (MiniMapUI)
+	{
+		//捕捉小地图图片
+		MapCapture.Initialize(GetWorld());
+		FString SavePath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MiniMapScreenshot"), InMapName);
+		MapCapture.CaptureMiniMapImage(SavePath);
+
+		if (UTexture2D * MiniMapTexture = MapCapture.LoadBMPImage(SavePath + FString(TEXT("00000.bmp"))))
+		{
+			//更新MiniMapUI
+			MiniMapUI->UpdateMiniMapImage(MiniMapTexture);
+			//延时删除图片文件 会崩溃
+			/*GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+				{
+					MapCapture.DeleteBMPFile(SavePath + FString(TEXT("00000.bmp")));
+				});*/
+			
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[class AFPSGamePlayerController] : ServerCallClientUpdateMiniMap, MiniMapTexture Is Null"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[class AFPSGamePlayerController] : ServerCallClientUpdateMiniMap, MiniMapUI Is Null"));
 	}
 }
 

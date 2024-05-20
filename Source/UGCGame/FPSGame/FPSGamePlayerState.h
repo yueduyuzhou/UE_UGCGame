@@ -20,4 +20,5 @@ public:
 	float Health;
 	float MaxHealth;
 
+	//分数（人头数）
 };

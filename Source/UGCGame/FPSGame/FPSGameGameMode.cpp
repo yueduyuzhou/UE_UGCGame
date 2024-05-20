@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FPSGameCharacterBase.h"
 #include "UGCGame/Common/UGCGameType.h"
+#include "Kismet/KismetRenderingLibrary.h"
 
 AFPSGameGameMode::AFPSGameGameMode()
 	:RedIndex(0)
@@ -87,6 +88,23 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 	
 }
 
+void AFPSGameGameMode::AllPlayerUpdateMiniMap()
+{
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+	{
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APlayerController * MyPC = It->Get())
+			{
+				if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+				{
+					MyFPSPC->ServerCallClientUpdateMiniMap(MyGameInstance->LoadMapName);
+				}
+			}
+		}
+	}
+}
+
 const FTransform AFPSGameGameMode::GetNextSpawnTransform(const FPlayerNetData& InPlayerData)
 {
 	FTransform PlayerTransform;
@@ -133,9 +151,17 @@ void AFPSGameGameMode::BeginPlay()
 			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 			{
 				UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
-				SpawnPlayerCharacters();
 			}
 		});	
+
+	GThread::Get()->GetCoroutines().BindLambda(2.f, [&]()
+		{
+			//通知所有端感谢MiniMap
+			AllPlayerUpdateMiniMap();
+
+			//为玩家生成游戏角色
+			SpawnPlayerCharacters();
+		});
 }
 
 void AFPSGameGameMode::PostLogin(APlayerController* NewPlayer)

@@ -19,5 +19,7 @@ namespace MethodUnit
 	AUGCGamePlayerController* GetPlayerControllerByPlayerID(UWorld* InWorld, int32& InPlayerID);
 
 	const FString EditDetailTypeToString(const EEditDetailType& InType);
+
+	const FString TeamTypeToString(const ETeamType& InType);
 }
 

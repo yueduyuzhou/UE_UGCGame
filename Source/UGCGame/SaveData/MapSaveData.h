@@ -15,12 +15,16 @@ struct FElemInfo
 		:ElementID(INDEX_NONE)
 		, Location(FVector::ZeroVector)
 		, Rotation(FRotator::ZeroRotator)
+		, Scale(FVector::ZeroVector)
+		, TeamType(ETeamType::TEAM_NONE)
 	{}
 
-	FElemInfo(int32 InID, FVector InLoc, FRotator InRot)
+	FElemInfo(int32 InID, FVector InLoc, FRotator InRot, FVector InScale, ETeamType InTeamType)
 		:ElementID(InID)
 		,Location(InLoc)
 		,Rotation(InRot)
+		, Scale(InScale)
+		, TeamType(InTeamType)
 	{}
 
 	UPROPERTY()
@@ -31,6 +35,12 @@ struct FElemInfo
 
 	UPROPERTY()
 		FRotator Rotation;
+
+	UPROPERTY()
+		FVector Scale;
+
+	UPROPERTY()
+		ETeamType TeamType;
 };
 
 /**
