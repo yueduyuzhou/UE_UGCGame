@@ -2,8 +2,8 @@
 
 #include "UI_Crosshair.h"
 #include "ThreadManage.h"
-#include "../../FPSGamePlayerController.h"
 #include "Components/TextBlock.h"
+#include "../../FPSGamePlayerController.h"
 #include "Components/ProgressBar.h"
 
 void UUI_Crosshair::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
@@ -21,7 +21,11 @@ void UUI_Crosshair::UpdateHealth(const float& InHealth, const float& InMaxHealth
 	HealthBar->SetPercent(InHealth / InMaxHealth);
 	DoHealthAnim((int32)InHealth);
 
-	if (InHealth <= 50 && InHealth > 30)
+	if (InHealth >= 100)
+	{
+		StrongState();
+	}
+	else if (InHealth <= 50 && InHealth > 30)
 	{
 		InjureState();
 	}

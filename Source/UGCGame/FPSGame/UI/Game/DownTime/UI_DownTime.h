@@ -4,36 +4,34 @@
 
 #include "CoreMinimal.h"
 #include "../../Core/UI_FPSBase.h"
-#include "UI_MiniMap.generated.h"
+#include "UI_DownTime.generated.h"
 
-class AFPSGamePlayerController;
-class UImage;
+class UTextBlock;
 
 /**
  * 
  */
 UCLASS()
-class UGCGAME_API UUI_MiniMap : public UUI_FPSBase
+class UGCGAME_API UUI_DownTime : public UUI_FPSBase
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(meta = (BindWidget))
-		UImage* MapImage;
+		UTextBlock* Time;
 
-	UPROPERTY(meta = (BindWidget))
-		UImage* PlayerArrow;
-
-	void RegisterToPlayerController();
-
-	UUI_MiniMap();
+	UUI_DownTime();
 
 public:
-	void UpdateMiniMapImage(UTexture2D* InTexture);
+	void StartDownTime(const float& InDownTime);
 
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
-	AFPSGamePlayerController* LocalPlayerController;
+	void RegisterToPlayerController();
+
+private:
+	bool bStartDownTime;
+	float DownTime;
 };

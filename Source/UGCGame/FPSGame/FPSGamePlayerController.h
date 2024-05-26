@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "UI/Game/UI_Crosshair.h"
 #include "UI/Game/MiniMap/UI_MiniMap.h"
+#include "UI/Game/DownTime/UI_DownTime.h"
+#include "UI/Game/TopInfoPanel/UI_TopInfoPanel.h"
 #include "UGCGame/Common/UGCGameType.h"
 #include "UGCGame/Common/RenderingUtils.h"
 #include "FPSGamePlayerController.generated.h"
@@ -42,12 +44,25 @@ private:
 	void LookUpAtRate(float Rate);
 
 public:
+	/***********************************************************************
+	*	RPC
+	***********************************************************************/
 	UFUNCTION(client, reliable)
 		void ServerCallClientSendPlayerData();
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientUpdateMiniMap(const FString& InMapName);
 
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdateDownTime(const int32& InDownTime);
+	
+	UFUNCTION(client, reliable)
+		void ServerCallClientUpdateKillText(const ETeamType& InTeamType);
+
+	/*”Œœ∑Ω· ¯*/
+	UFUNCTION(client, reliable)
+		void ServerCallClientEndGame(const ETeamType& InWinTeam);
+	
 	UFUNCTION(server, reliable)
 		void SendPlayerDataToServer(const FPlayerNetData& InPlayerData);
 
@@ -56,6 +71,8 @@ public:
 	*	
 	***********************************************************************/
 	void SpawnPlayerCharacter(UClass* InCharacterClass, const FTransform& InTransform);
+
+	void ControllerCharacterDeath(AActor* InDamageType);
 
 	/***********************************************************************
 	*	Weapon
@@ -66,10 +83,20 @@ public:
 	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
 	void UpdateHealth(const float& InHealth, const float& InMaxHealth);
 
+	
+
 public:
 	UUI_Crosshair* CrosshairUI;
 	UUI_MiniMap* MiniMapUI;
+	UUI_DownTime* DownTimeUI;
+	UUI_TopInfoPanel* TopInfoPanelUI;
 
 private:
+	ETeamType TeamType;
+	int32 PlayerID;
+
 	FMinimapCapture MapCapture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		float ReSpawnTime;
 };

@@ -60,6 +60,9 @@ public:
 		void DoHealthAnim(const int32& InHealth);
 
 	UFUNCTION(BlueprintImplementableEvent)
+		void StrongState();
+
+	UFUNCTION(BlueprintImplementableEvent)
 		void InjureState();
 
 	UFUNCTION(BlueprintImplementableEvent)

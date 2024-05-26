@@ -6,7 +6,7 @@
 
 AFPSGameHUD::AFPSGameHUD()
 {
-	static ConstructorHelpers::FClassFinder<UUI_FPSMainScreen> UIMainScreen_Class(TEXT("/Game/UI/FPS/BP_FPSMainScreen"));
+	static ConstructorHelpers::FClassFinder<UUI_FPSMainScreen> UIMainScreen_Class(TEXT("/Game/UI/FPS/WBP_FPSMainScreen"));
 	MainScreenClass = UIMainScreen_Class.Class;
 }
 

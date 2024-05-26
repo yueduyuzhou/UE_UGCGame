@@ -17,6 +17,9 @@ class UGCGAME_API AFPSGamePlayerState : public APlayerState
 	AFPSGamePlayerState();
 
 public:
+	void DeathResetData();
+
+public:
 	float Health;
 	float MaxHealth;
 

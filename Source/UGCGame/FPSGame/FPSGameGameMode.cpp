@@ -6,6 +6,7 @@
 #include "FPSGameHUD.h"
 #include "FPSGamePlayerController.h"
 #include "FPSGamePlayerState.h"
+#include "FPSGameGameState.h"
 #include "../UGCGameInstance.h"
 #include "../System/GameMapManage.h"
 #include "../Element/Effect/EE_SpawnPoint.h"
@@ -18,6 +19,8 @@ AFPSGameGameMode::AFPSGameGameMode()
 	:RedIndex(0)
 	, BlueIndex(0)
 	, PlayerSpawnCount(0)
+	, bStartDownTime(false)
+	, DownTime(100.f)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
@@ -25,9 +28,10 @@ AFPSGameGameMode::AFPSGameGameMode()
 
 	PlayerStateClass = AFPSGamePlayerState::StaticClass();
 
-	GameStateClass = AUGCGameState::StaticClass();
+	GameStateClass = AFPSGameGameState::StaticClass();
 
 	bUseSeamlessTravel = true;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AFPSGameGameMode::SpawnPlayerCharacters()
@@ -35,7 +39,6 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 	{
 		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]: Player Count: %d"), MyGameInstance->PlayerDatas.Num());
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Player Count: %d %d"), MyGameInstance->PlayerDatas.Num(), GetNumPlayers()));
 		
 #if !WITH_EDITOR
 		if (MyGameInstance->PlayerDatas.Num() == GetNumPlayers())
@@ -88,6 +91,73 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 	
 }
 
+void AFPSGameGameMode::GameCharacterDeath(const int32& InKillerID, const int32& InKilledID)
+{
+	if (UUGCGameInstance * MyGI = GetGameInstance<UUGCGameInstance>())
+	{
+		if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
+		{
+			if (MyGI->GetTeamTypeByPlayerID(InKillerID) == ETeamType::TEAM_BLUE)
+			{
+				FPSGS->KillBlue(InKillerID, InKilledID);
+				AllPlayerUpdateKillText(ETeamType::TEAM_BLUE);
+			}
+			else
+			{
+				FPSGS->KillRed(InKillerID, InKilledID);
+				AllPlayerUpdateKillText(ETeamType::TEAM_RED);
+			}
+		}
+	}
+}
+
+void AFPSGameGameMode::InitDownTime()
+{
+	bStartDownTime = true;
+
+	//通知客户端开始模拟计时
+	AllPlayerUpdateDownTime(DownTime);
+}
+
+void AFPSGameGameMode::AllPlayerUpdateDownTime(const int32& InDownTime)
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController * MyPC = It->Get())
+		{
+			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+			{
+				MyFPSPC->ServerCallClientUpdateDownTime(InDownTime);
+			}
+		}
+	}
+}
+
+void AFPSGameGameMode::EndGame()
+{
+	//结算（队伍人头/队伍积分）
+	if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
+	{
+		
+	}
+
+	//通知客户端显示获胜/失败页面
+}
+
+void AFPSGameGameMode::AllPlayerEndGame(const ETeamType& InWinTeam)
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController * MyPC = It->Get())
+		{
+			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+			{
+				MyFPSPC->ServerCallClientEndGame(InWinTeam);
+			}
+		}
+	}
+}
+
 void AFPSGameGameMode::AllPlayerUpdateMiniMap()
 {
 	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
@@ -100,6 +170,20 @@ void AFPSGameGameMode::AllPlayerUpdateMiniMap()
 				{
 					MyFPSPC->ServerCallClientUpdateMiniMap(MyGameInstance->LoadMapName);
 				}
+			}
+		}
+	}
+}
+
+void AFPSGameGameMode::AllPlayerUpdateKillText(const ETeamType& InTeamType)
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController * MyPC = It->Get())
+		{
+			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+			{
+				MyFPSPC->ServerCallClientUpdateKillText(InTeamType);
 			}
 		}
 	}
@@ -146,22 +230,42 @@ void AFPSGameGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//延时加载游戏地图
 	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
 		{
 			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 			{
 				UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
 			}
-		});	
+		});
 
 	GThread::Get()->GetCoroutines().BindLambda(2.f, [&]()
 		{
-			//通知所有端感谢MiniMap
+			//通知所有端更新MiniMap
 			AllPlayerUpdateMiniMap();
 
 			//为玩家生成游戏角色
 			SpawnPlayerCharacters();
+
+			//开始计时
+			InitDownTime();
 		});
+}
+
+void AFPSGameGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bStartDownTime)
+	{
+		DownTime -= DeltaSeconds;
+		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%0.2f"), DownTime));
+		if (DownTime <= 0.f)
+		{
+			//游戏结算
+			EndGame();
+		}
+	}
 }
 
 void AFPSGameGameMode::PostLogin(APlayerController* NewPlayer)

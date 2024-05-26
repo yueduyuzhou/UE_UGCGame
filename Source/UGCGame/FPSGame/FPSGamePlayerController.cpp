@@ -7,8 +7,16 @@
 #include "UGCGame/UGCGameInstance.h"
 #include "FPSGameGameMode.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "FPSGamePlayerState.h"
+#include "FPSGameGameState.h"
 
 AFPSGamePlayerController::AFPSGamePlayerController()
+	:CrosshairUI(nullptr)
+	, MiniMapUI(nullptr)
+	, DownTimeUI(nullptr)
+	, TeamType(ETeamType::TEAM_NONE)
+	, PlayerID(INDEX_NONE)
+	, ReSpawnTime(3.f)
 {
 
 }
@@ -174,15 +182,40 @@ void AFPSGamePlayerController::ServerCallClientUpdateMiniMap_Implementation(cons
 	}
 }
 
+void AFPSGamePlayerController::ServerCallClientUpdateDownTime_Implementation(const int32& InDownTime)
+{
+	//通知本地UI开始更新时间
+	DownTimeUI->StartDownTime(InDownTime);
+}
+
+void AFPSGamePlayerController::ServerCallClientUpdateKillText_Implementation(const ETeamType& InTeamType)
+{
+	//通知本地UI开始更新团队击杀数
+	TopInfoPanelUI->UpdateKillText(InTeamType);
+}
+
+void AFPSGamePlayerController::ServerCallClientEndGame_Implementation(const ETeamType& InWinTeam)
+{
+	//显示结算UI
+}
+
 void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlayerNetData& InPlayerData)
 {
 	if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
 	{
 		if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
 		{
-			SpawnPlayerCharacter(
-				MyFPSGM->GetCharacterClass(InPlayerData.Team),
-				MyFPSGM->GetNextSpawnTransform(InPlayerData));
+			if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
+			{
+				TeamType = InPlayerData.Team;
+				PlayerID = InPlayerData.PlayerID;
+
+				FPSGS->RegisterPlayerInfo(PlayerID);
+
+				SpawnPlayerCharacter(
+					MyFPSGM->GetCharacterClass(InPlayerData.Team),
+					MyFPSGM->GetNextSpawnTransform(InPlayerData));
+			}
 		}
 	}
 }
@@ -200,6 +233,54 @@ void AFPSGamePlayerController::SpawnPlayerCharacter(UClass* InCharacterClass, co
 				MyFPSGM->AddSpawnCount();
 			}
 		}
+	}
+}
+
+void AFPSGamePlayerController::ControllerCharacterDeath(AActor* InDamager)
+{
+	if (APawn * ControllerPawn = GetPawn())
+	{
+		if (AFPSGameCharacterBase * FPSCharacter = Cast<AFPSGameCharacterBase>(ControllerPawn))
+		{
+			if (AFPSGameCharacterBase * DamageFPSCharacter = Cast<AFPSGameCharacterBase>(InDamager))
+			{
+				if (AFPSGamePlayerController * DamagerController = Cast<AFPSGamePlayerController>(DamageFPSCharacter->GetOwner()))
+				{
+					//通知GameMode有角色死亡
+					if (AGameModeBase * MyGM = GetWorld()->GetAuthGameMode())
+					{
+						if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
+						{
+							//GameMode处理死亡
+							MyFPSGM->GameCharacterDeath(DamagerController->PlayerID, PlayerID);
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("[class AFPSGamePlayerController] : ControllerCharacterDeath, MyFPSGM Is Null"));
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("[class AFPSGamePlayerController] : ControllerCharacterDeath, MyGM Is Null"));
+					}
+
+					//角色销毁
+					FPSCharacter->Destroy();
+
+					//禁止输入
+
+					//计时重生
+					GThread::Get()->GetCoroutines().BindLambda(ReSpawnTime, [&]()
+						{
+							ServerCallClientSendPlayerData();
+						});
+				}
+			}
+		}
+	}
+	else
+	{
+
 	}
 }
 

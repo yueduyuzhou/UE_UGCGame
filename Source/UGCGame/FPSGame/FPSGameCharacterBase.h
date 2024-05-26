@@ -95,6 +95,9 @@ private:
 
 	UFUNCTION(client, reliable)
 		void ClientEndAiming();
+	
+	UFUNCTION(client, reliable)
+		void ClientCharacterDeath();
 
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
@@ -166,7 +169,8 @@ public:
 
 public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
-	
+	void CharacterDeath();
+
 	UFUNCTION()
 	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 

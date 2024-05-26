@@ -10,6 +10,7 @@ class AFPSGameCharacterBase;
 class AFPSGamePlayerController;
 class AEE_SpawnPoint;
 struct FPlayerNetData;
+enum class ETeamType : uint8;
 
 /**
  * 
@@ -23,16 +24,38 @@ public:
 	AFPSGameGameMode();
 
 private:
+	/***************
+	*	GameCharacter
+	***************/
+	//生成游戏角色
 	void SpawnPlayerCharacters();
+
+	/***************
+	*	Game
+	***************/
+	/*开始倒计时*/
+	void InitDownTime();
+	/*通知所有玩家开始倒计时*/
+	void AllPlayerUpdateDownTime(const int32& InDownTime);
+	/*游戏结束*/
+	void EndGame();
+	/*通知所有玩家游戏结束*/
+	void AllPlayerEndGame(const ETeamType& InWinTeam);
 
 public:
 
+	/*处理游戏角色死亡*/
+	void GameCharacterDeath(const int32& InKillerID, const int32& InKilledID);
+
+	/*通知所有玩家更新MiniMap*/
 	void AllPlayerUpdateMiniMap();
 
-	/***************
-	*	
-	***************/
+	/*通知所有玩家更新MiniMap*/
+	void AllPlayerUpdateKillText(const ETeamType& InTeamType);
 
+	/***************
+	*	属性
+	***************/
 	const FTransform GetNextSpawnTransform(const FPlayerNetData& InPlayerData);
 
 	//AFPSGamePlayerController* GetPlayerControllerByPlayerID(const int32& InPlayerID);
@@ -43,6 +66,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void PostLogin(APlayerController* NewPlayer);
 
 private:
@@ -59,5 +83,6 @@ private:
 
 	int32 PlayerSpawnCount;
 
-
+	bool bStartDownTime;
+	float DownTime;
 };

@@ -19,6 +19,9 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 	UUGCGameInstance();
 
 public:
+	const ETeamType GetTeamTypeByPlayerID(const int32& InPlayerID);
+
+public:
 	FString LoadMapName;
 	TArray<FPlayerNetData> PlayerDatas;
 	FPlayerNetData LocalPlayerData;

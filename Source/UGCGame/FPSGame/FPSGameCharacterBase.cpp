@@ -63,11 +63,19 @@ void AFPSGameCharacterBase::BeginPlay()
 
 	ClientArmAnimBP = ArmMesh->GetAnimInstance();
 	ClientBodyAnimBP = Mesh->GetAnimInstance();
-	FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
 
 	OnTakePointDamage.AddDynamic(this, &AFPSGameCharacterBase::OnHit);
 
 	StartWeapon();
+
+	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+		{
+			if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+			{
+				MyPlayerState->DeathResetData();
+				ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+			}
+		});
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -506,7 +514,6 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 	
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority Update Ammo"));
 		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
@@ -523,7 +530,7 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Update Ammo"));
+		FPSPlayerController = GetController<AFPSGamePlayerController>();
 		if (FPSPlayerController)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
@@ -532,7 +539,6 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 		}
 		else
 		{
-			FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
 			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
 				{
 					UpdateAmmoForSuccessClient(InCurrentClipAmmo, InCurrentAmmo);
@@ -545,9 +551,14 @@ void AFPSGameCharacterBase::ServerCallClientUpdateHealth_Implementation(const fl
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		//TODO:BUG
 		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
 		{
 			TmpFPSPlayerController->UpdateHealth(InHealth, InMaxHealth);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString(TEXT("[class AFPSGameCharacterBase] : ServerCallClientUpdateHealth, TmpFPSPlayerController Is Null")));
 		}
 	}
 	else
@@ -555,6 +566,10 @@ void AFPSGameCharacterBase::ServerCallClientUpdateHealth_Implementation(const fl
 		if (FPSPlayerController)
 		{
 			FPSPlayerController->UpdateHealth(InHealth, InMaxHealth);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString(TEXT("[class AFPSGameCharacterBase] : ServerCallClientUpdateHealth, FPSPlayerController Is Null")));
 		}
 	}
 }
@@ -615,6 +630,14 @@ void AFPSGameCharacterBase::ClientEndAiming_Implementation()
 		{
 			WeaponPrimaryClient->SinperScope->RemoveFromParent();
 		}
+	}
+}
+
+void AFPSGameCharacterBase::ClientCharacterDeath_Implementation()
+{
+	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	{
+		ClientWeapon->Destroy();
 	}
 }
 
@@ -1306,15 +1329,40 @@ void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, A
 	}
 }
 
+void AFPSGameCharacterBase::CharacterDeath()
+{
+	if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
+	{
+		ServerWeapon->Destroy();
+	}
+	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	{
+		ClientWeapon->Destroy();
+	}
+	//销毁客户端的武器
+	ClientCharacterDeath();
+
+	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+	{
+		MyPlayerState->DeathResetData();
+	}
+}
+
 void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
 {
 	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
 	{
 		MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
 		ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+		
 		if (MyPlayerState->Health <= 0)
 		{
 			//死亡
+			if (AFPSGamePlayerController* FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+			{
+				CharacterDeath();
+				FPSPC->ControllerCharacterDeath(DamageCauser);
+			}
 		}
 	}
 }

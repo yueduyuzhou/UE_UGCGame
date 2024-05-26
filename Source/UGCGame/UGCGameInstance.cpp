@@ -8,3 +8,15 @@ UUGCGameInstance::UUGCGameInstance()
 {
 
 }
+
+const ETeamType UUGCGameInstance::GetTeamTypeByPlayerID(const int32& InPlayerID)
+{
+	for (auto& Tmp : PlayerDatas)
+	{
+		if (Tmp.PlayerID == InPlayerID)
+		{
+			return Tmp.Team;
+		}
+	}
+	return ETeamType::TEAM_NONE;
+}
