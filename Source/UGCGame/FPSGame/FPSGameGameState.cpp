@@ -58,7 +58,7 @@ void AFPSGameGameState::RegisterPlayerInfo(const int32& InPlayerID)
 	FFPSPlayerInfo TmpInfo;
 	if (!GetInfoByID(InPlayerID, TmpInfo))
 	{
-		FPSPlayerInfos.Add(FFPSPlayerInfo());
+		FPSPlayerInfos.Add(TmpInfo);
 		FPSPlayerInfos.Last().PlayerID = InPlayerID;
 	}
 }

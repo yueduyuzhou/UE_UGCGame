@@ -68,14 +68,17 @@ void AFPSGameCharacterBase::BeginPlay()
 
 	StartWeapon();
 
-	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-		{
-			if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
 			{
-				MyPlayerState->DeathResetData();
-				ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
-			}
-		});
+				if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+				{
+					MyPlayerState->DeathResetData();
+					ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+				}
+			});
+	}
 }
 
 void AFPSGameCharacterBase::Tick(float DeltaTime)
@@ -524,6 +527,8 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 		{
 			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
 				{
+					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameCharacterBase]: Repeat Call ServerCallClientUpdateAmmo"));
+
 					UpdateAmmoForSuccessServer(InCurrentClipAmmo, InCurrentAmmo);
 				}, InCurrentClipAmmo, InCurrentAmmo);
 		}
@@ -541,6 +546,8 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 		{
 			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
 				{
+					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameCharacterBase]: Repeat Call ServerCallClientUpdateAmmo"));
+
 					UpdateAmmoForSuccessClient(InCurrentClipAmmo, InCurrentAmmo);
 				}, InCurrentClipAmmo, InCurrentAmmo);
 		}
@@ -552,6 +559,7 @@ void AFPSGameCharacterBase::ServerCallClientUpdateHealth_Implementation(const fl
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		//TODO:BUG
+		//Cast<AFPSGamePlayerController>(GetWorld()->GetFirstPlayerController())
 		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
 		{
 			TmpFPSPlayerController->UpdateHealth(InHealth, InMaxHealth);
@@ -1265,6 +1273,8 @@ void AFPSGameCharacterBase::UpdateAmmoForSuccessServer(const int32& InCurrentCli
 	{
 		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameCharacterBase]: Repeat Call UpdateAmmoForSuccessServer"));
+
 				UpdateAmmoForSuccessServer(InCurrentClipAmmo, InCurrentAmmo);
 			}, InCurrentClipAmmo, InCurrentAmmo);
 	}
@@ -1280,11 +1290,13 @@ void AFPSGameCharacterBase::UpdateAmmoForSuccessClient(const int32& InCurrentCli
 	}
 	else
 	{
-		FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
+		/*FPSPlayerController = Cast<AFPSGamePlayerController>(GetController());
 		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&](const int32 & InCurrentClipAmmo, const int32 & InCurrentAmmo)
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameCharacterBase]: Repeat Call UpdateAmmoForSuccessClient"));
+
 				UpdateAmmoForSuccessClient(InCurrentClipAmmo, InCurrentAmmo);
-			}, InCurrentClipAmmo, InCurrentAmmo);
+			}, InCurrentClipAmmo, InCurrentAmmo);*/
 	}
 }
 

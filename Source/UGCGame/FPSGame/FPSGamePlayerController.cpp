@@ -7,6 +7,7 @@
 #include "UGCGame/UGCGameInstance.h"
 #include "FPSGameGameMode.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "FPSGamePlayerState.h"
 #include "FPSGameGameState.h"
 
@@ -194,9 +195,23 @@ void AFPSGamePlayerController::ServerCallClientUpdateKillText_Implementation(con
 	TopInfoPanelUI->UpdateKillText(InTeamType);
 }
 
-void AFPSGamePlayerController::ServerCallClientEndGame_Implementation(const ETeamType& InWinTeam)
+void AFPSGamePlayerController::ServerCallClientEndGame_Implementation(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos)
 {
-	//显示结算UI
+	//保存结束数据
+	if (UUGCGameInstance * MyGI = GetGameInstance<UUGCGameInstance>())
+	{
+		MyGI->WinTeam = InWinTeam;
+		MyGI->EndGamePlayerInfos = InPlayerInfos;
+
+		//禁止输入，播放过场动画
+
+		//延时打开新关卡，显示结算UI
+		EndGame(InWinTeam, InPlayerInfos);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("[class AFPSGamePlayerController] : ServerCallClientEndGame, MyGI Is Null")));
+	}
 }
 
 void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlayerNetData& InPlayerData)
@@ -252,6 +267,8 @@ void AFPSGamePlayerController::ControllerCharacterDeath(AActor* InDamager)
 						if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
 						{
 							//GameMode处理死亡
+							GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call ControllerCharacterDeath, KillerPlayerID = %d, KilledPlayerID = %d"), DamagerController->PlayerID, PlayerID));
+
 							MyFPSGM->GameCharacterDeath(DamagerController->PlayerID, PlayerID);
 						}
 						else
@@ -313,4 +330,9 @@ void AFPSGamePlayerController::UpdateHealth(const float& InHealth, const float& 
 	{
 		CrosshairUI->UpdateHealth(InHealth, InMaxHealth);
 	}
+}
+
+bool AFPSGamePlayerController::IsAuthority()
+{
+	return GetLocalRole() == ROLE_Authority;
 }

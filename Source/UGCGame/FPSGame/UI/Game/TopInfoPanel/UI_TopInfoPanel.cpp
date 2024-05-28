@@ -36,6 +36,8 @@ void UUI_TopInfoPanel::RegisterToPlayerController()
 	{
 		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class UUI_TopInfoPanel]: Repeat Call RegisterToPlayerController"));
+
 				RegisterToPlayerController();
 			});
 	}

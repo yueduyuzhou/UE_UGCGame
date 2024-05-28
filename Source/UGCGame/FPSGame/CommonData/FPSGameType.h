@@ -20,11 +20,11 @@ struct FFPSPlayerInfo
 {
 	GENERATED_USTRUCT_BODY()
 
-	/*FFPSPlayerInfo(const int32& InID)
-		:PlayerID(InID)
+	FFPSPlayerInfo()
+		:PlayerID(INDEX_NONE)
 		, KillCount(0)
 		, DeathCount(0)
-	{}*/
+	{}
 
 	UPROPERTY()
 	int32 PlayerID;

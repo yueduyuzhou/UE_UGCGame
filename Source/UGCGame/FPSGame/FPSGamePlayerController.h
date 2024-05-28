@@ -20,6 +20,8 @@ class UGCGAME_API AFPSGamePlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+	friend class AFPSGameGameMode;
+
 	AFPSGamePlayerController();
 
 	virtual void SetupInputComponent() override;
@@ -61,7 +63,7 @@ public:
 
 	/*”Œœ∑Ω· ¯*/
 	UFUNCTION(client, reliable)
-		void ServerCallClientEndGame(const ETeamType& InWinTeam);
+		void ServerCallClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos);
 	
 	UFUNCTION(server, reliable)
 		void SendPlayerDataToServer(const FPlayerNetData& InPlayerData);
@@ -83,7 +85,14 @@ public:
 	void UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo);
 	void UpdateHealth(const float& InHealth, const float& InMaxHealth);
 
-	
+	/***********************************************************************
+	*	Blueprint
+	***********************************************************************/
+	UFUNCTION(BlueprintImplementableEvent)
+		void EndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos);
+
+	UFUNCTION(BlueprintCallable)
+		bool IsAuthority();
 
 public:
 	UUI_Crosshair* CrosshairUI;

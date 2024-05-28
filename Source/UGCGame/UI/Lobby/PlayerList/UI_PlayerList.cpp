@@ -34,6 +34,10 @@ void UUI_PlayerList::NativeConstruct()
 	{
 		StartGame->SetIsEnabled(false);
 	}
+	
+	RedPlayers->ClearChildren();
+	BluePlayers->ClearChildren();
+
 }
 
 void UUI_PlayerList::AddNewPlayer(const ETeamType& InTeamType, const int32& InPlayerID)

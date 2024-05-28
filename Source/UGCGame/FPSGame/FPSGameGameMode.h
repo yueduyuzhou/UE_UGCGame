@@ -10,6 +10,7 @@ class AFPSGameCharacterBase;
 class AFPSGamePlayerController;
 class AEE_SpawnPoint;
 struct FPlayerNetData;
+struct FFPSPlayerInfo;
 enum class ETeamType : uint8;
 
 /**
@@ -35,12 +36,16 @@ private:
 	***************/
 	/*开始倒计时*/
 	void InitDownTime();
+
 	/*通知所有玩家开始倒计时*/
 	void AllPlayerUpdateDownTime(const int32& InDownTime);
+
 	/*游戏结束*/
 	void EndGame();
+
 	/*通知所有玩家游戏结束*/
-	void AllPlayerEndGame(const ETeamType& InWinTeam);
+	UFUNCTION(BlueprintCallable)
+	void AllClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos);
 
 public:
 
@@ -58,16 +63,22 @@ public:
 	***************/
 	const FTransform GetNextSpawnTransform(const FPlayerNetData& InPlayerData);
 
+	/*获取本地PlayerController*/
+	AFPSGamePlayerController* GetLocalPlayerController();
+
 	//AFPSGamePlayerController* GetPlayerControllerByPlayerID(const int32& InPlayerID);
 	UClass* GetCharacterClass(const ETeamType& InType);
 
 	void AddSpawnCount();
-	FORCEINLINE const int32& GetSpawnCount() { return PlayerSpawnCount; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetSpawnCount() { return PlayerSpawnCount; }
 
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-	virtual void PostLogin(APlayerController* NewPlayer);
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 
 private:
 	UPROPERTY(EditAnywhere)

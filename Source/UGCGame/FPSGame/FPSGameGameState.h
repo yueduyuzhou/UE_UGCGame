@@ -22,6 +22,10 @@ class UGCGAME_API AFPSGameGameState : public AUGCGameState
 	AFPSGameGameState();
 
 public:
+	FORCEINLINE const int32& GetBlueTeamKillCount() { return BlueTeamKillCount; }
+	FORCEINLINE const int32& GetRedTeamKillCount() { return RedTeamKillCount; }
+	FORCEINLINE const TArray<FFPSPlayerInfo>& GetFPSPlayerInfos() { return FPSPlayerInfos; }
+
 	void KillBlue(const int32& InKillerID, const int32& InKilledID);
 	void KillRed(const int32& InKillerID, const int32& InKilledID);
 

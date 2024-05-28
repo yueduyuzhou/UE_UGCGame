@@ -20,7 +20,7 @@ AFPSGameGameMode::AFPSGameGameMode()
 	, BlueIndex(0)
 	, PlayerSpawnCount(0)
 	, bStartDownTime(false)
-	, DownTime(100.f)
+	, DownTime(10.f)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
@@ -84,6 +84,7 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 		{
 			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
 				{
+					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameGameMode]: Repeat Call SpawnPlayerCharacters"));
 					SpawnPlayerCharacters();
 				});
 		}
@@ -135,24 +136,42 @@ void AFPSGameGameMode::AllPlayerUpdateDownTime(const int32& InDownTime)
 
 void AFPSGameGameMode::EndGame()
 {
+	ETeamType WinTeam = ETeamType::TEAM_NONE;
 	//结算（队伍人头/队伍积分）
 	if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
 	{
-		
+		if (FPSGS->GetBlueTeamKillCount() < FPSGS->GetRedTeamKillCount())
+		{
+			WinTeam = ETeamType::TEAM_RED;
+		}
+		else if (FPSGS->GetBlueTeamKillCount() > FPSGS->GetRedTeamKillCount())
+		{
+			WinTeam = ETeamType::TEAM_BLUE;
+		}
+
+		//通知客户端显示获胜/失败页面
+		if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
+		{
+			LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+			//AllPlayerEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+		}
 	}
 
-	//通知客户端显示获胜/失败页面
+	
 }
 
-void AFPSGameGameMode::AllPlayerEndGame(const ETeamType& InWinTeam)
+void AFPSGameGameMode::AllClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos)
 {
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
 	{
-		if (APlayerController * MyPC = It->Get())
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
-			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(It->Get()))
 			{
-				MyFPSPC->ServerCallClientEndGame(InWinTeam);
+				if (LocalFPSPC->PlayerID != MyFPSPC->PlayerID)
+				{
+					MyFPSPC->ServerCallClientEndGame(InWinTeam, InPlayerInfos);
+				}
 			}
 		}
 	}
@@ -208,6 +227,18 @@ const FTransform AFPSGameGameMode::GetNextSpawnTransform(const FPlayerNetData& I
 	return PlayerTransform;
 }
 
+AFPSGamePlayerController* AFPSGameGameMode::GetLocalPlayerController()
+{
+	if (AController * LocalPC = GetWorld()->GetFirstPlayerController())
+	{
+		if (AFPSGamePlayerController * LocalLobbyPC = Cast<AFPSGamePlayerController>(LocalPC))
+		{
+			return LocalLobbyPC;
+		}
+	}
+	return nullptr;
+}
+
 UClass* AFPSGameGameMode::GetCharacterClass(const ETeamType& InType)
 {
 	if (InType == ETeamType::TEAM_BLUE)
@@ -224,6 +255,7 @@ UClass* AFPSGameGameMode::GetCharacterClass(const ETeamType& InType)
 void AFPSGameGameMode::AddSpawnCount()
 {
 	PlayerSpawnCount++;
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameGameMode]: AddSpawnCount, PlayerSpawnCount = %d"), PlayerSpawnCount));
 }
 
 void AFPSGameGameMode::BeginPlay()
@@ -271,4 +303,12 @@ void AFPSGameGameMode::Tick(float DeltaSeconds)
 void AFPSGameGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+	AddSpawnCount();
+}
+
+void AFPSGameGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	PlayerSpawnCount--;
 }

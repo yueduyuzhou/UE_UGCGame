@@ -60,6 +60,8 @@ void UUI_DownTime::RegisterToPlayerController()
 	{
 		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class UUI_DownTime]: Repeat Call RegisterToPlayerController"));
+
 				RegisterToPlayerController();
 			});
 	}
