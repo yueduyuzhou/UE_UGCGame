@@ -20,7 +20,7 @@ AFPSGameGameMode::AFPSGameGameMode()
 	, BlueIndex(0)
 	, PlayerSpawnCount(0)
 	, bStartDownTime(false)
-	, DownTime(10.f)
+	, DownTime(90.f)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
@@ -140,20 +140,28 @@ void AFPSGameGameMode::EndGame()
 	//结算（队伍人头/队伍积分）
 	if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
 	{
-		if (FPSGS->GetBlueTeamKillCount() < FPSGS->GetRedTeamKillCount())
+		if (UUGCGameInstance * MyGI = GetGameInstance<UUGCGameInstance>())
 		{
-			WinTeam = ETeamType::TEAM_RED;
-		}
-		else if (FPSGS->GetBlueTeamKillCount() > FPSGS->GetRedTeamKillCount())
-		{
-			WinTeam = ETeamType::TEAM_BLUE;
-		}
+			//判断获胜队伍
+			if (FPSGS->GetBlueTeamKillCount() < FPSGS->GetRedTeamKillCount())
+			{
+				WinTeam = ETeamType::TEAM_RED;
+			}
+			else if (FPSGS->GetBlueTeamKillCount() > FPSGS->GetRedTeamKillCount())
+			{
+				WinTeam = ETeamType::TEAM_BLUE;
+			}
 
-		//通知客户端显示获胜/失败页面
-		if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
-		{
-			LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
-			//AllPlayerEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+			//通知客户端显示获胜/失败页面
+			if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
+			{
+				//保存再服务端Instance
+				MyGI->WinTeam = WinTeam;
+				MyGI->EndGamePlayerInfos = FPSGS->GetFPSPlayerInfos();
+
+				LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+				//AllPlayerEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+			}
 		}
 	}
 

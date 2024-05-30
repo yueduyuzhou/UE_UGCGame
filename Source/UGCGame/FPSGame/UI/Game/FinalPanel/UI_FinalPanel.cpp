@@ -29,8 +29,16 @@ void UUI_FinalPanel::NativeConstruct()
 			{
 				if (UVerticalBoxSlot * VerSlot = PlayerList->AddChildToVerticalBox(InfoSlot))
 				{
+					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+						FString::Printf(
+							TEXT("[class UUI_FinalPanel] : NativeConstruct, Player_%d KillCount = %d, DeathCount = %d"),
+							i + 1,
+							MyGI->EndGamePlayerInfos[i].KillCount,
+							MyGI->EndGamePlayerInfos[i].DeathCount));
+
 					//ÉèÖÃÊý¾Ý
 					InfoSlot->Rank->SetText(FText::FromString(FString::FromInt(i + 1)));
+					InfoSlot->PlayerID->SetText(FText::FromString(FString::FromInt(MyGI->EndGamePlayerInfos[i].PlayerID)));
 					InfoSlot->Kill->SetText(FText::FromString(FString::FromInt(MyGI->EndGamePlayerInfos[i].KillCount)));
 					InfoSlot->Death->SetText(FText::FromString(FString::FromInt(MyGI->EndGamePlayerInfos[i].DeathCount)));
 					InfoSlot->Score->SetText(FText::FromString(FString::FromInt(

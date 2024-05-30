@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../../Core/UI_Base.h"
 #include "../../../Common/UGCGameType.h"
+#include "RuntimeTransformer/Public/TransformerPawn.h"
 #include "UI_Item.generated.h"
 
 class UImage;

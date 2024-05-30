@@ -30,8 +30,9 @@ public:
 	void KillRed(const int32& InKillerID, const int32& InKilledID);
 
 	//获取玩家信息
-	bool GetInfoByID(const int32& InPlayerID, FFPSPlayerInfo& OutInfo);
+	FFPSPlayerInfo& GetInfoByID(const int32& InPlayerID);
 
+	bool ExistPlayer(const int32& InPlayerID);
 	//注册玩家信息
 	void RegisterPlayerInfo(const  int32& InPlayerID);
 

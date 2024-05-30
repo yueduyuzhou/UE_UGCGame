@@ -19,6 +19,10 @@
 AFPSGameCharacterBase::AFPSGameCharacterBase()
 	:BaseTurnRate(45.f)
 	, BaseLookUpRate(45.f)
+	, WeaponPrimaryServer(nullptr)
+	, WeaponPrimaryClient(nullptr)
+	, WeaponSecondaryServer(nullptr)
+	, WeaponSecondaryClient(nullptr)
 	, IsFireing(false)
 	, IsReloading(false)
 	, IsAiming(false)
@@ -99,6 +103,8 @@ void AFPSGameCharacterBase::StartWeapon()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		//从GameInsatcne获取武器类型
+		PurchaseWeapon(EWeaponType::DESERTEAGLE);
 		PurchaseWeapon(StartWeaponType);
 	}
 }
@@ -343,6 +349,23 @@ void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation()
 	}
 }
 
+void AFPSGameCharacterBase::SwitchWeaponOnServer_Implementation()
+{
+	if (ActiveWeapon >= EWeaponType::AK47 &&
+		ActiveWeapon <= EWeaponType::SNIPER)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : SwitchWeaponOnServer, EquipSecondary")));
+		//换副武器
+		EquipSecondaryWeapon();
+	}
+	else if (ActiveWeapon >= EWeaponType::DESERTEAGLE)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : SwitchWeaponOnServer, EquipPrimary")));
+		//换主武器
+		EquipPrimaryWeapon();
+	}
+}
+
 void AFPSGameCharacterBase::SecondaryWeaponReloadOnServer_Implementation()
 {
 	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
@@ -377,13 +400,36 @@ void AFPSGameCharacterBase::SetIsAimingOnServer_Implementation(bool InIsAiming)
 	IsAiming = InIsAiming;
 }
 
-void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
+void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation(const EWeaponType& InWeaponType)
 {
 	if (WeaponPrimaryServer)
 	{
 		if (WeaponPrimaryClient)
 		{
+			FName SocketName = TEXT("WeaponSocket");
+			if (InWeaponType == EWeaponType::M4A1)
+			{
+				SocketName = TEXT("M4A1WeaponSocket");
+			}
+			else if (InWeaponType == EWeaponType::MP7)
+			{
+				SocketName = TEXT("MP7WeaponSocket");
+			}
+			else if (InWeaponType == EWeaponType::SNIPER)
+			{
+				SocketName = TEXT("SniperWeaponSocket");
+			}
 
+			if (WeaponPrimaryClient)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString());
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
+
+				WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+				//调整手臂动画
+				UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
+			}
 		}
 		else
 		{
@@ -391,45 +437,52 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation()
 			SpawnInfo.Owner = this;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			WeaponPrimaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponPrimaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
-
-			GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-				{
-					FName SocketName = TEXT("WeaponSocket");
-					if (ActiveWeapon == EWeaponType::M4A1)
+			
+			if (WeaponPrimaryClient)
+			{
+				GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
 					{
-						SocketName = TEXT("M4A1WeaponSocket");
-					}
-					else if (ActiveWeapon == EWeaponType::MP7)
-					{
-						SocketName = TEXT("MP7WeaponSocket");
-					}
-					else if (ActiveWeapon == EWeaponType::SNIPER)
-					{
-						SocketName = TEXT("SniperWeaponSocket");
-					}
+						FName SocketName = TEXT("WeaponSocket");
+						if (ActiveWeapon == EWeaponType::M4A1)
+						{
+							SocketName = TEXT("M4A1WeaponSocket");
+						}
+						else if (ActiveWeapon == EWeaponType::MP7)
+						{
+							SocketName = TEXT("MP7WeaponSocket");
+						}
+						else if (ActiveWeapon == EWeaponType::SNIPER)
+						{
+							SocketName = TEXT("SniperWeaponSocket");
+						}
 
-					if (WeaponPrimaryClient)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString());
-						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
+						if (WeaponPrimaryClient)
+						{
+							UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString());
+							GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
 
-						WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+							WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
-						//调整手臂动画
-						UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
-					}
-				});
+							//调整手臂动画
+							UpdateFPSArmAnimBlend(WeaponPrimaryClient->ArmAnimBlendIndex);
+						}
+					});
+			}
 		}
 	}
 }
 
-void AFPSGameCharacterBase::ServerCallClientEquipSecondaryWeapon_Implementation()
+void AFPSGameCharacterBase::ServerCallClientEquipSecondaryWeapon_Implementation(const EWeaponType& InWeaponType)
 {
 	if (WeaponSecondaryServer)
 	{
 		if (WeaponSecondaryClient)
 		{
+			FName SocketName = TEXT("DesertEagleWeaponSocket");
+			WeaponSecondaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
+			//调整手臂动画
+			UpdateFPSArmAnimBlend(WeaponSecondaryClient->ArmAnimBlendIndex);;
 		}
 		else
 		{
@@ -438,9 +491,9 @@ void AFPSGameCharacterBase::ServerCallClientEquipSecondaryWeapon_Implementation(
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			WeaponSecondaryClient = GetWorld()->SpawnActor<AWeaponBaseClient>(WeaponSecondaryServer->ClientWeaponClass, GetActorTransform(), SpawnInfo);
 
-			FName SocketName = TEXT("DesertEagleWeaponSocket");
 			if (WeaponSecondaryClient)
 			{
+				FName SocketName = TEXT("DesertEagleWeaponSocket");
 				WeaponSecondaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
 				//调整手臂动画
@@ -649,6 +702,11 @@ void AFPSGameCharacterBase::ClientCharacterDeath_Implementation()
 	}
 }
 
+void AFPSGameCharacterBase::ClientDepositActiveWeapon_Implementation()
+{
+	DepositActiveClientWeapon();
+}
+
 void AFPSGameCharacterBase::MulticastFire_Implementation()
 {
 	if (ClientBodyAnimBP)
@@ -820,6 +878,11 @@ void AFPSGameCharacterBase::AmmoReload()
 	}
 }
 
+void AFPSGameCharacterBase::SwitchWeapon()
+{
+	SwitchWeaponOnServer();
+}
+
 void AFPSGameCharacterBase::MoveForward(float Value)
 {
 	if ((Controller != NULL) && (Value != 0.0f))
@@ -874,15 +937,42 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 	}
 	else
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f , FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
 		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
+
 		WeaponPrimaryServer = InWeaponBaseServer;
 		WeaponPrimaryServer->SetOwner(this);
 
 		WeaponPrimaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 	
-		ServerCallClientEquipPrimaryWeapon();
+		ServerCallClientEquipPrimaryWeapon(WeaponPrimaryServer->WeaponType);
 
 		ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
+	}
+}
+
+void AFPSGameCharacterBase::EquipPrimaryWeapon()
+{
+	if (WeaponPrimaryServer)
+	{
+		if (ActiveWeapon != WeaponPrimaryServer->WeaponType)
+		{
+			//手上的抢放到后面
+			DepositActiveServerWeapon();
+			ClientDepositActiveWeapon();
+
+			ActiveWeapon = WeaponPrimaryServer->WeaponType;
+
+			WeaponPrimaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+			ServerCallClientEquipPrimaryWeapon(WeaponPrimaryServer->WeaponType);
+
+			ServerCallClientUpdateAmmo(WeaponPrimaryServer->GetCurrentClipAmmo(), WeaponPrimaryServer->GetCurrentAmmo());
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, WeaponPrimaryServer Is Null")));
 	}
 }
 
@@ -894,14 +984,84 @@ void AFPSGameCharacterBase::EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBase
 	}
 	else
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Secondary Weapon"));
+
 		WeaponSecondaryServer = InWeaponBaseServer;
 		WeaponSecondaryServer->SetOwner(this);
 
 		WeaponSecondaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
-		ServerCallClientEquipSecondaryWeapon();
+		ServerCallClientEquipSecondaryWeapon(WeaponSecondaryServer->WeaponType);
 
 		ServerCallClientUpdateAmmo(WeaponSecondaryServer->GetCurrentClipAmmo(), WeaponSecondaryServer->GetCurrentAmmo());
+	}
+}
+
+void AFPSGameCharacterBase::EquipSecondaryWeapon()
+{
+	if (WeaponSecondaryServer)
+	{
+		if (ActiveWeapon != WeaponSecondaryServer->WeaponType)
+		{
+			//手上的抢放到后面
+			DepositActiveServerWeapon();
+			ClientDepositActiveWeapon();
+
+			ActiveWeapon = WeaponSecondaryServer->WeaponType;
+
+			WeaponSecondaryServer->K2_AttachToComponent(Mesh, TEXT("Weapon_Rifle"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+			ServerCallClientEquipSecondaryWeapon(WeaponSecondaryServer->WeaponType);
+
+			ServerCallClientUpdateAmmo(WeaponSecondaryServer->GetCurrentClipAmmo(), WeaponSecondaryServer->GetCurrentAmmo());
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, WeaponSecondaryServer Is Null")));
+	}
+}
+
+void AFPSGameCharacterBase::DepositActiveServerWeapon()
+{
+	if (AWeaponBaseServer * CurServerWeapon = GetCurrentServerWeapon())
+	{
+		if (CurServerWeapon->WeaponType >= EWeaponType::AK47 &&
+			CurServerWeapon->WeaponType <= EWeaponType::SNIPER)
+		{
+			CurServerWeapon->K2_AttachToComponent(Mesh, TEXT("PrimaryWeaponDeposit"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		}
+		else if (CurServerWeapon->WeaponType >= EWeaponType::DESERTEAGLE)
+		{
+			CurServerWeapon->K2_AttachToComponent(Mesh, TEXT("SecondaryWeaponDeposit"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : DepositActiveServerWeapon, CurServerWeapon Is Null")));
+	}
+}
+
+void AFPSGameCharacterBase::DepositActiveClientWeapon()
+{
+	if (AWeaponBaseClient * CurClientWeapon = GetCurrentClientWeapon())
+	{
+		if (CurClientWeapon->WeaponType >= EWeaponType::AK47 &&
+			CurClientWeapon->WeaponType <= EWeaponType::SNIPER)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : DepositActiveClientWeapon, Deposit To SocketName = SecondaryWeaponDeposit")));
+			CurClientWeapon->K2_AttachToComponent(ArmMesh, TEXT("SecondaryWeaponDeposit"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		}
+		else if (CurClientWeapon->WeaponType >= EWeaponType::DESERTEAGLE)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : DepositActiveClientWeapon, Deposit To SocketName = PrimaryWeaponDeposit")));
+			CurClientWeapon->K2_AttachToComponent(ArmMesh, TEXT("PrimaryWeaponDeposit"), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : DepositActiveClientWeapon, ClientWeapon Is Null")));
 	}
 }
 
@@ -1364,16 +1524,27 @@ void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AControlle
 {
 	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
 	{
-		MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
-		ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
-		
-		if (MyPlayerState->Health <= 0)
+		if (AFPSGamePlayerController * DamageCauserFPSPC = Cast<AFPSGamePlayerController>(DamageCauser->GetOwner()))
 		{
-			//死亡
-			if (AFPSGamePlayerController* FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(GetOwner()))
 			{
-				CharacterDeath();
-				FPSPC->ControllerCharacterDeath(DamageCauser);
+				if (MyFPSPC->GetTeamType() == MyFPSPC->GetTeamType())
+				{
+					//同队伤害衰减
+					Damage /= 15;
+				}
+				MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
+				ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+
+				if (MyPlayerState->Health <= 0)
+				{
+					//死亡
+					if (AFPSGamePlayerController * FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+					{
+						CharacterDeath();
+						FPSPC->ControllerCharacterDeath(DamageCauser);
+					}
+				}
 			}
 		}
 	}

@@ -15,38 +15,48 @@ AFPSGameGameState::AFPSGameGameState()
 void AFPSGameGameState::KillBlue(const int32& InKillerID, const int32& InKilledID)
 {
 	BlueTeamKillCount++;
-	FFPSPlayerInfo TmpInfo;
-	if (GetInfoByID(InKillerID, TmpInfo))
+	if (ExistPlayer(InKillerID))
 	{
-		TmpInfo.KillCount++;
+		GetInfoByID(InKillerID).KillCount++;
 	}
-	if (GetInfoByID(InKilledID, TmpInfo))
+	if (ExistPlayer(InKilledID))
 	{
-		TmpInfo.DeathCount++;
+		GetInfoByID(InKilledID).DeathCount++;
 	}
 }
 
 void AFPSGameGameState::KillRed(const int32& InKillerID, const int32& InKilledID)
 {
 	RedTeamKillCount++;
-	FFPSPlayerInfo TmpInfo;
-	if (GetInfoByID(InKillerID, TmpInfo))
+	
+	if (ExistPlayer(InKillerID))
 	{
-		TmpInfo.KillCount++;
+		GetInfoByID(InKillerID).KillCount++;
 	}
-	if (GetInfoByID(InKilledID, TmpInfo))
+	if (ExistPlayer(InKilledID))
 	{
-		TmpInfo.DeathCount++;
+		GetInfoByID(InKilledID).DeathCount++;
 	}
 }
 
-bool AFPSGameGameState::GetInfoByID(const int32& InPlayerID, FFPSPlayerInfo& OutInfo)
+FFPSPlayerInfo& AFPSGameGameState::GetInfoByID(const int32& InPlayerID)
 {
 	for (auto& Tmp : FPSPlayerInfos)
 	{
 		if (Tmp.PlayerID == InPlayerID)
 		{
-			OutInfo = Tmp;
+			return Tmp;
+		}
+	}
+	return FPSPlayerInfos[0];
+}
+
+bool AFPSGameGameState::ExistPlayer(const int32& InPlayerID)
+{
+	for (auto& Tmp : FPSPlayerInfos)
+	{
+		if (Tmp.PlayerID == InPlayerID)
+		{
 			return true;
 		}
 	}
@@ -55,10 +65,14 @@ bool AFPSGameGameState::GetInfoByID(const int32& InPlayerID, FFPSPlayerInfo& Out
 
 void AFPSGameGameState::RegisterPlayerInfo(const int32& InPlayerID)
 {
-	FFPSPlayerInfo TmpInfo;
-	if (!GetInfoByID(InPlayerID, TmpInfo))
+	if (!ExistPlayer(InPlayerID))
 	{
+		FFPSPlayerInfo TmpInfo;
+		TmpInfo.PlayerID = InPlayerID;
 		FPSPlayerInfos.Add(TmpInfo);
-		FPSPlayerInfos.Last().PlayerID = InPlayerID;
+	}
+	else
+	{
+
 	}
 }

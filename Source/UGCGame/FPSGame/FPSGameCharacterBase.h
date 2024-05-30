@@ -61,6 +61,9 @@ private:
 		void PrimaryWeaponReloadOnServer();
 
 	UFUNCTION(server, reliable)
+		void SwitchWeaponOnServer();
+
+	UFUNCTION(server, reliable)
 		void SecondaryWeaponReloadOnServer();
 
 	UFUNCTION(server, reliable)
@@ -70,10 +73,10 @@ private:
 		void SetIsAimingOnServer(bool InIsAiming);
 
 	UFUNCTION(client, reliable)
-		void ServerCallClientEquipPrimaryWeapon();
+		void ServerCallClientEquipPrimaryWeapon(const EWeaponType& InWeaponType);
 
 	UFUNCTION(client, reliable)
-		void ServerCallClientEquipSecondaryWeapon();
+		void ServerCallClientEquipSecondaryWeapon(const EWeaponType& InWeaponType);
 
 	UFUNCTION(client, reliable)
 		void ServerCallClientFireWeapon();
@@ -99,6 +102,9 @@ private:
 	UFUNCTION(client, reliable)
 		void ClientCharacterDeath();
 
+	UFUNCTION(client, reliable)
+		void ClientDepositActiveWeapon();
+
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
 
@@ -119,6 +125,7 @@ public:
 	void NormalSpeedWalk();
 
 	void AmmoReload();
+	void SwitchWeapon();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -129,9 +136,14 @@ public:
 public:
 	/*装备主武器*/
 	void EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
+	void EquipPrimaryWeapon();
 
 	/*装备副武器*/
 	void EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
+	void EquipSecondaryWeapon();
+
+	void DepositActiveServerWeapon();
+	void DepositActiveClientWeapon();		//由于改接口实在服务器的ActiveType更改之后在客户端调用的，所以与DepositActiveServerWeapon相反
 
 	/*主武器（步枪）开/停火*/
 	void PrimaryWeaponFire();

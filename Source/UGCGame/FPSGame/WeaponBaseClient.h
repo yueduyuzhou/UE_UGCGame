@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CommonData/FPSGameType.h"
 #include "WeaponBaseClient.generated.h"
 
 class USkeletalMeshComponent;
@@ -43,6 +44,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "SinperUI")
 	TSubclassOf<UUserWidget> SinperScopeClass;
+
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 
 public:	
 	AWeaponBaseClient();

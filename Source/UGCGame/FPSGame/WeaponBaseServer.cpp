@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 
 AWeaponBaseServer::AWeaponBaseServer()
+	:WeaponType(EWeaponType::AK47)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -46,7 +47,7 @@ void AWeaponBaseServer::OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedCo
 		{
 			EquipWeapon();
 
-			if (WeapType == EWeaponType::DESERTEAGLE)
+			if (WeaponType == EWeaponType::DESERTEAGLE)
 			{
 				FPSCharacter->EquipSecondaryWeapon(this);
 			}

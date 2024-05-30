@@ -27,4 +27,7 @@ class UGCGAME_API UUI_FinalPanelSlot : public UUI_FPSBase
 
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* Score;
+
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* PlayerID;
 };

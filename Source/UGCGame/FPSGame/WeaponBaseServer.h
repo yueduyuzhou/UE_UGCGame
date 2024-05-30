@@ -25,7 +25,7 @@ public:
 		USphereComponent* SphereCollision;
 
 	UPROPERTY(EditAnywhere)
-		EWeaponType WeapType;
+		EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<AWeaponBaseClient> ClientWeaponClass;

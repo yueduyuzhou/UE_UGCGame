@@ -38,6 +38,7 @@ void AFPSGamePlayerController::SetupInputComponent()
 	InputComponent->BindAction("LowSpeedWalk", IE_Released, this, &AFPSGamePlayerController::OnLeftShiftButtonUp);
 
 	InputComponent->BindAction("AmmoReload", IE_Pressed, this, &AFPSGamePlayerController::AmmoReload);
+	InputComponent->BindAction("SwitchWeapon", IE_Pressed, this, &AFPSGamePlayerController::SwitchWeapon);
 
 	InputComponent->BindAxis("MoveForward", this, &AFPSGamePlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AFPSGamePlayerController::MoveRight);
@@ -109,6 +110,14 @@ void AFPSGamePlayerController::AmmoReload()
 	}
 }
 
+void AFPSGamePlayerController::SwitchWeapon()
+{
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->SwitchWeapon();
+	}
+}
+
 void AFPSGamePlayerController::MoveForward(float Value)
 {
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
@@ -147,6 +156,7 @@ void AFPSGamePlayerController::ServerCallClientSendPlayerData_Implementation()
 	{
 		if (UUGCGameInstance * MyUGCGI = Cast<UUGCGameInstance>(MyGI))
 		{
+			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("[class AFPSGamePlayerController] : ServerCallClientSendPlayerData, MyUGCGI->LocalPlayerData.PlayerID = %d"), MyUGCGI->LocalPlayerData.PlayerID));
 			SendPlayerDataToServer(MyUGCGI->LocalPlayerData);
 		}
 	}
@@ -225,6 +235,11 @@ void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlay
 				TeamType = InPlayerData.Team;
 				PlayerID = InPlayerData.PlayerID;
 
+				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, 
+					FString::Printf(
+						TEXT("[class AFPSGamePlayerController] : SendPlayerDataToServer, InPlayerData.PlayerID = %d, PlayerID = %d"), 
+						InPlayerData.PlayerID,
+						PlayerID));
 				FPSGS->RegisterPlayerInfo(PlayerID);
 
 				SpawnPlayerCharacter(

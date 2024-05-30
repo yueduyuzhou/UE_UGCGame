@@ -39,6 +39,7 @@ private:
 	void OnLeftShiftButtonUp();
 
 	void AmmoReload();
+	void SwitchWeapon();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -93,6 +94,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		bool IsAuthority();
+
+	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
 
 public:
 	UUI_Crosshair* CrosshairUI;
