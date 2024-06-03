@@ -5,6 +5,7 @@
 #include "../../../Common/UGCGameType.h"
 #include "../../../Element/ElementBase.h"
 #include "Details/UI_DetailVector.h"
+#include "Details/UI_DetailColor.h"
 #include "Details/DetailEnum/UI_DetailEnum.h"
 #include "Components/CanvasPanel.h"
 #include "Components/VerticalBoxSlot.h"
@@ -24,6 +25,7 @@ void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElem
 
 	if (InType >= EEditDetailType::DETAIL_LOCATION && InType <= EEditDetailType::DETAIL_SCALE)
 	{
+		//创建对应的子UI
 		if (UUI_DetailVector * VectorUI = CreateWidget<UUI_DetailVector>(GetWorld(), DetailVectorClass))
 		{
 			if (UCanvasPanelSlot * CanvasSlot = Canvas->AddChildToCanvas(VectorUI))
@@ -50,6 +52,7 @@ void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElem
 	}
 	else if (InType == EEditDetailType::DETAIL_ENUM_TEAMTYPE)
 	{
+		//创建对应的子UI
 		if (UUI_DetailEnum * EnumUI = CreateWidget<UUI_DetailEnum>(GetWorld(), DetailEnumClass))
 		{
 			if (UCanvasPanelSlot * CanvasSlot = Canvas->AddChildToCanvas(EnumUI))
@@ -57,6 +60,18 @@ void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElem
 				CanvasSlot->SetSize(FVector2D(600, 45));
 				EnumUI->SetEnumName();
 				EnumUI->BindElementProperty(InType, InElement);
+			}
+		}
+	}
+	else if (InType == EEditDetailType::DETAIL_COLOR)
+	{
+		//创建对应的子UI
+		if (UUI_DetailColor * ColorUI = CreateWidget<UUI_DetailColor>(GetWorld(), DetailColorClass))
+		{
+			if (UCanvasPanelSlot * CanvasSlot = Canvas->AddChildToCanvas(ColorUI))
+			{
+				CanvasSlot->SetSize(FVector2D(600, 45));
+				ColorUI->BindElementProperty(InType, InElement);
 			}
 		}
 	}

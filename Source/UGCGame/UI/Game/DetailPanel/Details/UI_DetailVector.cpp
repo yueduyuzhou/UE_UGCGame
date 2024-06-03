@@ -119,10 +119,9 @@ void UUI_DetailVector::InitXYZ()
 
 void UUI_DetailVector::RegisterElement(const EEditDetailType& InType, AElementBase* InElement)
 {
+	Super::RegisterElement(InType, InElement);
 	if (InElement)
 	{
-		SelectElement = InElement;
-		DetailType = InType;
 		SelectElement->RegisterDetailVectorByType(this);
 	}
 	else

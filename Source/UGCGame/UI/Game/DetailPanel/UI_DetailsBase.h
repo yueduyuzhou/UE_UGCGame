@@ -18,8 +18,10 @@ class UGCGAME_API UUI_DetailsBase : public UUI_Base
 	GENERATED_BODY()
 	
 public:
+	/*子类重写，行为绑定到Element的属性上*/
 	virtual void BindElementProperty(const EEditDetailType& InType, AElementBase* InElement);
 
+	/*子类重写，注册修改类型和Element实例*/
 	virtual void RegisterElement(const EEditDetailType& InType, AElementBase* InElement);
 
 protected:

@@ -10,6 +10,7 @@ class UCanvasPanel;
 class UUI_DetailsPanel;
 class UUI_DetailVector;
 class UUI_DetailEnum;
+class UUI_DetailColor;
 
 /**
  * 
@@ -29,6 +30,9 @@ class UGCGAME_API UUI_DetailPanelSlot : public UUI_Base
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUI_DetailEnum> DetailEnumClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUI_DetailColor> DetailColorClass;
 
 public:
 	void UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement);

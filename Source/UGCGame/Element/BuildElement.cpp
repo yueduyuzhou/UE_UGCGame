@@ -23,6 +23,32 @@ void ABuildElement::SetElementMesh(UStaticMesh* NewMesh)
 	ElementMesh->SetStaticMesh(NewMesh);
 }
 
+void ABuildElement::SetElementMeshColor(FLinearColor NewColor)
+{
+	if (ElementMesh)
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = ElementMesh->CreateAndSetMaterialInstanceDynamic(0);
+		if (DynamicMaterial)
+		{
+			DynamicMaterial->SetVectorParameterValue(TEXT("BaseColor"), NewColor);
+		}
+	}
+}
+
+FLinearColor ABuildElement::GetElementMeshColor()
+{
+	if (ElementMesh)
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = ElementMesh->CreateAndSetMaterialInstanceDynamic(0);
+		if (DynamicMaterial)
+		{
+			FLinearColor OutColor;
+			DynamicMaterial->GetVectorParameterValue(TEXT("BaseColor"), OutColor);
+		}
+	}
+	return FLinearColor();
+}
+
 void ABuildElement::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

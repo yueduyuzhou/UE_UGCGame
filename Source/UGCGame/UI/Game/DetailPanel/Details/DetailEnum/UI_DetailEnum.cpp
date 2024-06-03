@@ -34,17 +34,7 @@ void UUI_DetailEnum::BindElementProperty(const EEditDetailType& InType, AElement
 
 void UUI_DetailEnum::RegisterElement(const EEditDetailType& InType, AElementBase* InElement)
 {
-	if (InElement)
-	{
-		SelectElement = InElement;
-		DetailType = InType;
-		//SelectElement->RegisterDetailVectorByType(this);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[class UUI_DetailEnum]: RegisterElement, InElement Is Null"));
-		return;
-	}
+	Super::RegisterElement(InType, InElement);
 }
 
 void UUI_DetailEnum::PopulateComboBox()

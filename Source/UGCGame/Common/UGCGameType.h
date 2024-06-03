@@ -53,7 +53,9 @@ enum class EEditDetailType : uint8
 	DETAIL_ROTATION			UMETA(DisplayName = "DetailRotation"),
 	DETAIL_SCALE			UMETA(DisplayName = "DetailScale"),
 	
-	DETAIL_ENUM_TEAMTYPE	UMETA(DisplayName = "DetailTeamType")
+	DETAIL_ENUM_TEAMTYPE	UMETA(DisplayName = "DetailTeamType"),
+
+	DETAIL_COLOR			UMETA(DisplayName = "DetailColor"),
 };
 
 UENUM(BlueprintType)
@@ -62,4 +64,12 @@ enum class EVectorDime : uint8
 	X,
 	Y,
 	Z
+};
+
+UENUM(BlueprintType)
+enum class EHSVType : uint8
+{
+	HUE,
+	SATURATION,
+	VALUE
 };

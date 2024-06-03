@@ -67,14 +67,23 @@ public:
 
 public:
 
+	/*武器重叠时自动附加到Character*/
 	UFUNCTION()
-		void OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	/*装备武器时处理*/
 	UFUNCTION()
-		void EquipWeapon();
+	void EquipWeapon();
 
+	/*解除武器绑定*/
+	void DetachWeapon();
+
+	/*抛出武器*/
+	void ThrowWeapon(FVector InForwardDirection);
+
+	/*弹药填充*/
 	void ReloadAmmo();
+	
 
 public:
 	UFUNCTION(NetMulticast, unreliable)
@@ -97,7 +106,20 @@ public:
 	FORCEINLINE bool IsAutomaticWeapon() { return IsAutomatic; }
 	FORCEINLINE const float& GetResetRecoilFrequency() { return ResetRecoilFrequency; }
 
+	/*Callback function for when ReplicatedUsing var is updated*/
+	UFUNCTION()
+		void OnRep_ReplicatedLocation();
+
+	UFUNCTION()
+		void OnRep_ReplicatedRotation();
+
 private:
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_ReplicatedLocation)
+		FVector ReplicatedLocation;
+
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_ReplicatedRotation)
+		FRotator ReplicatedRotation;
+
 	UPROPERTY(EditAnywhere)
 		int32 CurrentAmmo;	//当前的弹药量
 

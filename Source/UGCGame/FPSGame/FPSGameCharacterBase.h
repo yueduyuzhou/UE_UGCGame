@@ -62,6 +62,9 @@ private:
 
 	UFUNCTION(server, reliable)
 		void SwitchWeaponOnServer();
+	
+	UFUNCTION(server, reliable)
+		void DetachWeaponOnServer();
 
 	UFUNCTION(server, reliable)
 		void SecondaryWeaponReloadOnServer();
@@ -105,6 +108,9 @@ private:
 	UFUNCTION(client, reliable)
 		void ClientDepositActiveWeapon();
 
+	UFUNCTION(client, reliable)
+		void ClientDetachWeapon();
+
 	UFUNCTION(NetMulticast, unreliable)
 		void MulticastFire();
 
@@ -142,8 +148,15 @@ public:
 	void EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBaseServer);
 	void EquipSecondaryWeapon();
 
+	/*武器丢弃*/
+	void DetachWeapon();
+
+	/*武器置空*/
+	void ResetWeapon();
+
+	/*把武器放置到身体上的别处*/
 	void DepositActiveServerWeapon();
-	void DepositActiveClientWeapon();		//由于改接口实在服务器的ActiveType更改之后在客户端调用的，所以与DepositActiveServerWeapon相反
+	void DepositActiveClientWeapon();
 
 	/*主武器（步枪）开/停火*/
 	void PrimaryWeaponFire();

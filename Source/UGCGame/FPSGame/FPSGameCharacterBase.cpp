@@ -44,11 +44,6 @@ AFPSGameCharacterBase::AFPSGameCharacterBase()
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
 
-	WeaponPrimaryServer = nullptr;
-	WeaponPrimaryClient = nullptr;
-	WeaponSecondaryServer = nullptr;
-	WeaponSecondaryClient = nullptr;
-
 }
 
 void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -122,9 +117,6 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/Ak47/BP_Ak47_Server.BP_Ak47_Server_c'"));
 			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
 			
-			//设置当前持有武器类型
-			ActiveWeapon = EWeaponType::AK47;
-			
 			//预处理并装备当前持有武器
 			ServerWeapon->EquipWeapon();
 			EquipPrimaryWeapon(ServerWeapon);
@@ -135,9 +127,6 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			//生成
 			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/M4A1/BP_M4A1_Server.BP_M4A1_Server_c'"));
 			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
-			
-			//设置当前持有武器类型
-			ActiveWeapon = EWeaponType::M4A1;
 
 			//预处理并装备当前持有武器
 			ServerWeapon->EquipWeapon();
@@ -150,9 +139,6 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/MP7/BP_MP7_Server.BP_MP7_Server_c'"));
 			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
 
-			//设置当前持有武器类型
-			ActiveWeapon = EWeaponType::MP7;
-
 			//预处理并装备当前持有武器
 			ServerWeapon->EquipWeapon();
 			EquipPrimaryWeapon(ServerWeapon);
@@ -164,9 +150,6 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/DesertEagle/BP_DesertEagle_Server.BP_DesertEagle_Server_c'"));
 			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
 
-			//设置当前持有武器类型
-			ActiveWeapon = EWeaponType::DESERTEAGLE;
-
 			//预处理并装备当前持有武器
 			ServerWeapon->EquipWeapon();
 			EquipSecondaryWeapon(ServerWeapon);
@@ -177,9 +160,6 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 			//生成
 			UClass* WeaponClass = StaticLoadClass(AWeaponBaseServer::StaticClass(), nullptr, TEXT("Blueprint'/Game/BP/FPS/Weapon/Sniper/BP_Sniper_Server.BP_Sniper_Server_c'"));
 			AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(WeaponClass, GetActorTransform(), SpawnInfo);
-
-			//设置当前持有武器类型
-			ActiveWeapon = EWeaponType::SNIPER;
 
 			//预处理并装备当前持有武器
 			ServerWeapon->EquipWeapon();
@@ -363,6 +343,21 @@ void AFPSGameCharacterBase::SwitchWeaponOnServer_Implementation()
 		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : SwitchWeaponOnServer, EquipPrimary")));
 		//换主武器
 		EquipPrimaryWeapon();
+	}
+}
+
+void AFPSGameCharacterBase::DetachWeaponOnServer_Implementation()
+{
+	if (AWeaponBaseServer * CurrentWeapon = GetCurrentServerWeapon())
+	{
+		if (CurrentWeapon && CurrentWeapon->GetRootComponent()->GetAttachParent())
+		{
+			CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			CurrentWeapon->SetOwner(nullptr);
+			CurrentWeapon->ThrowWeapon(GetActorForwardVector());
+			ClientDetachWeapon();
+			ResetWeapon();
+		}
 	}
 }
 
@@ -707,6 +702,15 @@ void AFPSGameCharacterBase::ClientDepositActiveWeapon_Implementation()
 	DepositActiveClientWeapon();
 }
 
+void AFPSGameCharacterBase::ClientDetachWeapon_Implementation()
+{
+	if (AWeaponBaseClient * CurrentClientWeapon = GetCurrentClientWeapon())
+	{
+		CurrentClientWeapon->Destroy();
+
+	}
+}
+
 void AFPSGameCharacterBase::MulticastFire_Implementation()
 {
 	if (ClientBodyAnimBP)
@@ -940,6 +944,8 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 		GEngine->AddOnScreenDebugMessage(-1, 10.f , FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
 		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
 
+		ActiveWeapon = InWeaponBaseServer->WeaponType;
+
 		WeaponPrimaryServer = InWeaponBaseServer;
 		WeaponPrimaryServer->SetOwner(this);
 
@@ -987,6 +993,8 @@ void AFPSGameCharacterBase::EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBase
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
 		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Secondary Weapon"));
 
+		ActiveWeapon = InWeaponBaseServer->WeaponType;
+
 		WeaponSecondaryServer = InWeaponBaseServer;
 		WeaponSecondaryServer->SetOwner(this);
 
@@ -1020,6 +1028,48 @@ void AFPSGameCharacterBase::EquipSecondaryWeapon()
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, WeaponSecondaryServer Is Null")));
+	}
+}
+
+void AFPSGameCharacterBase::DetachWeapon()
+{
+	DetachWeaponOnServer();
+}
+
+void AFPSGameCharacterBase::ResetWeapon()
+{
+	switch (ActiveWeapon)
+	{
+		case EWeaponType::AK47:
+		{
+			WeaponPrimaryServer = nullptr;
+			WeaponPrimaryClient = nullptr;
+			break;
+		}
+		case EWeaponType::M4A1:
+		{
+			WeaponPrimaryServer = nullptr;
+			WeaponPrimaryClient = nullptr;
+			break;
+		}
+		case EWeaponType::MP7:
+		{
+			WeaponPrimaryServer = nullptr;
+			WeaponPrimaryClient = nullptr;
+			break;
+		}
+		case EWeaponType::DESERTEAGLE:
+		{
+			WeaponSecondaryServer = nullptr;
+			WeaponSecondaryClient = nullptr;
+			break;
+		}
+		case EWeaponType::SNIPER:
+		{
+			WeaponPrimaryServer = nullptr;
+			WeaponPrimaryClient = nullptr;
+			break;
+		}
 	}
 }
 

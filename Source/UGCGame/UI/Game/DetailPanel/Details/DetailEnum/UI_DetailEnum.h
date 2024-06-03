@@ -38,7 +38,7 @@ protected:
 	virtual void PopulateComboBox();
 
 	UFUNCTION()
-		virtual void OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+	virtual void OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 public:
 	virtual void SetEnumName();

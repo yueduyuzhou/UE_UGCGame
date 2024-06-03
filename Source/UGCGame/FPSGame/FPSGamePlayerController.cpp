@@ -39,6 +39,7 @@ void AFPSGamePlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("AmmoReload", IE_Pressed, this, &AFPSGamePlayerController::AmmoReload);
 	InputComponent->BindAction("SwitchWeapon", IE_Pressed, this, &AFPSGamePlayerController::SwitchWeapon);
+	InputComponent->BindAction("ThrowWeapon", IE_Pressed, this, &AFPSGamePlayerController::ThrowWeapon);
 
 	InputComponent->BindAxis("MoveForward", this, &AFPSGamePlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AFPSGamePlayerController::MoveRight);
@@ -115,6 +116,14 @@ void AFPSGamePlayerController::SwitchWeapon()
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
 		MyCharacter->SwitchWeapon();
+	}
+}
+
+void AFPSGamePlayerController::ThrowWeapon()
+{
+	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
+	{
+		MyCharacter->DetachWeapon();
 	}
 }
 

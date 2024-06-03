@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "FPSGameCharacterBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "ThreadManage.h"
 
 AWeaponBaseServer::AWeaponBaseServer()
 	:WeaponType(EWeaponType::AK47)
@@ -37,6 +38,9 @@ void AWeaponBaseServer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AWeaponBaseServer, CurrentClipAmmo, COND_None);
+	DOREPLIFETIME_CONDITION(AWeaponBaseServer, ReplicatedLocation, COND_None);
+	DOREPLIFETIME_CONDITION(AWeaponBaseServer, ReplicatedRotation, COND_None);
+
 }
 
 void AWeaponBaseServer::OnAttackerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -72,6 +76,34 @@ void AWeaponBaseServer::EquipWeapon()
 	{
 		SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
+
+void AWeaponBaseServer::DetachWeapon()
+{
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
+	}
+
+	GThread::Get()->GetCoroutines().BindLambda(1.5f, [&]()
+		{
+			if (SphereCollision)
+			{
+				SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}
+		});
+}
+
+void AWeaponBaseServer::ThrowWeapon(FVector InForwardDirection)
+{
+	float LaunchStrength = 200.0f;
+	FVector LaunchVelocity = InForwardDirection * LaunchStrength;
+
+	DetachWeapon();
+
+	WeaponMesh->AddImpulse(LaunchVelocity, NAME_None, true);
 }
 
 void AWeaponBaseServer::ReloadAmmo()
@@ -116,5 +148,20 @@ void AWeaponBaseServer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ReplicatedLocation = GetActorLocation();
+		ReplicatedRotation = GetActorRotation();
+	}
+}
+
+void AWeaponBaseServer::OnRep_ReplicatedLocation()
+{
+	SetActorLocation(ReplicatedLocation);
+}
+
+void AWeaponBaseServer::OnRep_ReplicatedRotation()
+{
+	SetActorRotation(ReplicatedRotation);
 }
 

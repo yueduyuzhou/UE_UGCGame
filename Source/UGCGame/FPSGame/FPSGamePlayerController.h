@@ -40,6 +40,7 @@ private:
 
 	void AmmoReload();
 	void SwitchWeapon();
+	void ThrowWeapon();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
