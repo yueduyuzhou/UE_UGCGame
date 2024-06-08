@@ -20,6 +20,10 @@ class UGCGAME_API AUGCGameHUD : public AHUD
 
 	virtual void BeginPlay() override;
 
+public:
+	UFUNCTION(BlueprintCallable)
+	UUI_MainScreen* GetMainScreen();
+
 private:
 	TSubclassOf<UUI_MainScreen> MainScreenClass;
 	UUI_MainScreen* MainScreen;

@@ -15,4 +15,7 @@ class UGCGAME_API ALobbyPlayerState : public APlayerState
 	GENERATED_BODY()
 
 	ALobbyPlayerState();
+
+public:
+	TArray<FString> GetMapList();
 };

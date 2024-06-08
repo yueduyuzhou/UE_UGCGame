@@ -29,11 +29,8 @@ public:
 
 	void SetElementMesh(UStaticMesh* NewMesh);
 
-	UFUNCTION(BlueprintCallable, Category = "ElementColor")
-	void SetElementMeshColor(FLinearColor NewColor);
-
-	UFUNCTION(BlueprintCallable, Category = "ElementColor")
-	FLinearColor GetElementMeshColor();
+	virtual void SetElementMeshColor(FLinearColor NewColor) override;
+	virtual FLinearColor GetElementMeshColor() override;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;

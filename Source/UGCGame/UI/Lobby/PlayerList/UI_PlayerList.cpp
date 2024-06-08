@@ -13,6 +13,8 @@
 #include "Components/VerticalBox.h"
 #include "Components/Button.h"
 #include "ThreadManage.h"
+#include "Kismet/GameplayStatics.h"
+#include "../../../Common/MethodUnit.h"
 
 void UUI_PlayerList::NativeConstruct()
 {
@@ -26,13 +28,16 @@ void UUI_PlayerList::NativeConstruct()
 	BlueSelectButton->OnClicked.AddDynamic(this, &UUI_PlayerList::BlueSelectButtonClick);
 	StartGame->OnClicked.AddDynamic(this, &UUI_PlayerList::StartGameButtonClick);
 
+	Select_GameMap->InitValueDelegate.BindUObject(this, &UUI_PlayerList::UpdateMapList);
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		StartGame->SetIsEnabled(true);
+		Select_GameMap->SetIsEnabled(true);
 	}
 	else
 	{
 		StartGame->SetIsEnabled(false);
+		Select_GameMap->SetIsEnabled(false);
 	}
 	
 	RedPlayers->ClearChildren();
@@ -136,6 +141,19 @@ void UUI_PlayerList::UpdatePlayerList(const TArray<FPlayerNetData>& InPlayersDat
 			{
 				AddNewPlayer(Tmp.Team, Tmp.PlayerID);
 			}
+		}
+	}
+}
+
+void UUI_PlayerList::UpdateMapList()
+{
+	if (ALobbyPlayerState * MyPlayerState = GetOwningPlayerState<ALobbyPlayerState>())
+	{
+		if (Select_GameMap)
+		{
+			TArray<FString> Maps = MyPlayerState->GetMapList();
+
+			Select_GameMap->SetValues(Maps);
 		}
 	}
 }

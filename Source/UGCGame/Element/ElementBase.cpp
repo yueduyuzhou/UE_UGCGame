@@ -72,6 +72,15 @@ const TArray<EEditDetailType>& AElementBase::GetEditDetails()
 	return EditDetails;
 }
 
+void AElementBase::SetElementMeshColor(FLinearColor NewColor)
+{
+}
+
+FLinearColor AElementBase::GetElementMeshColor()
+{
+	return FLinearColor::White;
+}
+
 void AElementBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

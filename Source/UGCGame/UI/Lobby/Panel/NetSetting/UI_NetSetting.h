@@ -12,9 +12,14 @@ class UButton;
 /**
  * 
  */
+
+DECLARE_DELEGATE(FNetSettingDelegate);
+
 UCLASS()
 class UGCGAME_API UUI_NetSetting : public UUI_Base
 {
+	friend class UUI_PlayerList;
+
 	GENERATED_BODY()
 
 	UPROPERTY(meta = (BindWidget))
@@ -43,12 +48,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FText GetCurrentValue();
 
+	void SetValues(const TArray<FString>& InValues);
+
+public:
+	/************************************
+	*	Delegate
+	************************************/
+	FNetSettingDelegate InitValueDelegate;
+	
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 Index;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TArray<FText> SetValues;
+	TArray<FText> Values;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	FText SettingName;

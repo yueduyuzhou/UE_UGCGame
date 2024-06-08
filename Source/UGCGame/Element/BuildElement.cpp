@@ -44,9 +44,10 @@ FLinearColor ABuildElement::GetElementMeshColor()
 		{
 			FLinearColor OutColor;
 			DynamicMaterial->GetVectorParameterValue(TEXT("BaseColor"), OutColor);
+			return OutColor;
 		}
 	}
-	return FLinearColor();
+	return FLinearColor::White;
 }
 
 void ABuildElement::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

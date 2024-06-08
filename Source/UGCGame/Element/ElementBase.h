@@ -59,6 +59,12 @@ public:
 
 	const TArray<EEditDetailType>& GetEditDetails();
 
+	UFUNCTION(BlueprintCallable, Category = "ElementColor")
+	virtual void SetElementMeshColor(FLinearColor NewColor);
+
+	UFUNCTION(BlueprintCallable, Category = "ElementColor")
+	virtual FLinearColor GetElementMeshColor();
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
 

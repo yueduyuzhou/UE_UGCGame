@@ -21,3 +21,8 @@ void AUGCGameHUD::BeginPlay()
 		MainScreen->AddToPlayerScreen(2);
 	}
 }
+
+UUI_MainScreen* AUGCGameHUD::GetMainScreen()
+{
+	return MainScreen;
+}

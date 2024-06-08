@@ -17,14 +17,16 @@ struct FElemInfo
 		, Rotation(FRotator::ZeroRotator)
 		, Scale(FVector::ZeroVector)
 		, TeamType(ETeamType::TEAM_NONE)
+		, Color(FLinearColor::White)
 	{}
 
-	FElemInfo(int32 InID, FVector InLoc, FRotator InRot, FVector InScale, ETeamType InTeamType)
+	FElemInfo(int32 InID, FVector InLoc, FRotator InRot, FVector InScale, ETeamType InTeamType, FLinearColor InColor)
 		:ElementID(InID)
 		,Location(InLoc)
 		,Rotation(InRot)
-		, Scale(InScale)
-		, TeamType(InTeamType)
+		,Scale(InScale)
+		,TeamType(InTeamType)
+		,Color(InColor)
 	{}
 
 	UPROPERTY()
@@ -41,6 +43,9 @@ struct FElemInfo
 
 	UPROPERTY()
 		ETeamType TeamType;
+
+	UPROPERTY()
+		FLinearColor Color;
 };
 
 /**

@@ -49,6 +49,7 @@ public:
 	void RemovePlayer(const int32& InPlayerID);
 
 	void UpdatePlayerList(const TArray<FPlayerNetData>& InPlayersDatas);
+	void UpdateMapList();
 
 	/***************************************************
 	*

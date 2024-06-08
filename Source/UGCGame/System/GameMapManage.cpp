@@ -85,7 +85,8 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 								Elem->GetActorLocation(), 
 								Elem->GetActorRotation(),
 								Elem->GetActorScale3D(),
-								Elem->GetTeamType()));
+								Elem->GetTeamType(),
+								Elem->GetElementMeshColor()));
 					}
 				}
 			}
@@ -99,11 +100,10 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 {
 	if (InWorld)
 	{
-		AUGCGameState* MyGameState = MethodUnit::GetGameState(InWorld);
-		if (MyGameState)
+		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
 		{
-			UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : Load Map Data And Spawn"));
-
+			//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : Load Map Data And Spawn"));
+			//从文件中加载属性
 			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
 				if (SaveMapData->Elements.Num() > 0)
@@ -111,10 +111,13 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 					//生成Elements BUG
 					for (auto& Tmp : SaveMapData->Elements)
 					{
+						//从表中读取每个Element的属性
 						if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(Tmp.ElementID))
 						{
+							//生成对应Element
 							if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
 							{
+								//设置保存的属性
 								MewElement->SetActorScale3D(Tmp.Scale);
 								MewElement->SetTeamType(Tmp.TeamType);
 
@@ -122,6 +125,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 								if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
 								{
 									BElement->SetElementMesh(ElementAttr->ElementMeth);
+									BElement->SetElementMeshColor(Tmp.Color);
 								}
 								else if (AEffectElement * EElement = Cast<AEffectElement>(MewElement))
 								{
