@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../../Common/UGCGameType.h"
 #include "UI_Base.generated.h"
 
 class AUGCGamePlayerState;
@@ -27,6 +28,11 @@ public:
 	void SetElementID(const int32& InElementID);
 	FORCEINLINE const int32 GetElementID() { return ElementID; }
 
+	FORCEINLINE const ELobbyPanelType& GetPanelType() { return PanelType; }
+
 private:
 	int32 ElementID;
+
+	UPROPERTY(EditAnywhere, Category = UI)
+	ELobbyPanelType PanelType;
 };

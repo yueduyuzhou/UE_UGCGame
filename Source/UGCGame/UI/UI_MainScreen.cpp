@@ -13,3 +13,12 @@ void UUI_MainScreen::AddChildToMainPanel(UWidget* InChild)
 	}
 
 }
+
+TArray<UWidget*> UUI_MainScreen::GetMainPanelAllChildren()
+{
+	if (MainPanel)
+	{
+		return MainPanel->GetAllChildren();
+	}
+	return TArray<UWidget*>();
+}

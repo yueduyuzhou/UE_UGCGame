@@ -22,6 +22,16 @@ enum class ESlotType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EHypermarkType : uint8
+{
+	ALL					UMETA(DisplayName = "All"),
+	PRIMARYWEAPON		UMETA(DisplayName = "PrimaryWeapon"),
+	SECONDARYWEAPON		UMETA(DisplayName = "SecondaryWeapon"),
+	CLOSERANGEWEAPON	UMETA(DisplayName = "CloseRangeWeapon")
+
+};
+
+UENUM(BlueprintType)
 enum class ETeamType : uint8
 {
 	TEAM_RED,
@@ -69,7 +79,17 @@ enum class EVectorDime : uint8
 UENUM(BlueprintType)
 enum class EHSVType : uint8
 {
-	HUE,
-	SATURATION,
-	VALUE
+	HUE						UMETA(DisplayName = "Hue"),
+	SATURATION				UMETA(DisplayName = "Saturation"),
+	VALUE					UMETA(DisplayName = "Value"),
 };
+
+UENUM(BlueprintType)
+enum class ELobbyPanelType : uint8
+{
+	LOBBY_UIPANEL_PERMANENT					UMETA(DisplayName = "PermanentPanel"),
+	LOBBY_UIPANEL_LOBBY						UMETA(DisplayName = "LobbyPanel"),
+	LOBBY_UIPANEL_HYPERMARKET				UMETA(DisplayName = "HypermarketPanel"),
+	LOBBY_UIPANEL_CREATIVEWORKSHOP			UMETA(DisplayName = "CreativeWorkshop"),
+};
+

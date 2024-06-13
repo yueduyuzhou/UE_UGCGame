@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../Core/UI_Slot.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "UI_TypeSlot.generated.h"
 
 class UTextBlock;

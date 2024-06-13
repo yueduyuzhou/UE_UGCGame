@@ -21,4 +21,5 @@ class UGCGAME_API UUI_MainScreen : public UUI_Base
 	
 public:
 	void AddChildToMainPanel(UWidget* InChild);
+	TArray<UWidget*> GetMainPanelAllChildren();
 };

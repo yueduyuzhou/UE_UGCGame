@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../Core/UI_FPSBase.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "UI_TopInfoPanel.generated.h"
 
 class UTextBlock;

@@ -21,6 +21,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
+public:
+	TArray<UWidget*> GetMainScreenChildrens();
+
 private:
 	TSubclassOf<UUI_MainScreen> MainScreenClass;
 	UUI_MainScreen* MainScreen;

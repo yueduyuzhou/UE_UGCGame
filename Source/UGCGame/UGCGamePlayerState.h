@@ -1,16 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+Ôªø#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "RuntimeTransformer.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "UGCGamePlayerState.generated.h"
 
 class AElementBase;
 enum class EElementModifyType : uint8;
 
 /**
- * 
+ *
  */
 DECLARE_MULTICAST_DELEGATE_OneParam(FOneKeyMulticastDelegate, const TArray<int32>&);
 DECLARE_MULTICAST_DELEGATE_OneParam(FChangeModifyTypeMulticastDelegate, const ETransformationType&);
@@ -20,7 +20,7 @@ class UGCGAME_API AUGCGamePlayerState : public APlayerState
 {
 	GENERATED_BODY()
 
-	friend class AUGCGameGameMode;
+		friend class AUGCGameGameMode;
 
 public:
 	FOneKeyMulticastDelegate InitSlotDelegate;
@@ -32,10 +32,10 @@ private:
 public:
 	AUGCGamePlayerState();
 
-	/*ªÒ»°±Ì∏Ò ˝æ›*/
+	/*Ëé∑ÂèñË°®Ê†ºÊï∞ÊçÆ*/
 	void GetInventorySlotNetPackage(const ESlotType& InType, TArray<int32>& InKeys);
 
-	/*RPCœ‡πÿ≤Œ ˝*/
+	/*RPC*/
 public:
 	UFUNCTION(Client, reliable)
 		void ServerCallClientInitInventory(const TArray<int32>& InKeys);
@@ -44,7 +44,7 @@ public:
 		void ServerCallClientInitPlayerData(const int32& InPlayerID);
 
 	/*****************************************************************
-	*	
+	*
 	*****************************************************************/
 
 	UFUNCTION(Server, reliable)

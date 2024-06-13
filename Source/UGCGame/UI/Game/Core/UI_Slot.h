@@ -31,4 +31,6 @@ public:
 	virtual void OnClickedWidget() {}
 	UFUNCTION(BlueprintCallable)
 	virtual void OnReleasedClickedWidget() {}
+
+	void SetIcon(UTexture2D* InIcon2D);
 };

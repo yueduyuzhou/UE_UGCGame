@@ -75,6 +75,7 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 		{
 			if (Elements.Num())
 			{
+				//保存游戏数据（TODO:TO BDServer）
 				for (auto& Tmp : Elements)
 				{
 					if (AElementBase * Elem = Cast<AElementBase>(Tmp))
@@ -90,7 +91,7 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 					}
 				}
 			}
-
+			//保存游戏数据（TODO:TO BDServer）
 			UGameplayStatics::SaveGameToSlot(SaveGameInstance, MyGameInstance->LoadMapName, 0);
 		}
 	}

@@ -11,3 +11,8 @@ void UUI_Slot::NativeConstruct()
 
 	ClickButton->OnClicked.AddDynamic(this, &UUI_Slot::OnClickedWidget);
 }
+
+void UUI_Slot::SetIcon(UTexture2D* InIcon2D)
+{
+	Icon->SetBrushFromTexture(InIcon2D);
+}

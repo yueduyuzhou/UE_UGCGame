@@ -36,13 +36,13 @@ void AUGCGamePlayerState::BeginPlay()
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-		{
-			//获取InventorySlotID
-			TArray<int32> SlotKeys;
-			GetInventorySlotNetPackage(ESlotType::ALL, SlotKeys);
-			//触发客户端Inventory初始化
-			ServerCallClientInitInventory(SlotKeys);
-		});
+			{
+				//获取InventorySlotID
+				TArray<int32> SlotKeys;
+				GetInventorySlotNetPackage(ESlotType::ALL, SlotKeys);
+				//触发客户端Inventory初始化
+				ServerCallClientInitInventory(SlotKeys);
+			});
 	}
 }
 
@@ -94,7 +94,7 @@ void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVe
 	if (ControlElement)
 	{
 		//射线长度
-		float RayLength = 10000.0f; 
+		float RayLength = 10000.0f;
 
 		//射线终点
 		FVector EndLocation = InMouseLocation + InMouseDirection * RayLength;
@@ -141,7 +141,7 @@ void AUGCGamePlayerState::TryReturnElementControlOnServer_Implementation()
 void AUGCGamePlayerState::TryGetElementControlOnServer_Implementation(const FVector& InMouseLocation, const FVector& InMouseDirection)
 {
 	//射线长度
-	float RayLength = 1000.0f; 
+	float RayLength = 1000.0f;
 
 	//射线终点
 	FVector EndLocation = InMouseLocation + InMouseDirection * RayLength;
@@ -152,7 +152,7 @@ void AUGCGamePlayerState::TryGetElementControlOnServer_Implementation(const FVec
 	//发射射线
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, InMouseLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
 	{
-		if (AElementBase* TmpElement = Cast<AElementBase>(HitResult.Actor))
+		if (AElementBase * TmpElement = Cast<AElementBase>(HitResult.Actor))
 		{
 			ControlElement = TmpElement;
 			ControlElement->TakeControl(TPlayerID);
@@ -212,7 +212,7 @@ FVector AUGCGamePlayerState::SnapToGrid(const FVector& InOldPosition, const floa
 	return SnappedPosition;
 }
 
-FRotator AUGCGamePlayerState::SnapToGridRotation(const FRotator& InOldRotation, const float& InAngleSize)
+FRotator AUGCGamePlayerState::SnapToGridRotation(const FRotator & InOldRotation, const float& InAngleSize)
 {
 	FRotator SnappedRotation = FRotator(
 		FMath::RoundToFloat(InOldRotation.Pitch / InAngleSize) * InAngleSize,
@@ -224,6 +224,7 @@ FRotator AUGCGamePlayerState::SnapToGridRotation(const FRotator& InOldRotation, 
 
 TArray<FString> AUGCGamePlayerState::GetMapList()
 {
+	//TODO：从DBServer获取
 	UMapListSaveData* SaveMapData = Cast<UMapListSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("MapList"), 0));
 	if (SaveMapData)
 	{
@@ -233,12 +234,12 @@ TArray<FString> AUGCGamePlayerState::GetMapList()
 	return TArray<FString>();
 }
 
-void AUGCGamePlayerState::SetModifyType(const ETransformationType& InModifyType)
+void AUGCGamePlayerState::SetModifyType(const ETransformationType & InModifyType)
 {
 	CurModifyType = InModifyType;
 }
 
-bool AUGCGamePlayerState::SaveMapName(const FString& InMapName)
+bool AUGCGamePlayerState::SaveMapName(const FString & InMapName)
 {
 	if (UUGCGameInstance * MyGameInstance = GetWorld()->GetGameInstance<UUGCGameInstance>())
 	{

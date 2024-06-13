@@ -20,3 +20,12 @@ void ALobbyHUD::BeginPlay()
 		MainScreen->AddToPlayerScreen(2);
 	}
 }
+
+TArray<UWidget*> ALobbyHUD::GetMainScreenChildrens()
+{
+	if (MainScreen)
+	{
+		return MainScreen->GetMainPanelAllChildren();
+	}
+	return TArray<UWidget*>();
+}

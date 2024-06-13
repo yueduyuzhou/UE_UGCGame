@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../../Core/UI_Base.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "UI_PlayerList.generated.h"
 
 class UButton;
