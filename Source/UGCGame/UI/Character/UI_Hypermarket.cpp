@@ -10,6 +10,9 @@
 #include "Components/UniformGridPanel.h"
 #include "../../Table/HypermarketTable.h"
 #include "../../Hypermarket/HypermarketGameState.h"
+#include "UGCGame/SaveData/PlayerSaveData.h"
+#include "../../Hypermarket/HypermarketHUD.h"
+#include "UI_Backpack.h"
 #include "Kismet/GameplayStatics.h"
 #include "ThreadManage.h"
 
@@ -25,6 +28,7 @@ void UUI_Hypermarket::NativeConstruct()
 	BuyButton->OnReleased.AddDynamic(this, &UUI_Hypermarket::OnBuyButtonClicked);
 	CancelButton->OnReleased.AddDynamic(this, &UUI_Hypermarket::OnCancelButtonClicked);
 	GoBackButton->OnReleased.AddDynamic(this, &UUI_Hypermarket::OnGoBackButtonClicked);
+	BackpackButton->OnReleased.AddDynamic(this, &UUI_Hypermarket::OnBackpackButtonClicked);
 
 	CheckBoxArray.Add(All);
 	CheckBoxArray.Add(PrimaryWeapon);
@@ -32,6 +36,7 @@ void UUI_Hypermarket::NativeConstruct()
 	CheckBoxArray.Add(CloseRangeWeapon);
 
 	UpdateItem(EHypermarkType::ALL);
+	UpdateGold();
 }
 
 void UUI_Hypermarket::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -99,14 +104,35 @@ void UUI_Hypermarket::UpdateItem(EHypermarkType InType)
 
 void UUI_Hypermarket::UpdateItemImage(const int32& InID)
 {
-	//获取PlayerState
-	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+	if (InID == INDEX_NONE)
 	{
-		//获取HypermarketTable
-		if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(InID))
+		CurTableID = INDEX_NONE;
+		ItemImage->SetBrush(FSlateBrush());
+		BuyButton->SetIsEnabled(true);
+	}
+	else
+	{
+		if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
 		{
-			ItemImage->SetBrushFromTexture(SlotTable->ItemIcon);
-			CurTable = SlotTable;
+			if (SaveMapData->Items.Contains(InID))
+			{
+				BuyButton->SetIsEnabled(false);
+			}
+			else
+			{
+				BuyButton->SetIsEnabled(true);
+			}
+		}
+
+		//获取PlayerState
+		if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+		{
+			//获取HypermarketTable
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(InID))
+			{
+				ItemImage->SetBrushFromTexture(SlotTable->ItemIcon);
+				CurTableID = SlotTable->ID;
+			}
 		}
 	}
 }
@@ -141,15 +167,69 @@ void UUI_Hypermarket::CheckBoxCloseRangeWeapon(bool bIsChecked)
 
 void UUI_Hypermarket::OnBuyButtonClicked()
 {
+	//TODO：数据存储到DBServer
+	//获取PlayerState
+	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+	{
+		//获取HypermarketTable
+		if (FHypermarketTable * CurTable = MyGS->GetWeaponTableTemplate(CurTableID))
+		{
+			if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+			{
+				if (SaveItemsData->Gold >= CurTable->ItemGold)
+				{
+					//发送TableID到
+					SaveItemsData->Gold -= CurTable->ItemGold;
+					SaveItemsData->Items.Add(CurTable->ID);
+					UGameplayStatics::SaveGameToSlot(SaveItemsData, TEXT("PlayerData_00"), 0);
+				}
+			}
+			else
+			{
+				if (UPlayerSaveData * SaveItems_Data = Cast<UPlayerSaveData>(UGameplayStatics::CreateSaveGameObject(UPlayerSaveData::StaticClass())))
+				{
+					SaveItems_Data->Gold = 11999;
+					SaveItems_Data->Gold -= CurTable->ItemGold;
+					SaveItems_Data->Items.Add(CurTable->ID);
+					UGameplayStatics::SaveGameToSlot(SaveItems_Data, TEXT("PlayerData_00"), 0);
+				}
+
+			}
+
+			//更新ItemImage状态
+			UpdateItemImage(CurTable->ID);
+			UpdateGold();
+		}
+	}
 }
 
 void UUI_Hypermarket::OnCancelButtonClicked()
 {
+	UpdateItemImage(INDEX_NONE);
 }
 
 void UUI_Hypermarket::OnGoBackButtonClicked()
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Lobby")), true);
+}
+
+void UUI_Hypermarket::OnBackpackButtonClicked()
+{
+	//显示背包
+	if (APlayerController * MyPC = GetWorld()->GetFirstPlayerController<APlayerController>())
+	{
+		if (AHypermarketHUD * MyHyperHUD = MyPC->GetHUD<AHypermarketHUD>())
+		{
+			TArray<UWidget*> MainChilds = MyHyperHUD->GetMainScreenChildrens();
+			for (auto* Tmp : MainChilds)
+			{
+				if (UUI_Backpack * BackpackUI = Cast<UUI_Backpack>(Tmp))
+				{
+					BackpackUI->SetVisibility(ESlateVisibility::Visible);
+				}
+			}
+		}
+	}
 }
 
 void UUI_Hypermarket::SetCheckBoxArray(ECheckBoxState CheckBoxState)
@@ -160,4 +240,14 @@ void UUI_Hypermarket::SetCheckBoxArray(ECheckBoxState CheckBoxState)
 	}
 }
 
+void UUI_Hypermarket::UpdateGold()
+{
+	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+	{
+		GoldText->SetText(FText::FromString(FString::FromInt(SaveItemsData->Gold)));
+	}
+	else
+	{
 
+	}
+}

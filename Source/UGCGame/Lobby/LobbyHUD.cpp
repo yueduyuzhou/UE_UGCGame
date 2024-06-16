@@ -25,7 +25,7 @@ TArray<UWidget*> ALobbyHUD::GetMainScreenChildrens()
 {
 	if (MainScreen)
 	{
-		return MainScreen->GetMainPanelAllChildren();
+		return (MainScreen->GetMainPanelAllChildren());
 	}
 	return TArray<UWidget*>();
 }

@@ -49,6 +49,12 @@ class UGCGAME_API UUI_Hypermarket : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 		UButton* GoBackButton;
 
+	UPROPERTY(meta = (BindWidget))
+		UButton* BackpackButton;
+
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* GoldText;
+
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUI_HypermarketSlot> ItemClass;
 
@@ -83,12 +89,16 @@ protected:
 	UFUNCTION()
 		void OnGoBackButtonClicked();
 
+	UFUNCTION()
+		void OnBackpackButtonClicked();
+
 protected:
 	void SetCheckBoxArray(ECheckBoxState CheckBoxState);
+	void UpdateGold();
 
 private:
 	/*所有可选项*/
 	TArray<UCheckBox*> CheckBoxArray;
 
-	FHypermarketTable* CurTable = nullptr;
+	int32 CurTableID = INDEX_NONE;
 };

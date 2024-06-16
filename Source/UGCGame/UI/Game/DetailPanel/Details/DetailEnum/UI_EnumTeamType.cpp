@@ -43,6 +43,7 @@ void UUI_EnumTeamType::OnComboBoxSelectionChanged(FString SelectedItem, ESelectI
 		SelectElement->SetTeamType(ETeamType::TEAM_BLUE);
 	}
 }
+
 void UUI_EnumTeamType::SetEnumName()
 {
 	Name->SetText(FText::FromString(FString(TEXT("TeamType"))));
