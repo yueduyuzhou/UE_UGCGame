@@ -11,6 +11,8 @@ class UButton;
 class UGridPanel;
 class UComboBoxString;
 class UUI_HypermarketSlot;
+class UUI_EquippedSlot;
+struct FHypermarketTable;
 
 /**
  * 
@@ -29,19 +31,35 @@ class UGCGAME_API UUI_Backpack : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 		UGridPanel* ItemGrid;
 
+	UPROPERTY(meta = (BindWidget))
+		UUI_EquippedSlot* EquippedPrimary;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_EquippedSlot* EquippedSecondary;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_EquippedSlot* EquippedCloseRange;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_EquippedSlot* EquippedGrenade;
+
 	UPROPERTY(EditDefaultsOnly, Category = UI)
-		TSubclassOf<UUI_HypermarketSlot> ItemClass;
+		TSubclassOf<UUI_EquippedSlot> ItemClass;
 
 protected:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
-		virtual void OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+	virtual void OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 protected:
 	void UpdateItem(EHypermarkType InType);
 
-protected:
 	UFUNCTION()
-		void OnXButtonClicked();
+	void OnXButtonClicked();
+
+public:
+	/*更新Equipped信息*/
+	void UpdateEquippedSlot(const int32& InID);
+
 };

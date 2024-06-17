@@ -2,6 +2,7 @@
 
 
 #include "UI_Hypermarket.h"
+#include "UI_Backpack.h"
 #include "UI_HypermarketSlot.h"
 #include "Components/Image.h"
 #include "Components/Button.h"
@@ -10,9 +11,8 @@
 #include "Components/UniformGridPanel.h"
 #include "../../Table/HypermarketTable.h"
 #include "../../Hypermarket/HypermarketGameState.h"
-#include "UGCGame/SaveData/PlayerSaveData.h"
 #include "../../Hypermarket/HypermarketHUD.h"
-#include "UI_Backpack.h"
+#include "UGCGame/SaveData/PlayerSaveData.h"
 #include "Kismet/GameplayStatics.h"
 #include "ThreadManage.h"
 
@@ -83,6 +83,11 @@ void UUI_Hypermarket::UpdateItem(EHypermarkType InType)
 						GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 						GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
+						//商城隐藏EquippedName
+						if (InWidgetItem->EquippedName)
+						{
+							InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
+						}
 						//更新Item信息
 						InWidgetItem->UpdateSlot(SlotsByType[i]);
 						//绑定点击代理

@@ -23,6 +23,7 @@ UCLASS()
 class UGCGAME_API UUI_HypermarketSlot : public UUI_Slot
 {
 	friend class UUI_Hypermarket;
+	friend class UUI_Backpack;
 
 	GENERATED_BODY()
 
@@ -32,6 +33,10 @@ class UGCGAME_API UUI_HypermarketSlot : public UUI_Slot
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* SlotName;
 
+	UPROPERTY(meta = (BindWidget))
+		UTextBlock* EquippedName;
+
+public:
 	UUI_HypermarketSlot();
 
 protected:
@@ -42,14 +47,15 @@ protected:
 public:
 	void SetSlotName(const FString& InName);
 	void SetSlotGold(const int32 InGold);
-	
+	void SetEquippedName(const FString& InName);
+
 	/*更新Slot信息*/
 	void UpdateSlot(const FHypermarketTable* InTable);
 
 	void SetHyperTableID(const int32& InID);
 	FORCEINLINE const int32& GetHyperTableID() { return HyperTableID; }
 
-private:
+protected:
 	int32 HyperTableID;
 
 	AHypermarketCharacterBase* HyperChracter;

@@ -56,6 +56,11 @@ void UUI_HypermarketSlot::SetSlotGold(const int32 InGold)
 	SlotGold->SetText(FText::FromString(FString::Printf(TEXT("$%d"), InGold)));
 }
 
+void UUI_HypermarketSlot::SetEquippedName(const FString& InName)
+{
+	EquippedName->SetText(FText::FromString(InName));
+}
+
 void UUI_HypermarketSlot::UpdateSlot(const FHypermarketTable* InTable)
 {
 	if (InTable)
