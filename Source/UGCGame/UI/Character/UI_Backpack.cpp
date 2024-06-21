@@ -32,6 +32,7 @@ void UUI_Backpack::NativeConstruct()
 	EquippedGrenade->SetEquippedName(FString(TEXT("Grenade")));
 
 	UpdateItem(EHypermarkType::ALL);
+	InitEquippedSlots();
 }
 
 void UUI_Backpack::OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
@@ -107,8 +108,9 @@ void UUI_Backpack::UpdateItem(EHypermarkType InType)
 								}
 								//更新Item信息
 								InWidgetItem->UpdateSlot(SlotsByType[i]);
-								//绑定点击代理
+								//绑定代理
 								InWidgetItem->EquippedtDelegate.BindUObject(this, &UUI_Backpack::UpdateEquippedSlot);
+								//InWidgetItem->UpdateSaveEquippedDelegate.BindUObject(this, &UUI_Backpack::SaveEquippedItems);
 							}
 						}
 					}
@@ -171,8 +173,67 @@ void UUI_Backpack::UpdateEquippedSlot(const int32& InID)
 					EquippedSecondary->UpdateSlot(SlotTable);
 				}
 
-				//服务器记录已经装备的武器学习
+				//服务器记录已经装备的武器信息
+				SaveEquippedItems();
 			}
 		}
+	}
+}
+
+void UUI_Backpack::InitEquippedSlots()
+{
+	//获取PlayerState
+	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+	{
+		if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+		{
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedPrimary.ItemID))
+			{
+				EquippedPrimary->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedSecondary.ItemID))
+			{
+				EquippedSecondary->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedCloseRange.ItemID))
+			{
+				EquippedCloseRange->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedGrenade.ItemID))
+			{
+				EquippedGrenade->UpdateSlot(SlotTable);
+			}
+		}
+	}
+}
+
+void UUI_Backpack::SaveEquippedItems()
+{
+	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+	{
+		SaveItemsData->EquippedPrimary = FItemInfo(EquippedPrimary->HyperTableID);
+		SaveItemsData->EquippedSecondary = FItemInfo(EquippedSecondary->HyperTableID);
+		SaveItemsData->EquippedCloseRange = FItemInfo(EquippedCloseRange->HyperTableID);
+		SaveItemsData->EquippedGrenade = FItemInfo(EquippedGrenade->HyperTableID);
+		UGameplayStatics::SaveGameToSlot(SaveItemsData, TEXT("PlayerData_00"), 0);
+	}
+	else if (UPlayerSaveData * SaveItems_Data = Cast<UPlayerSaveData>(UGameplayStatics::CreateSaveGameObject(UPlayerSaveData::StaticClass())))
+	{
+		SaveItems_Data->EquippedPrimary = FItemInfo(EquippedPrimary->HyperTableID);
+		SaveItems_Data->EquippedSecondary = FItemInfo(EquippedSecondary->HyperTableID);
+		SaveItems_Data->EquippedCloseRange = FItemInfo(EquippedCloseRange->HyperTableID);
+		SaveItems_Data->EquippedGrenade = FItemInfo(EquippedGrenade->HyperTableID);
+		UGameplayStatics::SaveGameToSlot(SaveItems_Data, TEXT("PlayerData_00"), 0);
+	}
+
+	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Primary: %d"), SaveItemsData->EquippedPrimary.ItemID);
+		UE_LOG(LogTemp, Warning, TEXT("Secondary: %d"), SaveItemsData->EquippedSecondary.ItemID);
+		UE_LOG(LogTemp, Warning, TEXT("CloseRange: %d"), SaveItemsData->EquippedCloseRange.ItemID);
+		UE_LOG(LogTemp, Warning, TEXT("Grenade: %d"), SaveItemsData->EquippedGrenade.ItemID);
 	}
 }

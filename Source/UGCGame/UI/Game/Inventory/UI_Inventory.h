@@ -39,6 +39,4 @@ protected:
 	//≥ı ºªØInventorySlot
 	void LayoutSlot(const TArray<int32>& InKeys);
 	void LayoutTypesPanel();
-
-	void BindDelegate();
 };

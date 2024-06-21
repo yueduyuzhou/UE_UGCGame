@@ -37,6 +37,6 @@ void AUGCGameGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		//每个新登录的玩家会在服务器上初始化PlayerID
 		NewPlayerState->TPlayerID = FMath::RandRange(1000000, 888889999);
-		NewPlayerState->ServerCallClientInitPlayerData(NewPlayerState->TPlayerID);
+		NewPlayerState->InitPlayerData(NewPlayerState->TPlayerID);
 	}
 }

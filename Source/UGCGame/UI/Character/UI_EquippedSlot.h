@@ -9,6 +9,8 @@
 /**
  * 
  */
+//DECLARE_DELEGATE(FUpdateSaveEquippedDelegate)
+
 UCLASS()
 class UGCGAME_API UUI_EquippedSlot : public UUI_HypermarketSlot
 {

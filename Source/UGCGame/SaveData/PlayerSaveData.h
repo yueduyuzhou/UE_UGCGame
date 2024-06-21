@@ -48,4 +48,17 @@ public:
 	//玩家拥有的道具、武器
 	UPROPERTY()
 		TArray<FItemInfo> Items;
+
+	//玩家装备的道具、武器
+	UPROPERTY()
+		FItemInfo EquippedPrimary;
+
+	UPROPERTY()
+		FItemInfo EquippedSecondary;
+
+	UPROPERTY()
+		FItemInfo EquippedCloseRange;
+
+	UPROPERTY()
+		FItemInfo EquippedGrenade;
 };

@@ -29,23 +29,6 @@ AUGCGamePlayerState::AUGCGamePlayerState()
 {
 }
 
-void AUGCGamePlayerState::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-			{
-				//获取InventorySlotID
-				TArray<int32> SlotKeys;
-				GetInventorySlotNetPackage(ESlotType::ALL, SlotKeys);
-				//触发客户端Inventory初始化
-				ServerCallClientInitInventory(SlotKeys);
-			});
-	}
-}
-
 void AUGCGamePlayerState::GetInventorySlotNetPackage(const ESlotType& InType, TArray<int32>& InKeys)
 {
 	if (GetWorld())
@@ -66,30 +49,14 @@ void AUGCGamePlayerState::GetInventorySlotNetPackage(const ESlotType& InType, TA
 	}
 }
 
-void AUGCGamePlayerState::ServerCallClientInitInventory_Implementation(const TArray<int32>& InKeys)
+void AUGCGamePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (InitSlotDelegate.IsBound())
-	{
-		InitSlotDelegate.Broadcast(InKeys);
-	}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUGCGamePlayerState, CurModifyType);
 }
 
-void AUGCGamePlayerState::ServerCallClientInitPlayerData_Implementation(const int32& InPlayerID)
-{
-	TPlayerID = InPlayerID;
-}
-
-void AUGCGamePlayerState::RequestSaveAndQuitOnServer_Implementation()
-{
-	UGameMapManage::Get()->QuitAndSaveMap(GetWorld());
-}
-
-void AUGCGamePlayerState::RequestSpawnElementOnServer_Implementation(const int32& InPlayerID, const int32& InElementID)
-{
-	SpawnElement(InPlayerID, InElementID);
-}
-
-void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVector& InMouseLocation, const FVector& InMouseDirection)
+void AUGCGamePlayerState::UpdateElementLocation(const FVector& InMouseLocation, const FVector& InMouseDirection)
 {
 	if (ControlElement)
 	{
@@ -115,7 +82,7 @@ void AUGCGamePlayerState::UpdateElementLocationOnServer_Implementation(const FVe
 	}
 }
 
-void AUGCGamePlayerState::UpdateElementRotationOnServer_Implementation(const float& InRotationX, const float& InRotationY)
+void AUGCGamePlayerState::UpdateElementRotation(const float& InRotationX, const float& InRotationY)
 {
 	if (ControlElement)
 	{
@@ -123,60 +90,19 @@ void AUGCGamePlayerState::UpdateElementRotationOnServer_Implementation(const flo
 		CurrentRotation.Yaw += InRotationX * RotationSpeed;
 		CurrentRotation.Pitch += InRotationY * RotationSpeed;
 
-		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, CurrentRotation.ToString());
-		// Set the new rotation to the actor
+		//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, CurrentRotation.ToString());
+
 		ControlElement->SetActorRotation(SnapToGridRotation(CurrentRotation, AngleSize));
 	}
 }
 
-void AUGCGamePlayerState::TryReturnElementControlOnServer_Implementation()
+void AUGCGamePlayerState::TryReturnElementControl()
 {
 	if (ControlElement)
 	{
 		ControlElement->ReturnControl();
 		ControlElement = nullptr;
 	}
-}
-
-void AUGCGamePlayerState::TryGetElementControlOnServer_Implementation(const FVector& InMouseLocation, const FVector& InMouseDirection)
-{
-	//射线长度
-	float RayLength = 1000.0f;
-
-	//射线终点
-	FVector EndLocation = InMouseLocation + InMouseDirection * RayLength;
-
-	FHitResult HitResult;
-	FCollisionQueryParams CollisionParams;
-
-	//发射射线
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, InMouseLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
-	{
-		if (AElementBase * TmpElement = Cast<AElementBase>(HitResult.Actor))
-		{
-			ControlElement = TmpElement;
-			ControlElement->TakeControl(TPlayerID);
-		}
-	}
-}
-
-void AUGCGamePlayerState::RequestChangeElementModifyValueOnServer_Implementation(const int32& InValue, const EElementModifyType& InModifyType)
-{
-	if (InModifyType == EElementModifyType::MODIFY_LOCATION)
-	{
-		GridSize = InValue;
-	}
-	else if (InModifyType == EElementModifyType::MODIFY_ROTATION)
-	{
-		AngleSize = InValue;
-	}
-}
-
-void AUGCGamePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AUGCGamePlayerState, CurModifyType);
 }
 
 void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InElementID)
@@ -187,6 +113,7 @@ void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InE
 		{
 			if (AElementBase * MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
 			{
+				//获取控制权
 				ControlElement = MewElement;
 				ControlElement->TakeControl(InPlayerID);
 
@@ -266,4 +193,9 @@ bool AUGCGamePlayerState::SaveMapName(const FString & InMapName)
 		return false;
 	}
 	return true;
+}
+
+void AUGCGamePlayerState::InitPlayerData(const int32& InPlayerID)
+{
+	TPlayerID = InPlayerID;
 }

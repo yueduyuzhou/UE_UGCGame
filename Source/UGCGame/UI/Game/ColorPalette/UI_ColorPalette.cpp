@@ -8,6 +8,7 @@
 #include "Components/VerticalBox.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "../../../Element/BuildElement.h"
+#include "UI_ColorValue.h"
 #include "Blueprint/WidgetTree.h"
 
 UUI_ColorPalette::UUI_ColorPalette()
@@ -40,15 +41,21 @@ void UUI_ColorPalette::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 
 		FLinearColor TmpColor = GetCurrentColor();
 		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("[class UUI_ColorPalette]: NativeTick, R = %f, G = %f, B = %f"), TmpColor.R, TmpColor.G, TmpColor.B));
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, FString::Printf(TEXT("[class UUI_ColorPalette]: NativeTick, SelectPos.X = %f, SelectPos.Y = %f"), SelectPos.X, SelectPos.Y));
 
 		//设置展示的颜色
-		ShowColor->SetColorAndOpacity(GetCurrentColor());
+		ShowColor->SetColorAndOpacity(TmpColor);
 
 		//设置Element颜色
 		if (ABuildElement * BElement = Cast<ABuildElement>(SelectElement))
 		{
-			BElement->SetElementMeshColor(GetCurrentColor());
+			BElement->SetElementMeshColor(TmpColor);
+		}
+
+		if (HValue && SValue && VValue)
+		{
+			HValue->UpdateValue(GetH());
+			SValue->UpdateValue(GetS());
+			VValue->UpdateValue(GetV());
 		}
 	}
 }

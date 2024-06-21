@@ -42,6 +42,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ElementColor")
 	FVector2D ColorToPosiotion(float InDis, float Theta);
 
+	void DestoryColorPalette();
+
 private:
 	UFUNCTION()
 	FEventReply MouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);

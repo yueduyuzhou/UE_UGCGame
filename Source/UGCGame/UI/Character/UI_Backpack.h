@@ -61,5 +61,7 @@ protected:
 public:
 	/*更新Equipped信息*/
 	void UpdateEquippedSlot(const int32& InID);
+	void InitEquippedSlots();
 
+	void SaveEquippedItems();
 };

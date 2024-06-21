@@ -16,11 +16,9 @@ AElementBase::AElementBase()
 	, RotationUI(nullptr)
 	, ScaleUI(nullptr)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void AElementBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -29,7 +27,6 @@ void AElementBase::BeginPlay()
 	SetReplicateMovement(true);
 }
 
-// Called every frame
 void AElementBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -44,14 +41,13 @@ void AElementBase::Tick(float DeltaTime)
 				{
 					FVector TraceStart, Direction;
 					MyPlayerController->GetMouseLocationAndDrection(TraceStart, Direction);
-					MyPlayerState->UpdateElementLocationOnServer(TraceStart, Direction);
+					MyPlayerState->UpdateElementLocation(TraceStart, Direction);
 				}
 				else if(MyPlayerState->GetModifyType() == ETransformationType::TT_Rotation)
 				{
 					float RotationX, RotationY;
 					MyPlayerController->GetInputMouseDelta(RotationX, RotationY);
-					//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Blue, FString::Printf(TEXT("%f %f"), RotationX, RotationY));
-					MyPlayerState->UpdateElementRotationOnServer(RotationX, RotationY);
+					MyPlayerState->UpdateElementRotation(RotationX, RotationY);
 				}
 			}
 		}

@@ -4,12 +4,41 @@
 #include "FPSGameGameState.h"
 #include "FPSGameGameMode.h"
 #include "CommonData/FPSGameType.h"
+#include "../Table/HypermarketTable.h"
 
 AFPSGameGameState::AFPSGameGameState()
 	:BlueTeamKillCount(0)
 	, RedTeamKillCount(0)
 {
+	static ConstructorHelpers::FObjectFinder<UDataTable> Hypermarket_Table(TEXT("/Game/Table/HypermarketTable"));
+	WeaponTablePtr = Hypermarket_Table.Object;
+}
 
+FHypermarketTable* AFPSGameGameState::GetWeaponTableTemplate(const int32& InID)
+{
+	if (const TArray<FHypermarketTable*> * SlotData = GetWeaponTablesTemplate())
+	{
+		for (auto* Tmp : (*SlotData))
+		{
+			if (Tmp->ID == InID)
+			{
+				return Tmp;
+			}
+		}
+	}
+	return nullptr;
+}
+
+TArray<FHypermarketTable*>* AFPSGameGameState::GetWeaponTablesTemplate()
+{
+	if (!CacheWeaponTables.Num())
+	{
+		if (WeaponTablePtr)
+		{
+			WeaponTablePtr->GetAllRows(TEXT("Weapon Table"), CacheWeaponTables);
+		}
+	}
+	return &CacheWeaponTables;
 }
 
 void AFPSGameGameState::KillBlue(const int32& InKillerID, const int32& InKilledID)

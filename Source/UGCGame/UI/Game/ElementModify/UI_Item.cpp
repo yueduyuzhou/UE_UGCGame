@@ -38,9 +38,12 @@ void UUI_Item::SetIsSnappingValue(bool InIsSnappingValue)
 
 void UUI_Item::SetVectorText(const float InValue)
 {
-	FString ValueString = FString::SanitizeFloat(InValue);
-	FText ValueText = FText::FromString(ValueString);
-	InputText->SetHintText(ValueText);
+	if (InputText)
+	{
+		FString ValueString = FString::SanitizeFloat(InValue);
+		FText ValueText = FText::FromString(ValueString);
+		InputText->SetHintText(ValueText);
+	}
 }
 
 void UUI_Item::RegisterParentDetailVector(UUI_DetailVector* InParent)

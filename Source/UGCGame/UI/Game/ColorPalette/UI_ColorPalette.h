@@ -10,7 +10,7 @@ class UImage;
 class UButton;
 class UVerticalBox;
 class AElementBase;
-
+class UUI_ColorValue;
 
 /**
  * 
@@ -46,6 +46,15 @@ class UGCGAME_API UUI_ColorPalette : public UUI_Base
 
 	UPROPERTY(meta = (BindWidget))
 		UButton* Cancel;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_ColorValue* HValue;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_ColorValue* SValue;
+
+	UPROPERTY(meta = (BindWidget))
+		UUI_ColorValue* VValue;
 
 	UPROPERTY(BlueprintAssignable, Category = "CustomDelegate")
 		FOnOKClickDelegate OKClickDelegate;

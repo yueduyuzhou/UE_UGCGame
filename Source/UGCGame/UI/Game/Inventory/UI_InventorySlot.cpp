@@ -33,8 +33,6 @@ void UUI_InventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const 
 	{
 		if (AUGCGamePlayerState * MyPlayerState = GetPlayerState())
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("¿ªÊ¼ÍÏ¶¯"));
-
 			MyPlayerState->SpawnElement(MyPlayerState->TPlayerID, GetElementID());
 		}
 	}

@@ -35,6 +35,22 @@ void AUGCGamePlayerController::GetMouseLocationAndDrection(FVector& OutWorldPosi
 	}
 }
 
+void AUGCGamePlayerController::EnableUIOnlyInput(UUserWidget* InWidgetToFocus)
+{
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(InWidgetToFocus->TakeWidget());
+	//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	SetInputMode(InputMode);
+}
+
+void AUGCGamePlayerController::EnableGameAndUIInput()
+{
+	FInputModeGameAndUI InputMode;
+
+	SetInputMode(InputMode);
+}
+
 void AUGCGamePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -72,15 +88,17 @@ void AUGCGamePlayerController::OnRightMouseButtonDown()
 		GetMouseLocationAndDrection(TraceStart, Direction);
 		MyPlayerSatte->TryGetElementControlOnServer(TraceStart, Direction);
 	}*/
+
+	
 }
 
 void AUGCGamePlayerController::OnRightMouseButtonUp()
 {
 	bIsEditing = true;
-	//在服务器上获归还Element的控制权
+	//归还Element的控制权
 	if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
 	{
-		MyPlayerSatte->TryReturnElementControlOnServer();
+		MyPlayerSatte->TryReturnElementControl();
 	}
 }
 

@@ -38,13 +38,19 @@ void UUI_ColorValue::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		if (TmpS.IsNumeric())
 		{
 			float CurVal = FCString::Atof(*TmpS);
-			ColorValueBar->SetPercent(CurVal / MaxValue);
+			if (ColorValueBar)
+			{
+				ColorValueBar->SetPercent(CurVal / MaxValue);
+			}
 		}
 	}
 }
 
 void UUI_ColorValue::UpdateValue(float InVal)
 {
-	InVal = FMath::Clamp<float>(InVal, 0.f, MaxValue);
-	Value->SetText(FText::AsNumber(InVal));
+	if (Value)
+	{
+		InVal = FMath::Clamp<float>(InVal, 0.f, MaxValue);
+		Value->SetText(FText::AsNumber(InVal));
+	}
 }

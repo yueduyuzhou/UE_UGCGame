@@ -2,18 +2,21 @@
 
 
 #include "FPSGameCharacterBase.h"
+#include "WeaponBaseServer.h"
+#include "WeaponBaseClient.h"
+#include "FPSGamePlayerState.h"
+#include "FPSGamePlayerController.h"
+#include "../Table/HypermarketTable.h"
+#include "UGCGame/SaveData/PlayerSaveData.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "FPSGamePlayerController.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "WeaponBaseServer.h"
-#include "WeaponBaseClient.h"
 #include "Components/DecalComponent.h"
-#include "FPSGamePlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
+#include "FPSGameGameState.h"
 #include "ThreadManage.h"
 
 AFPSGameCharacterBase::AFPSGameCharacterBase()
@@ -98,9 +101,35 @@ void AFPSGameCharacterBase::StartWeapon()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		//从GameInsatcne获取武器类型
-		PurchaseWeapon(EWeaponType::DESERTEAGLE);
-		PurchaseWeapon(StartWeaponType);
+		//TODO：改为从DBServer获取Equipped数据
+		if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+		{
+			//获取PlayerState
+			if (AFPSGameGameState * MyGS = GetWorld()->GetGameState<AFPSGameGameState>())
+			{
+				if (FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedPrimary.ItemID))
+				{
+					PurchaseWeapon(SlotTable->WeaponType);
+				}
+				
+				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedSecondary.ItemID))
+				{
+					PurchaseWeapon(SlotTable->WeaponType);
+				}
+
+				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedCloseRange.ItemID))
+				{
+					PurchaseWeapon(SlotTable->WeaponType);
+				}
+
+				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedGrenade.ItemID))
+				{
+					PurchaseWeapon(SlotTable->WeaponType);
+				}
+				
+				//PurchaseWeapon(StartWeaponType);
+			}
+		}
 	}
 }
 

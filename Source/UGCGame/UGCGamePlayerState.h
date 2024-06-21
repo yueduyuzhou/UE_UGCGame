@@ -18,66 +18,34 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FChangeModifyTypeMulticastDelegate, const ET
 UCLASS()
 class UGCGAME_API AUGCGamePlayerState : public APlayerState
 {
+	friend class AUGCGameGameMode;
+
 	GENERATED_BODY()
 
-		friend class AUGCGameGameMode;
-
 public:
-	FOneKeyMulticastDelegate InitSlotDelegate;
 	FChangeModifyTypeMulticastDelegate ChangeModifyTypeDelegate;
-
-private:
-	virtual void BeginPlay() override;
 
 public:
 	AUGCGamePlayerState();
 
-	/*获取表格数据*/
+	/*根据类型获取表格项ID*/
 	void GetInventorySlotNetPackage(const ESlotType& InType, TArray<int32>& InKeys);
-
-	/*RPC*/
-public:
-	UFUNCTION(Client, reliable)
-		void ServerCallClientInitInventory(const TArray<int32>& InKeys);
-
-	UFUNCTION(Client, reliable)
-		void ServerCallClientInitPlayerData(const int32& InPlayerID);
-
-	/*****************************************************************
-	*
-	*****************************************************************/
-
-	UFUNCTION(Server, reliable)
-		void RequestSaveAndQuitOnServer();
-
-	/*****************************************************************
-	*	Element
-	*****************************************************************/
-	UFUNCTION(Server, reliable)
-		void RequestSpawnElementOnServer(const int32& InPlayerID, const int32& InElementID);
-
-	UFUNCTION(Server, unreliable)
-		void UpdateElementLocationOnServer(const FVector& InMouseLocation, const FVector& InMouseDirection);
-
-	UFUNCTION(Server, unreliable)
-		void UpdateElementRotationOnServer(const float& InRotationX, const float& InRotationY);
-
-	UFUNCTION(Server, reliable)
-		void TryReturnElementControlOnServer();
-
-	UFUNCTION(Server, reliable)
-		void TryGetElementControlOnServer(const FVector& InMouseLocation, const FVector& InMouseDirection);
-
-	UFUNCTION(Server, reliable)
-		void RequestChangeElementModifyValueOnServer(const int32& InValue, const EElementModifyType& InModifyType);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
 
 public:
-	void SpawnElement(const int32& InPlayerID, const int32& InElementID);
-	FVector SnapToGrid(const FVector& InOldPosition, const float& InGridSize);
+	/*****************************************************************
+	*	Element
+	*****************************************************************/
+	void UpdateElementLocation(const FVector& InMouseLocation, const FVector& InMouseDirection);
+	void UpdateElementRotation(const float& InRotationX, const float& InRotationY);
 
+	void TryReturnElementControl();
+
+	void SpawnElement(const int32& InPlayerID, const int32& InElementID);
+
+	FVector SnapToGrid(const FVector& InOldPosition, const float& InGridSize);
 	FRotator SnapToGridRotation(const FRotator& InOldRotation, const float& InAngleSize);
 
 public:
@@ -86,6 +54,8 @@ public:
 
 	FORCEINLINE const ETransformationType& GetModifyType() { return CurModifyType; }
 	void SetModifyType(const ETransformationType& InModifyType);
+
+	void InitPlayerData(const int32& InPlayerID);
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Player Data")

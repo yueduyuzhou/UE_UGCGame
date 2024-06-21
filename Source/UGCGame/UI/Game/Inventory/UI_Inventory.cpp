@@ -15,7 +15,15 @@ void UUI_Inventory::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	BindDelegate();
+	if (AUGCGamePlayerState * MyUGCPS = GetPlayerState())
+	{
+		//ªÒ»°InventorySlotID
+		TArray<int32> SlotKeys;
+		MyUGCPS->GetInventorySlotNetPackage(ESlotType::ALL, SlotKeys);
+
+		LayoutSlot(SlotKeys);
+		LayoutTypesPanel();
+	}
 }
 
 void UUI_Inventory::LayoutSlot(const TArray<int32>& InKeys)
@@ -62,24 +70,5 @@ void UUI_Inventory::LayoutTypesPanel()
 				SlotWidget->SetParentInventory(this);
 			}
 		}
-	}
-}
-
-void UUI_Inventory::BindDelegate()
-{
-	if (AUGCGamePlayerState * MyPlayerState = GetPlayerState())
-	{
-		MyPlayerState->InitSlotDelegate.AddLambda([&](const TArray<int32>& InKeys)
-			{
-				LayoutSlot(InKeys);
-				LayoutTypesPanel();
-			});
-	}
-	else
-	{
-		GThread::Get()->GetCoroutines().BindLambda(0.3f, [&]()
-			{
-				BindDelegate();
-			});
 	}
 }

@@ -45,6 +45,9 @@ public:
 
 	FORCEINLINE bool IsEditing() { return bIsEditing; }
 
+	void EnableUIOnlyInput(UUserWidget* InWidgetToFocus);
+	void EnableGameAndUIInput();
+
 private:
 	bool bIsEditing;
 };

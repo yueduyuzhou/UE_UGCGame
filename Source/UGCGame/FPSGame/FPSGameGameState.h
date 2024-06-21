@@ -8,7 +8,7 @@
 
 class FPSGameGameMode;
 struct FFPSPlayerInfo;
-
+struct FHypermarketTable;
 /**
  * 
  */
@@ -20,6 +20,11 @@ class UGCGAME_API AFPSGameGameState : public AUGCGameState
 	friend class FPSGameGameMode;
 
 	AFPSGameGameState();
+
+public:
+	/*获取表数据*/
+	FHypermarketTable* GetWeaponTableTemplate(const int32& InID);
+	TArray<FHypermarketTable*>* GetWeaponTablesTemplate();
 
 public:
 	FORCEINLINE const int32& GetBlueTeamKillCount() { return BlueTeamKillCount; }
@@ -41,4 +46,10 @@ private:
 	int32 RedTeamKillCount;
 
 	TArray<FFPSPlayerInfo> FPSPlayerInfos;
+
+private:
+	UPROPERTY()
+	UDataTable* WeaponTablePtr;
+
+	TArray<FHypermarketTable*> CacheWeaponTables;
 };

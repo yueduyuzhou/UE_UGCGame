@@ -67,6 +67,12 @@ FVector2D UUI_DetailColor::ColorToPosiotion(float InDis, float Theta)
 
 FEventReply UUI_DetailColor::MouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
 {
+	//销毁旧色盘
+	if (ColorPalette)
+	{
+		DestoryColorPalette();
+	}
+
 	OldColor = GetElementColor();
 
 	ColorPalette = CreateWidget<UUI_ColorPalette>(GetWorld(), ColorPaletteClass);
@@ -79,41 +85,59 @@ FEventReply UUI_DetailColor::MouseButtonDown(FGeometry MyGeometry, const FPointe
 				if (UUI_MainScreen * MainScreen = MyUGCHUD->GetMainScreen())
 				{
 					MainScreen->AddChildToMainPanel(ColorPalette);
+
+					//只允许点击色盘
+					MyUGCPC->EnableUIOnlyInput(ColorPalette);
+
+					//绑定按钮代理
+					ColorPalette->OKClickDelegate.AddDynamic(this, &UUI_DetailColor::OnOKClick);
+					ColorPalette->CancelClickDelegate.AddDynamic(this, &UUI_DetailColor::OnCancelClick);
+
+					//设置SelectColor初始Position为当前颜色对应的Position
+					float H, S, V, A;
+					UKismetMathLibrary::RGBToHSV(OldColor, H, S, V, A);
+					FVector2D TmpPosotion = ColorToPosiotion(S, H);
+					ColorPalette->InitColorSelectPosition(TmpPosotion);
+
+					//注册Elemet到调色板
+					ColorPalette->RegisterElement(SelectElement);
+					//ColorPalette开始更新Element颜色
+					ColorPalette->StartUpdateColor();
 				}
 			}
 		}
-
-		//绑定按钮代理
-		ColorPalette->OKClickDelegate.AddDynamic(this, &UUI_DetailColor::OnOKClick);
-		ColorPalette->CancelClickDelegate.AddDynamic(this, &UUI_DetailColor::OnCancelClick);
-
-		//设置SelectColor初始Position为当前颜色对应的Position
-		float H, S, V, A;
-		UKismetMathLibrary::RGBToHSV(OldColor, H, S, V, A);
-		FVector2D TmpPosotion = ColorToPosiotion(S, H);
-		ColorPalette->InitColorSelectPosition(TmpPosotion);
-
-		//注册Elemet到调色板
-		ColorPalette->RegisterElement(SelectElement);
-		//ColorPalette开始更新Element颜色
-		ColorPalette->StartUpdateColor();
 	}
 
 	return FEventReply();
 }
 
+void UUI_DetailColor::DestoryColorPalette()
+{
+	if (ColorPalette)
+	{
+		//停止更新Element颜色
+		ColorPalette->StopUpdateColor();
+		ColorPalette->RemoveFromParent();
+		ColorPalette->Destruct();
+		ColorPalette = nullptr;
+	}
+}
+
 void UUI_DetailColor::OnOKClick()
 {
-	//停止更新Element颜色
-	ColorPalette->StopUpdateColor();
-	ColorPalette->RemoveFromParent();
-	
+	if (AUGCGamePlayerController * MyUGCPC = GetWorld()->GetFirstPlayerController<AUGCGamePlayerController>())
+	{
+		MyUGCPC->EnableGameAndUIInput();
+		DestoryColorPalette();
+	}
 }
 
 void UUI_DetailColor::OnCancelClick()
 {
-	//停止更新Element颜色
-	ColorPalette->StopUpdateColor();
-	ColorPalette->RemoveFromParent();
-	SetElementColor(OldColor);
+	if (AUGCGamePlayerController * MyUGCPC = GetWorld()->GetFirstPlayerController<AUGCGamePlayerController>())
+	{
+		MyUGCPC->EnableGameAndUIInput();
+		DestoryColorPalette();
+		SetElementColor(OldColor);
+	}
 }
