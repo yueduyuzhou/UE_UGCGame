@@ -16,8 +16,11 @@ public:
 	static void Destroy();
 
 public:
-	/*打开地图*/
-	void OpenMap(UWorld* InWorld, FString InOpenMapName);
+	/*打开地图作为FPS*/
+	void OpenMapForFPS(UWorld* InWorld, FString InOpenMapName);
+
+	/*打开地图作为UGC*/
+	void OpenMapForUGC(UWorld* InWorld, FString InOpenMapName);
 
 	/*创建模板地图*/
 	void CreateGameMap(UWorld* InWorld);

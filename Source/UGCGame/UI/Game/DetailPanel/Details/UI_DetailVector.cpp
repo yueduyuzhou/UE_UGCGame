@@ -38,45 +38,45 @@ void UUI_DetailVector::UpdateVector(const EVectorDime& InDime, const float InVal
 	{
 		if (InDime == EVectorDime::X)
 		{
-			BindElementLocationXDelegate.Execute(InValue, SelectElement);
+			BindElementLocationXDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Y)
 		{
-			BindElementLocationYDelegate.Execute(InValue, SelectElement);
+			BindElementLocationYDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Z)
 		{
-			BindElementLocationZDelegate.Execute(InValue, SelectElement);
+			BindElementLocationZDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 	}
 	else if (DetailType == EEditDetailType::DETAIL_ROTATION)
 	{
 		if (InDime == EVectorDime::X)
 		{
-			BindElementRotationXDelegate.Execute(InValue, SelectElement);
+			BindElementRotationXDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Y)
 		{
-			BindElementRotationYDelegate.Execute(InValue, SelectElement);
+			BindElementRotationYDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Z)
 		{
-			BindElementRotationZDelegate.Execute(InValue, SelectElement);
+			BindElementRotationZDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 	}
 	else if (DetailType == EEditDetailType::DETAIL_SCALE)
 	{
 		if (InDime == EVectorDime::X)
 		{
-			BindElementScaleXDelegate.Execute(InValue, SelectElement);
+			BindElementScaleXDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Y)
 		{
-			BindElementScaleYDelegate.Execute(InValue, SelectElement);
+			BindElementScaleYDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 		else if (InDime == EVectorDime::Z)
 		{
-			BindElementScaleZDelegate.Execute(InValue, SelectElement);
+			BindElementScaleZDelegate.ExecuteIfBound(InValue, SelectElement);
 		}
 	}
 }
@@ -110,10 +110,10 @@ void UUI_DetailVector::InitXYZ()
 	}
 	else
 	{
-		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
+		/*GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
 			{
 				InitXYZ();
-			});
+			});*/
 	}
 }
 

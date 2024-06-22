@@ -30,7 +30,7 @@ void UGameMapManage::Destroy()
 	}
 }
 
-void UGameMapManage::OpenMap(UWorld* InWorld, FString InOpenMapName)
+void UGameMapManage::OpenMapForFPS(UWorld* InWorld, FString InOpenMapName)
 {
 	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(InWorld->GetGameInstance()))
 	{
@@ -38,6 +38,17 @@ void UGameMapManage::OpenMap(UWorld* InWorld, FString InOpenMapName)
 		MyGameInstance->LoadMapName = InOpenMapName;
 
 		UGameplayStatics::OpenLevel(InWorld, FName(TEXT("GameTemplateMap")), true, TEXT("listen"));
+	}
+}
+
+void UGameMapManage::OpenMapForUGC(UWorld* InWorld, FString InOpenMapName)
+{
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(InWorld->GetGameInstance()))
+	{
+		// ²Ù×÷Êý¾Ý
+		MyGameInstance->LoadMapName = InOpenMapName;
+
+		UGameplayStatics::OpenLevel(InWorld, FName(TEXT("TemplateMap")), true);
 	}
 }
 

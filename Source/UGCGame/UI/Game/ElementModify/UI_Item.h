@@ -9,10 +9,10 @@
 #include "UI_Item.generated.h"
 
 class UImage;
-class UEditableText;
 class UCheckBox;
+class UEditableText;
 class UUI_DetailVector;
-
+class FDelegateHandle;
 /**
  * 
  */
@@ -52,7 +52,8 @@ public:
 	void BindProperty(const EEditDetailType& InType, AElementBase* InElement);
 
 protected:
-	virtual void NativeConstruct();
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 	UFUNCTION(BlueprintCallable)
@@ -68,4 +69,6 @@ private:
 	bool bIsSnappingValue;
 
 	UUI_DetailVector* ParentDetailVector;
+
+	FDelegateHandle ChangeModifyTypeDelegateHandle;
 };

@@ -24,6 +24,8 @@ class UGCGAME_API UUI_DetailsPanel : public UUI_Base
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<UUI_DetailPanelSlot> DetailPanelSlotClass;
 
+	UUI_DetailsPanel();
+
 protected:
 	virtual void NativeConstruct();
 

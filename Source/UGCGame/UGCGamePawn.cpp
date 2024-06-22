@@ -31,9 +31,9 @@ void AUGCGamePawn::OnComponentSelectionChange_Implementation(USceneComponent* Co
 {
 	if (bSelected)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("Component = %s, bSelected = %d, bImplementsUFocusable = %d"), *Component->GetOwner()->GetName(), bSelected, bImplementsUFocusable));
+		UE_LOG(LogTemp, Warning, TEXT("[class AUGCGamePawn] : OnComponentSelectionChange_Implementation, Component = %s, bSelected = %d, bImplementsUFocusable = %d"), *Component->GetOwner()->GetName(), bSelected, bImplementsUFocusable);
 
-		if (DetailsPanel)
+		if (DetailsPanel && Component)
 		{
 			if (AElementBase * Element = Cast<AElementBase>(Component->GetOwner()))
 			{
@@ -111,7 +111,6 @@ void AUGCGamePawn::TurnAtRate(float Rate)
 
 void AUGCGamePawn::LookUpAtRate(float Rate)
 {
-	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 

@@ -23,7 +23,10 @@ void UUI_DetailColor::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	Color->SetColorAndOpacity(GetElementColor());
+	if (Color)
+	{
+		Color->SetColorAndOpacity(GetElementColor());
+	}
 }
 
 void UUI_DetailColor::BindElementProperty(const EEditDetailType& InType, AElementBase* InElement)

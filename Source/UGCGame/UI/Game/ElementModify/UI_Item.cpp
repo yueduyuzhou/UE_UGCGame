@@ -9,6 +9,7 @@
 #include "../DetailPanel/Details/UI_DetailVector.h"
 #include "UGCGame/Element/ElementBase.h"
 #include "../../../Common/UGCGameMacro.h"
+#include "Delegates/IDelegateInstance.h"
 
 UUI_Item::UUI_Item()
 	:bIsSnappingValue(true)
@@ -137,6 +138,16 @@ void UUI_Item::NativeConstruct()
 	BindDelegate();
 }
 
+void UUI_Item::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		MyPlayerState->ChangeModifyTypeDelegate.Remove(ChangeModifyTypeDelegateHandle);
+	}
+}
+
 void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod)
 {
 	if (!InText.IsEmpty())
@@ -204,7 +215,7 @@ void UUI_Item::BindDelegate()
 {
 	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
-		MyPlayerState->ChangeModifyTypeDelegate.AddLambda([&](const ETransformationType & InModifyType)
+		ChangeModifyTypeDelegateHandle = MyPlayerState->ChangeModifyTypeDelegate.AddLambda([&](const ETransformationType & InModifyType)
 			{
 				if (ModifyType != InModifyType)
 				{

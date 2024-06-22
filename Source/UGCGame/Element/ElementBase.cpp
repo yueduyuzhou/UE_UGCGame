@@ -22,9 +22,6 @@ AElementBase::AElementBase()
 void AElementBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetReplicates(true);
-	SetReplicateMovement(true);
 }
 
 void AElementBase::Tick(float DeltaTime)
@@ -42,12 +39,8 @@ void AElementBase::Tick(float DeltaTime)
 					FVector TraceStart, Direction;
 					MyPlayerController->GetMouseLocationAndDrection(TraceStart, Direction);
 					MyPlayerState->UpdateElementLocation(TraceStart, Direction);
-				}
-				else if(MyPlayerState->GetModifyType() == ETransformationType::TT_Rotation)
-				{
-					float RotationX, RotationY;
-					MyPlayerController->GetInputMouseDelta(RotationX, RotationY);
-					MyPlayerState->UpdateElementRotation(RotationX, RotationY);
+
+					//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("[class AElementBase]: Tick, Call UpdateElementLocation, ControllerID = %d"), ControllerID));
 				}
 			}
 		}
@@ -120,6 +113,25 @@ void AElementBase::UpdateVectorUI()
 	if (ScaleUI)
 	{
 		ScaleUI->UpdateVectorText(GetActorScale());
+	}
+}
+
+void AElementBase::DestoryVectorUI()
+{
+	if (LocationUI)
+	{
+		LocationUI->Destruct();
+		LocationUI = nullptr;
+	}
+	if (RotationUI)
+	{
+		RotationUI->Destruct();
+		RotationUI = nullptr;
+	}
+	if (ScaleUI)
+	{
+		ScaleUI->Destruct();
+		ScaleUI = nullptr;
 	}
 }
 

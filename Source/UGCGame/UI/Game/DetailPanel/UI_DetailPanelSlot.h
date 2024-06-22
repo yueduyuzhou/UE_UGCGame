@@ -34,6 +34,8 @@ class UGCGAME_API UUI_DetailPanelSlot : public UUI_Base
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUI_DetailColor> DetailColorClass;
 
+	UUI_DetailPanelSlot();
+
 public:
 	void UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement);
 

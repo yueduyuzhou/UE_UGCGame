@@ -99,6 +99,7 @@ void AUGCGamePlayerController::OnRightMouseButtonUp()
 	if (AUGCGamePlayerState * MyPlayerSatte = GetPlayerState<AUGCGamePlayerState>())
 	{
 		MyPlayerSatte->TryReturnElementControl();
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString(TEXT("[class AUGCGamePlayerController]: OnRightMouseButtonUp, Call TryReturnElementControl")));
 	}
 }
 

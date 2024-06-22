@@ -39,6 +39,7 @@ public:
 	void DestoryElement();
 
 	void UpdateVectorUI();
+	void DestoryVectorUI();
 
 	void RegisterDetailVectorByType(UUI_DetailVector* InUI);
 

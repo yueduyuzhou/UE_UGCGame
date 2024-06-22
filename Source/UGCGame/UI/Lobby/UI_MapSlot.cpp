@@ -14,5 +14,13 @@ void UUI_MapSlot::NativeConstruct()
 
 void UUI_MapSlot::OnClickedWidget()
 {
-	UGameMapManage::Get()->OpenMap(GetWorld(), MapName->GetText().ToString());
+	if (MapName)
+	{
+		//在创意工坊打开该地图
+		UGameMapManage::Get()->OpenMapForUGC(GetWorld(), MapName->GetText().ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[class UUI_MapSlot] : OnClickedWidget, MapName Is Null"));
+	}
 }

@@ -11,6 +11,10 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Components/CanvasPanelSlot.h"
 
+UUI_DetailPanelSlot::UUI_DetailPanelSlot()
+	:SelectElement(nullptr)
+{}
+
 void UUI_DetailPanelSlot::UpdateDetailChild(const EEditDetailType& InType, AElementBase* InElement)
 {
 	if (InElement)

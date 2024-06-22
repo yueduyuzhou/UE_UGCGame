@@ -7,6 +7,10 @@
 #include "UI_DetailPanelSlot.h"
 #include "Components/VerticalBox.h"
 
+UUI_DetailsPanel::UUI_DetailsPanel()
+	:SelectElement(nullptr)
+{}
+
 void UUI_DetailsPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -21,21 +25,24 @@ void UUI_DetailsPanel::UpdateDetailsPanel()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Update Details Panel"));
 
-	//获取SelectElement的可编辑属性，根据属性类型生成Slot添加到Details
-	TArray<EEditDetailType> EditDetails = SelectElement->GetEditDetails();
-	if (EditDetails.Num() > 0)
+	if (SelectElement && Details)
 	{
 		Details->ClearChildren();
 
-		for (auto& Tmp : EditDetails)
+		//获取SelectElement的可编辑属性，根据属性类型生成Slot添加到Details
+		TArray<EEditDetailType> EditDetails = SelectElement->GetEditDetails();
+		if (EditDetails.Num() > 0)
 		{
-			if (UUI_DetailPanelSlot * DetailSlot = CreateWidget<UUI_DetailPanelSlot>(GetWorld(), DetailPanelSlotClass))
+			for (auto& Tmp : EditDetails)
 			{
-				DetailSlot->UpdateDetailChild(Tmp, SelectElement);
-				if (UVerticalBoxSlot * VerSlot = Details->AddChildToVerticalBox(DetailSlot))
+				if (UUI_DetailPanelSlot * DetailSlot = CreateWidget<UUI_DetailPanelSlot>(GetWorld(), DetailPanelSlotClass))
 				{
-					FMargin SlotPadding(0, 2, 0, 2); 
-					VerSlot->SetPadding(SlotPadding);
+					DetailSlot->UpdateDetailChild(Tmp, SelectElement);
+					if (UVerticalBoxSlot * VerSlot = Details->AddChildToVerticalBox(DetailSlot))
+					{
+						FMargin SlotPadding(0, 2, 0, 2);
+						VerSlot->SetPadding(SlotPadding);
+					}
 				}
 			}
 		}
@@ -44,6 +51,12 @@ void UUI_DetailsPanel::UpdateDetailsPanel()
 
 void UUI_DetailsPanel::SetSelectElement(AElementBase* InElement)
 {
+	//销毁上一个SelectElement关联的细节模板UI
+	if (SelectElement)
+	{
+		SelectElement->DestoryVectorUI();
+	}
+
 	SelectElement = InElement;
 
 	//更新Detail
