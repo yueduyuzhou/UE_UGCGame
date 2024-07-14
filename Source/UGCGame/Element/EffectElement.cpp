@@ -6,16 +6,15 @@
 
 AEffectElement::AEffectElement()
 {
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
 	VisiableMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisiableMesh"));
+
+	SetRootComponent(RootScene);
 	VisiableMesh->SetupAttachment(RootComponent);
 }
 
-void AEffectElement::SetNotVisibilityMulticast_Implementation()
+void AEffectElement::SetElementMeshVisibility(bool InbIsShow)
 {
-	VisiableMesh->SetVisibility(false);
+	VisiableMesh->SetVisibility(InbIsShow);
 }
 
-void AEffectElement::MulticastDestroy_Implementation()
-{
-	Destroy();
-}

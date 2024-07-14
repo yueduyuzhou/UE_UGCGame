@@ -16,8 +16,12 @@ void UUI_MapSlot::OnClickedWidget()
 {
 	if (MapName)
 	{
-		//在创意工坊打开该地图
-		UGameMapManage::Get()->OpenMapForUGC(GetWorld(), MapName->GetText().ToString());
+		if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+		{
+			MyGameInstance->bIsLoadMapForUGC = true;
+			//在创意工坊打开该地图
+			UGameMapManage::Get()->OpenMapForUGC(GetWorld(), MapName->GetText().ToString());
+		}
 	}
 	else
 	{

@@ -8,18 +8,11 @@
 
 void UUI_Settings::OnClickedWidget()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Blue, TEXT("Click"));
 	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
-		DestorySessionBP();
-
 		if (MyPlayerState->GetLocalRole() == ROLE_Authority)
 		{
 			UGameMapManage::Get()->QuitAndSaveMap(GetWorld());
-		}
-		else
-		{
-			UGameMapManage::Get()->QuitGameMap(GetWorld());
 		}
 	}
 	

@@ -34,8 +34,15 @@ public:
 	/*保存地图*/
 	void SaveGameMap(UWorld* InWorld);
 
+	/*为FPS加载地图数据并生成*/
+	void LoadMapDataAndSpawnForFPS(const FString& InSlotName, UWorld* InWorld);
+
+	/*为UGC加载地图数据并生成*/
+	void LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld);
+
+private:
 	/*加载地图数据并生成*/
-	void LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld);
+	void LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh);
 
 private:
 	static TSharedPtr<UGameMapManage> GameMapManage;

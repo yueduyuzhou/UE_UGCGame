@@ -9,6 +9,9 @@
 #include "UGCGamePlayerController.h"
 #include "UGCGamePlayerState.h"
 #include "UGCGamePawn.h"
+#include "ThreadManage.h"
+#include "UGCGameInstance.h"
+#include "System/GameMapManage.h"
 
 AUGCGameGameMode::AUGCGameGameMode()
 {
@@ -27,6 +30,23 @@ AUGCGameGameMode::AUGCGameGameMode()
 	PlayerStateClass = AUGCGamePlayerState::StaticClass();
 
 	bUseSeamlessTravel = true;
+}
+
+void AUGCGameGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//延时加载游戏地图
+	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+		{
+			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+			{
+				if (MyGameInstance->bIsLoadMapForUGC)
+				{
+					UGameMapManage::Get()->LoadMapDataAndSpawnForUGC(MyGameInstance->LoadMapName, GetWorld());
+				}
+			}
+		});
 }
 
 void AUGCGameGameMode::PostLogin(APlayerController* NewPlayer)

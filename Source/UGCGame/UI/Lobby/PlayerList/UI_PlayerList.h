@@ -61,6 +61,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void QuitMap();
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void DestroySessionBP();
+
 public:
 	ENetRole GetLocalRole();
 	int32 GetPlayerID();

@@ -25,6 +25,8 @@ public:
 	bool IsLocalTeamWin() { return WinTeam == LocalPlayerData.Team; }
 
 public:
+	/*是否加载地图*/
+	bool bIsLoadMapForUGC;
 	//加载的地图名字
 	FString LoadMapName;
 

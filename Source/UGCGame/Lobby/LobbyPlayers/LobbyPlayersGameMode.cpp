@@ -98,6 +98,14 @@ void ALobbyPlayersGameMode::RemovePlayerDataInInstance(const FPlayerNetData& InP
 	}
 }
 
+void ALobbyPlayersGameMode::ClearAllPlayer()
+{
+	if (UUGCGameInstance * MyGameInstance = GetGameInstance<UUGCGameInstance>())
+	{
+		MyGameInstance->PlayerDatas.Empty();
+	}
+}
+
 ALobbyPlayerController* ALobbyPlayersGameMode::GetLocalPlayerController()
 {
 	if (AController * LocalPC = GetWorld()->GetFirstPlayerController())
@@ -108,6 +116,13 @@ ALobbyPlayerController* ALobbyPlayersGameMode::GetLocalPlayerController()
 		}
 	}
 	return nullptr;
+}
+
+void ALobbyPlayersGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	ClearAllPlayer();
 }
 
 void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)

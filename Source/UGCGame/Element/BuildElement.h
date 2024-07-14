@@ -30,7 +30,11 @@ public:
 	void SetElementMesh(UStaticMesh* NewMesh);
 
 	virtual void SetElementMeshColor(FLinearColor NewColor) override;
+
 	virtual FLinearColor GetElementMeshColor() override;
+
+	UFUNCTION(NetMulticast, reliable)
+		void SetMeshColorMulticast(const FLinearColor& NewColor);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;

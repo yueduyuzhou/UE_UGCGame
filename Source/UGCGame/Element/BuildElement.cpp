@@ -50,6 +50,11 @@ FLinearColor ABuildElement::GetElementMeshColor()
 	return FLinearColor::White;
 }
 
+void ABuildElement::SetMeshColorMulticast_Implementation(const FLinearColor& NewColor)
+{
+	SetElementMeshColor(NewColor);
+}
+
 void ABuildElement::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

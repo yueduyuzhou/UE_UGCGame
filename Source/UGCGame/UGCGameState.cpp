@@ -19,6 +19,8 @@ void AUGCGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SpanwCounts.Add(TTuple<int32, int32>(-1, -1));
+
 	/*if (GetLocalRole() == ROLE_Authority)
 	{
 		ElementGenerater = GetWorld()->SpawnActor<AElementGenerater>(AElementGenerater::StaticClass());
@@ -79,5 +81,47 @@ const TArray<FElementAttribute*>* AUGCGameState::GetElementAttributesTemplate()
 		}
 	}
 	return &CacheElementAttributes;
+}
+
+void AUGCGameState::AddSpawnData(const int32& InID)
+{
+	if (InID != INDEX_NONE)
+	{
+		if (SpanwCounts.Contains(InID))
+		{
+			SpanwCounts[InID]++;
+		}
+		else
+		{
+			SpanwCounts.Add(TTuple<int32, int32>(InID, 1));
+		}
+	}
+}
+
+bool AUGCGameState::SubSpawnData(const int32& InID)
+{
+	if (InID == INDEX_NONE)
+	{
+		return false;
+	}
+
+	if (SpanwCounts.Contains(InID))
+	{
+		SpanwCounts[InID]--;
+	}
+	else
+	{
+		return false;
+	}
+	return true;
+}
+
+const int32& AUGCGameState::GetSpawnCountByID(const int32& InID)
+{
+	if (InID != INDEX_NONE && SpanwCounts.Contains(InID))
+	{
+		return SpanwCounts[InID];
+	}
+	return SpanwCounts[-1];
 }
 

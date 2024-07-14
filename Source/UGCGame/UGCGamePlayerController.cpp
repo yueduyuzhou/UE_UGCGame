@@ -8,6 +8,7 @@
 #include "UGCGamePawn.h"
 #include "UGCGamePlayerState.h"
 #include "Common/MethodUnit.h"
+#include "UGCGameState.h"
 //#include "Sockets.h"
 //#include "SocketSubsystem.h"
 //#include "Interfaces/IPv4/IPv4Address.h"
@@ -121,9 +122,17 @@ void AUGCGamePlayerController::OnLeftMouseButtonUp()
 
 void AUGCGamePlayerController::OnDeleteButtonUp()
 {
-	if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
 	{
-		MyPlayerPawn->ServerDeselectAll(true);
+		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		{
+			TArray<AElementBase*> Elems = MyPlayerPawn->GetSelectedElement();
+			for (auto* Tmp : Elems)
+			{
+				MyGameState->SubSpawnData(Tmp->GetElementID());
+			}
+			MyPlayerPawn->ServerDeselectAll(true);
+		}
 	}
 }
 

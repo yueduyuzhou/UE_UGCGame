@@ -84,7 +84,7 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 		{
 			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("[class AFPSGameGameMode]: Repeat Call SpawnPlayerCharacters"));
+					UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]: Repeat Call SpawnPlayerCharacters"));
 					SpawnPlayerCharacters();
 				});
 		}
@@ -275,7 +275,7 @@ void AFPSGameGameMode::BeginPlay()
 		{
 			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 			{
-				UGameMapManage::Get()->LoadMapDataAndSpawn(MyGameInstance->LoadMapName, GetWorld());
+				UGameMapManage::Get()->LoadMapDataAndSpawnForFPS(MyGameInstance->LoadMapName, GetWorld());
 			}
 		});
 

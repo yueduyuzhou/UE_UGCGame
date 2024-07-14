@@ -14,16 +14,14 @@ class UGCGAME_API AEffectElement : public AElementBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class USceneComponent* RootScene;
+
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* VisiableMesh;
+	class UStaticMeshComponent* VisiableMesh;
 
 public:
 	AEffectElement();
 
-	UFUNCTION(NetMulticast, reliable)
-	void SetNotVisibilityMulticast();
-
-public:
-	UFUNCTION(NetMulticast, reliable)
-		void MulticastDestroy();
+	void SetElementMeshVisibility(bool InbIsShow);
 };

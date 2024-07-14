@@ -7,6 +7,7 @@
 #include "UGCGamePawn.generated.h"
 
 class UUI_DetailsPanel;
+class AElementBase;
 
 /**
  * 
@@ -55,6 +56,7 @@ public:
 
 public:
 	void SetDetailsPanel(UUI_DetailsPanel* InDetailsPanel);
+	TArray<AElementBase*> GetSelectedElement();
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)

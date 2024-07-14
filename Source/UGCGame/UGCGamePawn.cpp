@@ -162,3 +162,18 @@ void AUGCGamePawn::SetDetailsPanel(UUI_DetailsPanel* InDetailsPanel)
 {
 	DetailsPanel = InDetailsPanel;
 }
+
+TArray<AElementBase*> AUGCGamePawn::GetSelectedElement()
+{
+	TArray<AElementBase*> Res;
+	TArray<class USceneComponent*> Comps = GetSelectedComponents();
+	for (auto* Tmp : Comps)
+	{
+		if (AElementBase * Element = Cast<AElementBase>(Tmp))
+		{
+			Res.Add(Element);
+		}
+	}
+
+	return Res;
+}

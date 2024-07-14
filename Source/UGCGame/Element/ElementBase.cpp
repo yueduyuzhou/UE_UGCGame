@@ -17,6 +17,7 @@ AElementBase::AElementBase()
 	, ScaleUI(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
+	SetReplicates(true);
 }
 
 void AElementBase::BeginPlay()

@@ -70,9 +70,9 @@ public:
 	UClass* GetCharacterClass(const ETeamType& InType);
 
 	void AddSpawnCount();
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE int32 GetSpawnCount() { return PlayerSpawnCount; }
-
 	
 protected:
 	virtual void BeginPlay() override;

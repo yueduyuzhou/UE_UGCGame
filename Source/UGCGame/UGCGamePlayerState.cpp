@@ -111,20 +111,32 @@ void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InE
 	{
 		if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(InElementID))
 		{
-			if (AElementBase * MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
+			const int32 SpawnCount = MyGameState->GetSpawnCountByID(InElementID);
+			if (ElementAttr->SpanwLimit == -1 || SpawnCount < ElementAttr->SpanwLimit)
 			{
-				//获取控制权
-				ControlElement = MewElement;
-				ControlElement->TakeControl(InPlayerID);
-
-				//待改进
-				ControlElement->SetElementID(InElementID);
-
-				//TODO:分情况处理
-				if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
+				if (AElementBase * MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
 				{
-					Element->SetElementMesh(ElementAttr->ElementMeth);
+					//获取控制权
+					ControlElement = MewElement;
+					ControlElement->TakeControl(InPlayerID);
+
+					//待改进
+					ControlElement->SetElementID(InElementID);
+
+					//TODO:分情况处理
+					if (ABuildElement * Element = Cast<ABuildElement>(ControlElement))
+					{
+						Element->SetElementMesh(ElementAttr->ElementMeth);
+					}
+
+					//记录生成数量
+					MyGameState->AddSpawnData(InElementID);
 				}
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, FString::Printf(TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit));
+				UE_LOG(LogTemp, Error, TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit);
 			}
 		}
 	}

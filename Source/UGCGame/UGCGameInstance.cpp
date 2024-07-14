@@ -4,7 +4,8 @@
 #include "UGCGameInstance.h"
 
 UUGCGameInstance::UUGCGameInstance()
-	:LoadMapName(TEXT("asd"))
+	:bIsLoadMapForUGC(false)
+	,LoadMapName(TEXT("asd"))
 {
 
 }

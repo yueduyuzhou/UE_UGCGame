@@ -55,16 +55,10 @@ void UGameMapManage::OpenMapForUGC(UWorld* InWorld, FString InOpenMapName)
 void UGameMapManage::CreateGameMap(UWorld* InWorld)
 {
 	UGameplayStatics::OpenLevel(InWorld, TEXT("/Game/Maps/TemplateMap"), true, TEXT("listen"));
-	
-	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
-	//InWorld->ServerTravel(TEXT("/Game/Maps/TemplateMap"));
 }
 
 void UGameMapManage::QuitGameMap(UWorld* InWorld)
 {
-	//TODO
-	//PIE运行游戏时调用servertravel会没有效果，在打包后的游戏中运行一切正常
-	//InWorld->ServerTravel(TEXT("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap"));
 	UGameplayStatics::OpenLevel(InWorld, FName(TEXT("/Game/Maps/Lobby")));
 }
 
@@ -99,6 +93,8 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 								Elem->GetActorScale3D(),
 								Elem->GetTeamType(),
 								Elem->GetElementMeshColor()));
+						
+						UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : SaveGameMap, ElementID = %d"), Elem->GetElementID());
 					}
 				}
 			}
@@ -108,13 +104,22 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 	}
 }
 
-void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld)
+void UGameMapManage::LoadMapDataAndSpawnForFPS(const FString& InSlotName, UWorld* InWorld)
+{
+	LoadMapDataAndSpawn(InSlotName, InWorld, false);
+}
+
+void UGameMapManage::LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld)
+{
+	LoadMapDataAndSpawn(InSlotName, InWorld, true);
+}
+
+void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh)
 {
 	if (InWorld)
 	{
 		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
 		{
-			//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage] : Load Map Data And Spawn"));
 			//从文件中加载属性
 			if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
 			{
@@ -130,6 +135,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 							if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, Tmp.Location, Tmp.Rotation))
 							{
 								//设置保存的属性
+								MewElement->SetElementID(Tmp.ElementID);
 								MewElement->SetActorScale3D(Tmp.Scale);
 								MewElement->SetTeamType(Tmp.TeamType);
 
@@ -137,13 +143,20 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 								if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
 								{
 									BElement->SetElementMesh(ElementAttr->ElementMeth);
-									BElement->SetElementMeshColor(Tmp.Color);
+									BElement->SetMeshColorMulticast(Tmp.Color);
 								}
 								else if (AEffectElement * EElement = Cast<AEffectElement>(MewElement))
 								{
-									EElement->SetNotVisibilityMulticast();
+									EElement->SetElementMeshVisibility(InbShowEffectMesh);
 								}
+
+								//记录生成数量
+								MyGameState->AddSpawnData(Tmp.ElementID);
 							}
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : GetElementAttributeTemplate fail, ElementID = %d"), Tmp.ElementID);
 						}
 					}
 				}

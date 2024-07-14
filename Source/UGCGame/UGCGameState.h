@@ -32,6 +32,11 @@ public:
 	const TArray<FSlotTable*>* GetSlotTablesTemplate();
 	const TArray<FElementAttribute*>* GetElementAttributesTemplate();
 
+	/*Element Spawn Count*/
+	void AddSpawnData(const int32& InID);
+	bool SubSpawnData(const int32& InID);
+	const int32& GetSpawnCountByID(const int32& InID);
+
 protected:
 	UPROPERTY()
 		UDataTable* SlotTablePtr;
@@ -42,4 +47,7 @@ protected:
 private:
 	TArray<FSlotTable*> CacheSlotTables;
 	TArray<FElementAttribute*> CacheElementAttributes;
+
+	/*key:ElementID, value:当前生成数*/
+	TMap<int32, int32> SpanwCounts;
 };

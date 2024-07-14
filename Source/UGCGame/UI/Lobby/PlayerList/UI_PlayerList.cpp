@@ -229,6 +229,8 @@ void UUI_PlayerList::StartGameButtonClick()
 					{
 						FString Command = FString::Printf(TEXT("ServerTravel GameTemplateMap"));
 						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), *Command);
+
+						//DestroySessionBP();
 					});
 			}
 		}
