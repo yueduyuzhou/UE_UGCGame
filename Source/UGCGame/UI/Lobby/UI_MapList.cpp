@@ -44,13 +44,10 @@ void UUI_MapList::OnCreateMapClick()
 	FString MapName = CreateMapName->GetText().ToString();
 	if (!MapName.IsEmpty())
 	{
-		//±£´æ
-		if (AUGCGamePlayerState* MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+		if (UUGCGameInstance * GameInstance = GetWorld()->GetGameInstance<UUGCGameInstance>())
 		{
-			if (MyPlayerState->SaveMapName(MapName))
-			{
-				UGameMapManage::Get()->CreateGameMap(GetWorld());
-			}
+			GameInstance->LoadMapName = MapName;
+			UGameMapManage::Get()->CreateGameMap(GetWorld());
 		}
 	}
 	else

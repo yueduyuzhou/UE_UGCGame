@@ -44,6 +44,7 @@ public:
 	void TryReturnElementControl();
 
 	void SpawnElement(const int32& InPlayerID, const int32& InElementID);
+	void SpawnElementNotControl(const int32& InPlayerID, const int32& InElementID);
 
 	FVector SnapToGrid(const FVector& InOldPosition, const float& InGridSize);
 	FRotator SnapToGridRotation(const FRotator& InOldRotation, const float& InAngleSize);

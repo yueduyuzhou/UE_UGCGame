@@ -114,10 +114,10 @@ void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InE
 			const int32 SpawnCount = MyGameState->GetSpawnCountByID(InElementID);
 			if (ElementAttr->SpanwLimit == -1 || SpawnCount < ElementAttr->SpanwLimit)
 			{
-				if (AElementBase * MewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
+				if (AElementBase * NewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
 				{
 					//获取控制权
-					ControlElement = MewElement;
+					ControlElement = NewElement;
 					ControlElement->TakeControl(InPlayerID);
 
 					//待改进
@@ -135,7 +135,43 @@ void AUGCGamePlayerState::SpawnElement(const int32& InPlayerID, const int32& InE
 			}
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, FString::Printf(TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit));
+				//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, FString::Printf(TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit));
+				UE_LOG(LogTemp, Error, TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit);
+			}
+		}
+	}
+}
+
+void AUGCGamePlayerState::SpawnElementNotControl(const int32& InPlayerID, const int32& InElementID)
+{
+	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
+	{
+		if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(InElementID))
+		{
+			const int32 SpawnCount = MyGameState->GetSpawnCountByID(InElementID);
+			if (ElementAttr->SpanwLimit == -1 || SpawnCount < ElementAttr->SpanwLimit)
+			{
+				if (AElementBase * NewElement = GetWorld()->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
+				{
+					//待改进
+					NewElement->SetElementID(InElementID);
+
+					//TODO:分情况处理
+					if (ABuildElement * BElement = Cast<ABuildElement>(NewElement))
+					{
+						BElement->SetElementMesh(ElementAttr->ElementMeth);
+					}
+
+					//设置初始位置
+					NewElement->SetActorLocation(FVector::ZeroVector);
+
+					//记录生成数量
+					MyGameState->AddSpawnData(InElementID);
+				}
+			}
+			else
+			{
+				//GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, FString::Printf(TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit));
 				UE_LOG(LogTemp, Error, TEXT("[class AUGCGamePlayerState]: The number of elements with ElementID == %d has reached the Spawnlimit == %d"), InElementID, ElementAttr->SpanwLimit);
 			}
 		}

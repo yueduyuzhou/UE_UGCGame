@@ -29,7 +29,7 @@ FReply UUI_InventorySlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, c
 void UUI_InventorySlot::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	//通知生成Element
-	if (AUGCGameState * MyGameState = GetGameState())
+	//if (AUGCGameState * MyGameState = GetGameState())
 	{
 		if (AUGCGamePlayerState * MyPlayerState = GetPlayerState())
 		{

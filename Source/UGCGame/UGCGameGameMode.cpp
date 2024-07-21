@@ -12,6 +12,7 @@
 #include "ThreadManage.h"
 #include "UGCGameInstance.h"
 #include "System/GameMapManage.h"
+#include "Common/MethodUnit.h"
 
 AUGCGameGameMode::AUGCGameGameMode()
 {
@@ -44,6 +45,12 @@ void AUGCGameGameMode::BeginPlay()
 				if (MyGameInstance->bIsLoadMapForUGC)
 				{
 					UGameMapManage::Get()->LoadMapDataAndSpawnForUGC(MyGameInstance->LoadMapName, GetWorld());
+				}
+
+				if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+				{
+					//TODO:读表获取初始化时应该生成的
+					MyPlayerState->SpawnElementNotControl(MyPlayerState->TPlayerID, 77773);
 				}
 			}
 		});

@@ -447,7 +447,7 @@ void AFPSGameCharacterBase::ServerCallClientEquipPrimaryWeapon_Implementation(co
 			if (WeaponPrimaryClient)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
+				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Client Bind Weapon To Arm, Current SocketName = %s"), *SocketName.ToString()));
 
 				WeaponPrimaryClient->K2_AttachToComponent(ArmMesh, SocketName, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
