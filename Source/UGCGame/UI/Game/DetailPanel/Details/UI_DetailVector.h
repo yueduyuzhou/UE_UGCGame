@@ -34,7 +34,8 @@ class UGCGAME_API UUI_DetailVector : public UUI_DetailsBase
 		UUI_Item* Z;
 
 protected:
-	virtual void NativeConstruct();
+	virtual void NativeConstruct() override;
+	//virtual void NativeDestruct() override;
 
 public:
 	virtual void BindElementProperty(const EEditDetailType& InType, AElementBase* InElement) override;

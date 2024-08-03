@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UGCGame/Common/RenderingUtils.h"
 #include "UGCGamePlayerController.generated.h"
 
 /**
@@ -17,6 +18,9 @@ class UGCGAME_API AUGCGamePlayerController : public APlayerController
 	AUGCGamePlayerController();
 
 	virtual void SetupInputComponent() override;
+
+protected:
+	virtual void BeginPlay() override;
 
 private:
 	void OnRightMouseButtonDown();
@@ -43,11 +47,24 @@ private:
 public:
 	void GetMouseLocationAndDrection(FVector& OutWorldPosition, FVector& OutWorldDirection);
 
-	FORCEINLINE bool IsEditing() { return bIsEditing; }
-
 	void EnableUIOnlyInput(UUserWidget* InWidgetToFocus);
 	void EnableGameAndUIInput();
 
+	FORCEINLINE bool IsEditing() { return bIsEditing; }
+
+	FORCEINLINE bool IsEditingDetail() { return bIsEditingDetail; }
+	void SetEditingDetail(bool inbIsEditingDetail);
+
+	/***********************************************************************
+	*	Capture
+	***********************************************************************/
+	void CaptureLobbyTexture(const FString& InMapName);
+
 private:
 	bool bIsEditing;
+	bool bIsEditingDetail;
+
+	float AngleRotationRate;
+
+	FMinimapCapture LobbyTextureCapture;
 };

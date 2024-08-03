@@ -96,11 +96,6 @@ void AElementBase::ReturnControl()
 	bControlled = false;
 }
 
-void AElementBase::DestoryElement()
-{
-	Destroy();
-}
-
 void AElementBase::UpdateVectorUI()
 {
 	if (LocationUI)

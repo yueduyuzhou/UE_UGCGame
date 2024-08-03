@@ -36,7 +36,6 @@ public:
 	****************/
 	bool TakeControl(const int32& InControlID);
 	void ReturnControl();
-	void DestoryElement();
 
 	void UpdateVectorUI();
 	void DestoryVectorUI();

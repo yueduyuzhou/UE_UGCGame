@@ -12,6 +12,9 @@ class AElementBase;
 /**
  * 
  */
+
+DECLARE_MULTICAST_DELEGATE(FCommitChangeMulticastDelegate)
+
 UCLASS()
 class UGCGAME_API AUGCGamePawn : public ATransformerPawn
 {
@@ -67,6 +70,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float ZoomSpeed;
+
+	FCommitChangeMulticastDelegate CommitChangeMulticastDelegate;
 
 private:
 	bool bMulitSelect;

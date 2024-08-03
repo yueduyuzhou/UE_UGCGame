@@ -57,13 +57,16 @@ protected:
 
 private:
 	UFUNCTION(BlueprintCallable)
+	void OnTextChange(const FText& InText);
+
+	UFUNCTION(BlueprintCallable)
 	void OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod);
 
 	UFUNCTION(BlueprintCallable)
 	void OnCheckedStateChange(bool InbIsChecked);
 
 	void BindDelegate();
-
+	void DebindDelegate();
 private:
 	/*为顶部面板时为true*/
 	bool bIsSnappingValue;

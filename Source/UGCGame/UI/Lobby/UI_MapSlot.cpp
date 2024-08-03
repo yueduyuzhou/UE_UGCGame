@@ -2,14 +2,35 @@
 
 
 #include "UI_MapSlot.h"
+#include "UI_MapList.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "../../System/GameMapManage.h"
 #include "../../UGCGameInstance.h"
+#include "UI_MapList.h"
 
 void UUI_MapSlot::NativeConstruct()
 {
 	Super::NativeConstruct();
+}
+
+void UUI_MapSlot::NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	Super::NativeOnMouseEnter(MyGeometry, MouseEvent);
+
+	if (UPanelWidget * Parent = GetParent())
+	{
+		if (MapList)
+		{
+			//Ë¢ÐÂ±³¾°Í¼Æ¬
+			MapList->UpdateBackGround(MapName->GetText().ToString());
+		}
+	}
+}
+
+void UUI_MapSlot::SetMapList(UUI_MapList* InMapList)
+{
+	MapList = InMapList;
 }
 
 void UUI_MapSlot::OnClickedWidget()

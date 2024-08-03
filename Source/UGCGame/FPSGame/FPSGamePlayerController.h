@@ -108,7 +108,7 @@ private:
 	ETeamType TeamType;
 	int32 PlayerID;
 
-	FMinimapCapture MapCapture;
+	FMinimapCapture FPSMiniMapCapture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		float ReSpawnTime;

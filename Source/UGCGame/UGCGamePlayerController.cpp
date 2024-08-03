@@ -15,6 +15,8 @@
 
 AUGCGamePlayerController::AUGCGamePlayerController()
 	:bIsEditing(true)
+	, bIsEditingDetail(false)
+	, AngleRotationRate(1.0f)
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
@@ -52,6 +54,12 @@ void AUGCGamePlayerController::EnableGameAndUIInput()
 	SetInputMode(InputMode);
 }
 
+void AUGCGamePlayerController::SetEditingDetail(bool inbIsEditingDetail)
+{
+	bIsEditingDetail = inbIsEditingDetail;
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("[class AUGCGamePlayerController]: SetEditingDetail, bIsEditingDetail = %d"), bIsEditingDetail));
+}
+
 void AUGCGamePlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -79,6 +87,23 @@ void AUGCGamePlayerController::SetupInputComponent()
 	InputComponent->BindAxis("CameraView", this, &AUGCGamePlayerController::MouseWheelCameraView);
 }
 
+void AUGCGamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (UWorld * CurWorld = GetWorld())
+	{
+		if (CurWorld->WorldType == EWorldType::Game)			//Standalone
+		{
+			AngleRotationRate = 8.f;
+		}
+		else if (CurWorld->WorldType == EWorldType::PIE)		//New Editor Window
+		{
+			AngleRotationRate = 1.f;
+		}
+	}
+}
+
 void AUGCGamePlayerController::OnRightMouseButtonDown()
 {
 	bIsEditing = false;
@@ -90,7 +115,7 @@ void AUGCGamePlayerController::OnRightMouseButtonDown()
 		MyPlayerSatte->TryGetElementControlOnServer(TraceStart, Direction);
 	}*/
 
-	
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString(TEXT("[class AUGCGamePlayerController]: OnRightMouseButtonDown")));
 }
 
 void AUGCGamePlayerController::OnRightMouseButtonUp()
@@ -122,16 +147,19 @@ void AUGCGamePlayerController::OnLeftMouseButtonUp()
 
 void AUGCGamePlayerController::OnDeleteButtonUp()
 {
-	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
+	if (!bIsEditingDetail)
 	{
-		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
+		if (AUGCGameState * MyGameState = MethodUnit::GetGameState(GetWorld()))
 		{
-			TArray<AElementBase*> Elems = MyPlayerPawn->GetSelectedElement();
-			for (auto* Tmp : Elems)
+			if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
 			{
-				MyGameState->SubSpawnData(Tmp->GetElementID());
+				TArray<AElementBase*> Elems = MyPlayerPawn->GetSelectedElement();
+				for (auto* Tmp : Elems)
+				{
+					MyGameState->SubSpawnData(Tmp->GetElementID());
+				}
+				MyPlayerPawn->ServerDeselectAll(true);
 			}
-			MyPlayerPawn->ServerDeselectAll(true);
 		}
 	}
 }
@@ -175,7 +203,7 @@ void AUGCGamePlayerController::TurnAtRate(float Rate)
 	{
 		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
 		{
-			MyPlayerPawn->TurnAtRate(Rate);
+			MyPlayerPawn->TurnAtRate(Rate * AngleRotationRate);
 		}
 	}
 }
@@ -186,7 +214,7 @@ void AUGCGamePlayerController::LookUpAtRate(float Rate)
 	{
 		if (AUGCGamePawn * MyPlayerPawn = GetPawn<AUGCGamePawn>())
 		{
-			MyPlayerPawn->LookUpAtRate(Rate);
+			MyPlayerPawn->LookUpAtRate(Rate * AngleRotationRate);
 		}
 	}
 }
@@ -246,4 +274,11 @@ void AUGCGamePlayerController::MouseWheelCameraView(float Value)
 	{
 		MyPlayerPawn->MouseWheelCameraView(Value);
 	}
+}
+
+void AUGCGamePlayerController::CaptureLobbyTexture(const FString& InMapName)
+{
+	LobbyTextureCapture.Initialize(GetWorld(), FVector(-1570.f, -1445.f, 100.f), FRotator(0.f, 45.f, 0.f), ECameraProjectionMode::Type::Perspective, FVector2D(2560.f, 1600.f));
+	FString SavePath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("LobbyTexture"), InMapName);
+	LobbyTextureCapture.CaptureMiniMapImage(SavePath);
 }

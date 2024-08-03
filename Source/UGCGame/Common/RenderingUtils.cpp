@@ -57,6 +57,20 @@ void FMinimapCapture::Initialize(UWorld* InWorld, FVector InLocation, FRotator I
 	}
 }
 
+void FMinimapCapture::Initialize(UWorld* InWorld, FVector InLocation, FRotator InRotation, ECameraProjectionMode::Type InProjectionType, FVector2D InTextureSize)
+{
+	ASceneCapture2D* SceneCaptureActor = InWorld->SpawnActor<ASceneCapture2D>(InLocation, InRotation);
+	if (SceneCaptureActor)
+	{
+		SceneCapture2DComp = SceneCaptureActor->GetCaptureComponent2D();
+		SceneCapture2DComp->ProjectionType = InProjectionType;
+
+		SceneCapture2DComp->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+
+		CreateRenderTarget(InTextureSize);
+	}
+}
+
 void FMinimapCapture::CreateRenderTarget(FVector2D InTextureSize)
 {
 	RenderTarget = NewObject<UTextureRenderTarget2D>();

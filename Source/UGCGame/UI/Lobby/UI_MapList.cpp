@@ -5,9 +5,11 @@
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/EditableText.h"
+#include "Components/Border.h"
 #include "../../Common/MethodUnit.h"
 #include "../../System/GameMapManage.h"
 #include "../../UGCGameInstance.h"
+#include "../../Lobby/LobbyPlayerController.h"
 
 void UUI_MapList::NativeConstruct()
 {
@@ -32,10 +34,22 @@ void UUI_MapList::UpdateMapList()
 			{
 				if (UPanelSlot * PanelSlot = MapList->AddChild(Cast<UWidget>(SlotWidget)))
 				{
+					SlotWidget->SetMapList(this);
 					SlotWidget->MapName->SetText(FText::FromString(Tmp));
 				}
 			}
 		}
+	}
+}
+
+void UUI_MapList::UpdateBackGround(const FString& InMapName)
+{
+	FString SavePath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("LobbyTexture"), InMapName);
+	if (UTexture2D * BGTexture = FMinimapCapture::LoadBMPImage(SavePath + FString(TEXT("00000.bmp"))))
+	{
+		FSlateBrush Brush;
+		Brush.SetResourceObject(BGTexture);
+		BackGround->SetBrush(Brush);
 	}
 }
 

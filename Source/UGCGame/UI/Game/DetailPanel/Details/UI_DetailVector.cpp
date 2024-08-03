@@ -11,6 +11,7 @@ void UUI_DetailVector::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	
 }
 
 void UUI_DetailVector::BindElementProperty(const EEditDetailType& InType, AElementBase* InElement)

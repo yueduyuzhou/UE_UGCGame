@@ -10,6 +10,7 @@
 class UVerticalBox;
 class UButton;
 class UEditableText;
+class UBorder;
 
 /**
  * 
@@ -28,6 +29,9 @@ class UGCGAME_API UUI_MapList : public UUI_Base
 	UPROPERTY(meta = (BindWidget))
 		UEditableText* CreateMapName;
 
+	UPROPERTY(meta = (BindWidget))
+		UBorder* BackGround;
+
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUI_MapSlot> MapSlotClass;
 
@@ -37,10 +41,14 @@ protected:
 private:
 	void UpdateMapList();
 
+public:
+	void UpdateBackGround(const FString& InMapName);
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void OnCreateMapClick();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-		void CreateSessionBP(int32 InMax, bool InUseLAN);
+	void CreateSessionBP(int32 InMax, bool InUseLAN);
+
 };

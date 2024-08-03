@@ -51,6 +51,15 @@ namespace MethodUnit
 		return nullptr;
 	}
 
+	AUGCGamePlayerController* GetPlayerController(UWorld* InWorld)
+	{
+		if (InWorld)
+		{
+			return Cast<AUGCGamePlayerController>(InWorld->GetFirstPlayerController());
+		}
+		return nullptr;
+	}
+
 	const FString EditDetailTypeToString(const EEditDetailType& InType)
 	{
 		switch (InType)

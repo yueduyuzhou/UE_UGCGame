@@ -17,6 +17,7 @@ namespace MethodUnit
 	AUGCGamePawn* GetUGCPlayerPawn(UWorld* InWorld);
 
 	AUGCGamePlayerController* GetPlayerControllerByPlayerID(UWorld* InWorld, int32& InPlayerID);
+	AUGCGamePlayerController* GetPlayerController(UWorld* InWorld);
 
 	const FString EditDetailTypeToString(const EEditDetailType& InType);
 

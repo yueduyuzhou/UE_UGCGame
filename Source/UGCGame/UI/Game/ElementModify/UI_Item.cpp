@@ -3,12 +3,12 @@
 
 #include "UI_Item.h"
 #include "Components/CheckBox.h"
-#include "../../../UGCGamePawn.h"
 #include "Components/EditableText.h"
+#include "../../../UGCGamePawn.h"
 #include "../../../Common/MethodUnit.h"
+#include "../../../Common/UGCGameMacro.h"
 #include "../DetailPanel/Details/UI_DetailVector.h"
 #include "UGCGame/Element/ElementBase.h"
-#include "../../../Common/UGCGameMacro.h"
 #include "Delegates/IDelegateInstance.h"
 
 UUI_Item::UUI_Item()
@@ -132,7 +132,9 @@ void UUI_Item::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	InputText->OnTextChanged.AddDynamic(this, &UUI_Item::OnTextChange);
 	InputText->OnTextCommitted.AddDynamic(this, &UUI_Item::OnTextCommit);
+
 	UsedCheckBox->OnCheckStateChanged.AddDynamic(this, &UUI_Item::OnCheckedStateChange);
 
 	BindDelegate();
@@ -142,19 +144,25 @@ void UUI_Item::NativeDestruct()
 {
 	Super::NativeDestruct();
 
-	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	DebindDelegate();
+}
+
+void UUI_Item::OnTextChange(const FText& InText)
+{
+	//更新Controller编辑状态
+	if (AUGCGamePlayerController* UGCPC = MethodUnit::GetPlayerController(GetWorld()))
 	{
-		MyPlayerState->ChangeModifyTypeDelegate.Remove(ChangeModifyTypeDelegateHandle);
+		UGCPC->SetEditingDetail(true);
 	}
 }
 
 void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMethod)
 {
-	if (!InText.IsEmpty())
+	if (InCommitMethod == ETextCommit::OnEnter || InCommitMethod == ETextCommit::OnUserMovedFocus)
 	{
-		if (bIsSnappingValue)
+		if (!InText.IsEmpty() && InText.ToString().IsNumeric())
 		{
-			if (InText.ToString().IsNumeric())
+			if (bIsSnappingValue)
 			{
 				//修改对齐参数
 				if (AUGCGamePawn * MyPawn = MethodUnit::GetUGCPlayerPawn(GetWorld()))
@@ -162,30 +170,24 @@ void UUI_Item::OnTextCommit(const FText& InText, ETextCommit::Type InCommitMetho
 					MyPawn->SetSnappingValue(ModifyType, FCString::Atof(*InText.ToString()));
 				}
 			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit Set SnappingValue, Illegal Input"));
-			}
-		}
-		else
-		{
-			//Parent为DetailVector时，文本更新时调用
-			if (ParentDetailVector)
+			else if (ParentDetailVector)	//Parent为DetailVector时，文本更新时调用
 			{
 				if (InText.ToString().IsNumeric())
 				{
 					ParentDetailVector->UpdateVector(Dime, FCString::Atof(*InText.ToString()));
 				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit Detail Vector, Illegal Input"));
-				}
 			}
 		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnTextCommit InText Is Null"));
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[class UUI_Item]: OnCommitChange InText Is Null Or Illegal Input"));
+		}
+
+		//更新Controller编辑状态
+		if (AUGCGamePlayerController * UGCPC = MethodUnit::GetPlayerController(GetWorld()))
+		{
+			UGCPC->SetEditingDetail(false);
+		}
 	}
 }
 
@@ -213,6 +215,7 @@ void UUI_Item::OnCheckedStateChange(bool InbIsChecked)
 
 void UUI_Item::BindDelegate()
 {
+	//绑定
 	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 	{
 		ChangeModifyTypeDelegateHandle = MyPlayerState->ChangeModifyTypeDelegate.AddLambda([&](const ETransformationType & InModifyType)
@@ -226,5 +229,13 @@ void UUI_Item::BindDelegate()
 					SetUsedCheckState(ECheckBoxState::Checked);
 				}
 			});
+	}
+}
+
+void UUI_Item::DebindDelegate()
+{
+	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	{
+		MyPlayerState->ChangeModifyTypeDelegate.Remove(ChangeModifyTypeDelegateHandle);
 	}
 }

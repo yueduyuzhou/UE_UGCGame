@@ -8,6 +8,7 @@
 
 class UButton;
 class UTextBlock;
+class UUI_MapList;
 
 /**
  * 
@@ -25,4 +26,13 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
+
+	// 悬停事件处理函数
+	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
+public:
+	void SetMapList(UUI_MapList* InMapList);
+
+private:
+	UUI_MapList* MapList = nullptr;
 };

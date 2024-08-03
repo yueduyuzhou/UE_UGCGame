@@ -15,11 +15,19 @@ void UUI_Settings::OnClickedWidget()
 		{
 			if (MyPlayerState->GetLocalRole() == ROLE_Authority)
 			{
-				//注册到地图列表并保存地图数据
+				//注册到地图列表
 				if (!MyPlayerState->SaveMapName(GameInstance->LoadMapName))
 				{
 					UE_LOG(LogTemp, Error, TEXT("[class UUI_Settings] : OnClickedWidget, The Map Name Already Exists"));
 				}
+
+				//截图Lobby用
+				if (AUGCGamePlayerController * UGCPC = MethodUnit::GetPlayerController(GetWorld()))
+				{
+					UGCPC->CaptureLobbyTexture(GameInstance->LoadMapName);
+				}
+
+				//保存地图数据
 				UGameMapManage::Get()->QuitAndSaveMap(GetWorld());
 			}
 		}

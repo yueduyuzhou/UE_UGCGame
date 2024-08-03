@@ -176,14 +176,15 @@ void AFPSGamePlayerController::ServerCallClientUpdateMiniMap_Implementation(cons
 	if (MiniMapUI)
 	{
 		//捕捉小地图图片
-		MapCapture.Initialize(GetWorld());
+		FPSMiniMapCapture.Initialize(GetWorld());
 		FString SavePath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MiniMapScreenshot"), InMapName);
-		MapCapture.CaptureMiniMapImage(SavePath);
+		FPSMiniMapCapture.CaptureMiniMapImage(SavePath);
 
-		if (UTexture2D * MiniMapTexture = MapCapture.LoadBMPImage(SavePath + FString(TEXT("00000.bmp"))))
+		if (UTexture2D * MiniMapTexture = FPSMiniMapCapture.LoadBMPImage(SavePath + FString(TEXT("00000.bmp"))))
 		{
 			//更新MiniMapUI
 			MiniMapUI->UpdateMiniMapImage(MiniMapTexture);
+
 			//延时删除图片文件 会崩溃
 			/*GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
 				{
@@ -360,3 +361,4 @@ bool AFPSGamePlayerController::IsAuthority()
 {
 	return GetLocalRole() == ROLE_Authority;
 }
+

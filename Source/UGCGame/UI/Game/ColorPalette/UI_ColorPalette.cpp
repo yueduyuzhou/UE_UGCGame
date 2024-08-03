@@ -100,7 +100,7 @@ FReply UUI_ColorPalette::NativeOnMouseMove(const FGeometry& InGeometry, const FP
 	{
 		FVector2D LocalMousePosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
 
-		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%f : %f"), LocalMousePosition.X, LocalMousePosition.Y));
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%f : %f"), LocalMousePosition.X, LocalMousePosition.Y));
 
 		//TODO:BUG
 		if (LocalMousePosition.X >= 0.f && LocalMousePosition.X < 275.f &&
