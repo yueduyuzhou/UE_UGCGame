@@ -18,6 +18,7 @@ AFPSGamePlayerController::AFPSGamePlayerController()
 	, TeamType(ETeamType::TEAM_NONE)
 	, PlayerID(INDEX_NONE)
 	, ReSpawnTime(3.f)
+	, AngleRotationRate(1.f)
 {
 
 }
@@ -45,6 +46,23 @@ void AFPSGamePlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &AFPSGamePlayerController::MoveRight);
 	InputComponent->BindAxis("Turn", this, &AFPSGamePlayerController::TurnAtRate);
 	InputComponent->BindAxis("LookUp", this, &AFPSGamePlayerController::LookUpAtRate);
+}
+
+void AFPSGamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (UWorld * CurWorld = GetWorld())
+	{
+		if (CurWorld->WorldType == EWorldType::Game)			//Standalone
+		{
+			AngleRotationRate = 8.f;
+		}
+		else if (CurWorld->WorldType == EWorldType::PIE)		//New Editor Window
+		{
+			AngleRotationRate = 1.f;
+		}
+	}
 }
 
 void AFPSGamePlayerController::OnLeftMouseButtonDown()
@@ -147,7 +165,7 @@ void AFPSGamePlayerController::TurnAtRate(float Rate)
 {
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
-		MyCharacter->TurnAtRate(Rate);
+		MyCharacter->TurnAtRate(Rate * AngleRotationRate);
 	}
 }
 
@@ -155,7 +173,7 @@ void AFPSGamePlayerController::LookUpAtRate(float Rate)
 {
 	if (AFPSGameCharacterBase * MyCharacter = Cast<AFPSGameCharacterBase>(GetCharacter()))
 	{
-		MyCharacter->LookUpAtRate(Rate);
+		MyCharacter->LookUpAtRate(Rate * AngleRotationRate);
 	}
 }
 

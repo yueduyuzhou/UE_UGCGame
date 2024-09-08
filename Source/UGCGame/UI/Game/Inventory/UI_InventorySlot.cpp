@@ -7,6 +7,12 @@
 #include "UGCGame/UGCGamePlayerState.h"
 #include "Components/Image.h"
 #include "Components/Textblock.h"
+#include "UGCGame/Common/ServerManage/ServerManage.h"
+#include "UGCGame/Common/ServerManage/Protocols/UGCGameProtocols.h"
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",off) 
+#endif
 
 FReply UUI_InventorySlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -22,6 +28,7 @@ FReply UUI_InventorySlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, c
 			return Reply;
 		}
 	}
+
 
 	return FReply::Handled();
 }
@@ -64,3 +71,6 @@ void UUI_InventorySlot::UpdateSlot()
 }
 
 
+#if PLATFORM_WINDOWS
+#pragma optimize("",on) 
+#endif

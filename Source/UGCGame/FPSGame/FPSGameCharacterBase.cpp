@@ -19,6 +19,10 @@
 #include "FPSGameGameState.h"
 #include "ThreadManage.h"
 
+#if PLATFORM_WINDOWS
+#pragma optimize("",off) 
+#endif
+
 AFPSGameCharacterBase::AFPSGameCharacterBase()
 	:BaseTurnRate(45.f)
 	, BaseLookUpRate(45.f)
@@ -594,11 +598,12 @@ void AFPSGameCharacterBase::ServerCallClientUpdateAmmo_Implementation(const int3
 	
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (AFPSGamePlayerController * TmpFPSPlayerController = GetFPSPlayerControllerOnServer())
+		FPSPlayerController = GetFPSPlayerControllerOnServer();
+		if (FPSPlayerController)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo);
 			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : Authority CurrentClipAmmo = %d, CurrentAmmo = %d"), InCurrentClipAmmo, InCurrentAmmo));
-			TmpFPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
+			FPSPlayerController->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);
 		}
 		else
 		{
@@ -1263,6 +1268,7 @@ void AFPSGameCharacterBase::SniperWeaponFire()
 
 			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
 			ServerCallClientFireWeapon();
+			ServerCallClientWeaponRecoil();
 		}
 	}
 }
@@ -1361,6 +1367,7 @@ void AFPSGameCharacterBase::SecondaryWeaponFire()
 
 			//II.客户端：枪体播放动画、手臂播放动画、播放射击音效、屏幕抖动、后坐力、枪口火花
 			ServerCallClientFireWeapon();
+			ServerCallClientWeaponRecoil();
 		}
 	}
 }
@@ -1643,3 +1650,7 @@ AFPSGamePlayerController* AFPSGameCharacterBase::GetFPSPlayerControllerOnServer(
 	}
 	return nullptr;
 }
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",on) 
+#endif

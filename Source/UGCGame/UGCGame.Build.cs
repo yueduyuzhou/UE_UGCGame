@@ -15,6 +15,7 @@ public class UGCGame : ModuleRules
             "InputCore",
             "HeadMountedDisplay",
             "SimpleThread",
+            "SimpleNetChannel",
             "RuntimeTransformer",
             "UMG",
             "Slate",
@@ -25,5 +26,7 @@ public class UGCGame : ModuleRules
         //PrivateDependencyModuleNames.AddRange(new string[] {
         //    "Sockets",
         //    "Networking"});
+
+        //"UGCGameCommon",
     }
 }

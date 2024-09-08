@@ -13,7 +13,7 @@ namespace MethodUnit
 
 	AUGCGamePlayerState* GetPlayerState(UWorld* InWorld)
 	{
-		if (InWorld)
+		if (InWorld && InWorld->GetFirstPlayerController())
 		{
 			return InWorld->GetFirstPlayerController()->GetPlayerState<AUGCGamePlayerState>();
 		}

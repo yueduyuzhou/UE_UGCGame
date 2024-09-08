@@ -13,8 +13,15 @@
 #include "UGCGameInstance.h"
 #include "System/GameMapManage.h"
 #include "Common/MethodUnit.h"
+#include "UGCGame/Common/ServerManage/ServerManage.h"
+#include "Common/ServerManage/Protocols/UGCGameProtocols.h"
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",off) 
+#endif
 
 AUGCGameGameMode::AUGCGameGameMode()
+	:Time(0.f)
 {
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/BP/BP_UGCGamePawn"));
 	if (PlayerPawnBPClass.Class != NULL)
@@ -31,6 +38,9 @@ AUGCGameGameMode::AUGCGameGameMode()
 	PlayerStateClass = AUGCGamePlayerState::StaticClass();
 
 	bUseSeamlessTravel = true;
+	PrimaryActorTick.bCanEverTick = true;
+
+	//ServerManage = FServerManage::Get();
 }
 
 void AUGCGameGameMode::BeginPlay()
@@ -67,3 +77,21 @@ void AUGCGameGameMode::PostLogin(APlayerController* NewPlayer)
 		NewPlayerState->InitPlayerData(NewPlayerState->TPlayerID);
 	}
 }
+
+void AUGCGameGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	FServerManage::Get()->Tick(DeltaSeconds);
+
+	/*Time += DeltaSeconds;
+	if (Time > 5.f)
+	{
+		Time = 0.f;
+		FServerManage::Get()->Send<FString, int32>(SP_C2D_DATA_REQUEST, "asd", 2325);
+	}*/
+}
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",on) 
+#endif

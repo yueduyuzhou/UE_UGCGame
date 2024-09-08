@@ -6,7 +6,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "UGCGameGameMode.generated.h"
 
-UCLASS(minimalapi)
+class FServerManage;
+
+UCLASS()
 class AUGCGameGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
@@ -17,6 +19,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer);
+	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	FServerManage* ServerManage;
+	float Time;
 };
 
 

@@ -26,6 +26,9 @@ class UGCGAME_API AFPSGamePlayerController : public APlayerController
 
 	virtual void SetupInputComponent() override;
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	void OnLeftMouseButtonDown();
 	void OnLeftMouseButtonUp();
@@ -112,4 +115,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		float ReSpawnTime;
+
+	float AngleRotationRate;
 };
