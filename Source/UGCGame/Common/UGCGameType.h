@@ -34,7 +34,7 @@ enum class EHypermarkType : uint8
 UENUM(BlueprintType)
 enum class ETeamType : uint8
 {
-	TEAM_RED,
+	TEAM_RED = 0,
 	TEAM_BLUE,
 	TEAM_NONE
 };

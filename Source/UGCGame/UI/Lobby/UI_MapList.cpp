@@ -10,6 +10,11 @@
 #include "../../System/GameMapManage.h"
 #include "../../UGCGameInstance.h"
 #include "../../Lobby/LobbyPlayerController.h"
+#include "../../Common/ServerManage/ServerManage.h"
+#include "ThreadManage.h"
+
+TMap<int32, FString> UUI_MapList::MapIDToName;
+FOnUGCMapInfoDelegate UUI_MapList::OnUGCMapInfoDelegate;
 
 void UUI_MapList::NativeConstruct()
 {
@@ -17,28 +22,56 @@ void UUI_MapList::NativeConstruct()
 
 	CreateMap->OnClicked.AddDynamic(this, &UUI_MapList::OnCreateMapClick);
 
-	UpdateMapList();
+	FServerManage::Get()->AddCallback<FUGC_MAP_INFO_RESPONSE>(SP_D2C_UGC_MAP_INFO_RESPONSE, UUI_MapList::OnUGCMapInfo);
+	FUGC_MAP_INFO_REQUEST args;
+	FServerManage::Get()->Send<FUGC_MAP_INFO_REQUEST>(SP_C2D_UGC_MAP_INFO_REQUEST, &args);
+
+	OnUGCMapInfoDelegate.AddUObject(this, &UUI_MapList::UpdateMapList);
+}
+
+void UUI_MapList::NativeDestruct()
+{
+	//FServerManage::Get()->RemoveCallback<FUGC_MAP_INFO_RESPONSE>(SP_C2D_UGC_MAP_INFO_REQUEST, UUI_MapSlot::OnUGCMapInfo);
+	Super::NativeDestruct();
 }
 
 void UUI_MapList::UpdateMapList()
 {
-	MapList->ClearChildren();
-
-	if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
+	if (MapIDToName.Num() > 0)
 	{
-		TArray<FString> Maps = MyPlayerState->GetMapList();
+		MapList->ClearChildren();
 
-		for (auto& Tmp : Maps)
+		if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 		{
-			if (UUI_MapSlot * SlotWidget = CreateWidget<UUI_MapSlot>(GetWorld(), MapSlotClass))
+			//TArray<FString> Maps = MyPlayerState->GetMapList();
+
+			//获取地图名字
+			TArray<FString> Maps;
+			for (auto& Tmp : MapIDToName)
 			{
-				if (UPanelSlot * PanelSlot = MapList->AddChild(Cast<UWidget>(SlotWidget)))
+				Maps.Add(Tmp.Value);
+			}
+
+			//生成Slot
+			for (auto& Tmp : Maps)
+			{
+				if (UUI_MapSlot * SlotWidget = CreateWidget<UUI_MapSlot>(GetWorld(), MapSlotClass))
 				{
-					SlotWidget->SetMapList(this);
-					SlotWidget->MapName->SetText(FText::FromString(Tmp));
+					if (UPanelSlot * PanelSlot = MapList->AddChild(Cast<UWidget>(SlotWidget)))
+					{
+						SlotWidget->SetMapList(this);
+						SlotWidget->MapName->SetText(FText::FromString(Tmp));
+					}
 				}
 			}
 		}
+	}
+	else
+	{
+		GThread::Get()->GetCoroutines().BindLambda(0.3f, [&]()
+			{
+				UpdateMapList();
+			});
 	}
 }
 
@@ -69,4 +102,17 @@ void UUI_MapList::OnCreateMapClick()
 		
 	}
 	//CreateSessionBP(3, true);
+}
+
+void UUI_MapList::OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData)
+{
+	MapIDToName.Empty();
+
+	int32 Len = InData.MapIDs.Num();
+	for (int32 i = 0; i < Len; i++)
+	{
+		MapIDToName.Add(InData.MapIDs[i], InData.MapNames[i]);
+	}
+
+	OnUGCMapInfoDelegate.Broadcast();
 }

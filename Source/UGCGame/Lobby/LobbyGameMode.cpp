@@ -17,10 +17,18 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerStateClass = AUGCGamePlayerState::StaticClass();
 
 	bUseSeamlessTravel = true;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ALobbyGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void ALobbyGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	FServerManage::Get()->Tick(DeltaSeconds);
 }

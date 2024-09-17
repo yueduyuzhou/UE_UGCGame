@@ -21,6 +21,7 @@ class UGCGAME_API UUI_MapSlot : public UUI_Slot
 public:
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* MapName;
+
 public:
 	virtual void OnClickedWidget() override;
 

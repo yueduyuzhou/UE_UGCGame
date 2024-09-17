@@ -102,8 +102,8 @@ FServerManage* FServerManage::Get()
 
 /*----------------------------协议发送接收----------------------------*/
 
-template<typename... Args>
-void FServerManage::Send(uint32 InProtocol, TTuple<Args...>& args)
+template<typename T>
+void FServerManage::Send(uint32 InProtocol, T* args)
 {
 	if (UClientObject * ClientObj = Cast<UClientObject>(DBServer->GetController()))
 	{

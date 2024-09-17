@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/SimpleController.h"
+#include "../../Macro/ServerType.h"
 #include "ClientObject.generated.h"
 
 UCLASS()
@@ -17,9 +18,13 @@ protected:
 	virtual void RecvProtocol(uint32 InProtocol);
 
 public:
-	template<typename... Args>
-	void Send(uint32 InProtocol, TTuple<Args...>& args);
+	/*template<typename T>
+	void Send(uint32 InProtocol, T* args);*/
 
-	template<typename... Args>
-	void Recv(uint32 InProtocol);
+	void Send(uint32 InProtocol, FDATA_REQUEST* args);
+	void Send(uint32 InProtocol, FUGC_MAP_ELEMENT_INFO_REQUEST* args);
+	void Send(uint32 InProtocol, FUGC_MAP_INFO_REQUEST* args);
+
+	/*template<typename... Args>
+	void Recv(uint32 InProtocol);*/
 };

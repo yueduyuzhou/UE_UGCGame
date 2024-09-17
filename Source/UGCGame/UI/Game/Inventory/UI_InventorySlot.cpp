@@ -9,6 +9,7 @@
 #include "Components/Textblock.h"
 #include "UGCGame/Common/ServerManage/ServerManage.h"
 #include "UGCGame/Common/ServerManage/Protocols/UGCGameProtocols.h"
+#include "UGCGame/Common/ServerManage/Macro/ServerType.h"
 
 #if PLATFORM_WINDOWS
 #pragma optimize("",off) 
@@ -27,6 +28,15 @@ FReply UUI_InventorySlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, c
 			Reply.DetectDrag(SlateWidgetDrag.ToSharedRef(), EKeys::RightMouseButton);
 			return Reply;
 		}
+
+		//FUGC_MAP_ELEMENT_INFO_REQUEST args(321);
+		//FServerManage::Get()->Send<FUGC_MAP_ELEMENT_INFO_REQUEST>(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, &args);
+		//FDATA_REQUEST args1("akshd", 123);
+		//FServerManage::Get()->Send<FDATA_REQUEST>(SP_C2D_DATA_REQUEST, &args1);
+
+		/*FServerManage::Get()->AddCallback<FUGC_MAP_ELEMENT_INFO_RESPONSE>(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, UUI_InventorySlot::OnUGCElementInfo);
+		FUGC_MAP_ELEMENT_INFO_REQUEST args(0);
+		FServerManage::Get()->Send<FUGC_MAP_ELEMENT_INFO_REQUEST>(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, &args);*/
 	}
 
 

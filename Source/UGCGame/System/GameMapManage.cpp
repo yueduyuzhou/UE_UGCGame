@@ -8,9 +8,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "../Element/EffectElement.h"
 #include "ThreadManage.h"
-
+#include "../Common/ServerManage/ServerManage.h"
 
 TSharedPtr<UGameMapManage> UGameMapManage::GameMapManage = nullptr;
+TMap<int32, FString> UGameMapManage::MapIDToName;
 
 TSharedRef<UGameMapManage> UGameMapManage::Get()
 {
@@ -111,7 +112,27 @@ void UGameMapManage::LoadMapDataAndSpawnForFPS(const FString& InSlotName, UWorld
 
 void UGameMapManage::LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld)
 {
-	LoadMapDataAndSpawn(InSlotName, InWorld, true);
+	//LoadMapDataAndSpawn(InSlotName, InWorld, true);
+	
+	FServerManage::Get()->AddCallback<FUGC_MAP_ELEMENT_INFO_RESPONSE>(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, UGameMapManage::OnUGCElementInfo);
+	FUGC_MAP_ELEMENT_INFO_REQUEST args(0);
+	FServerManage::Get()->Send<FUGC_MAP_ELEMENT_INFO_REQUEST>(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, &args);
+}
+
+void UGameMapManage::OnUGCElementInfo(FUGC_MAP_ELEMENT_INFO_RESPONSE InData)
+{
+	
+}
+
+void UGameMapManage::OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData)
+{
+	MapIDToName.Empty();
+
+	int32 Len = InData.MapIDs.Num();
+	for (int32 i = 0; i < Len; i++)
+	{
+		MapIDToName.Add(InData.MapIDs[i], InData.MapNames[i]);
+	}
 }
 
 void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh)

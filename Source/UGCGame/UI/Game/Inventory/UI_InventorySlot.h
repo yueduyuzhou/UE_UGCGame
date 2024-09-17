@@ -9,6 +9,7 @@
 class UButton;
 class UImage;
 class UTextBlock;
+struct FUGC_MAP_ELEMENT_INFO_RESPONSE;
 
 /**
  * 

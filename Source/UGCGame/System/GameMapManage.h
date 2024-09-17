@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "../Common/MethodUnit.h"
 
+struct FUGC_MAP_ELEMENT_INFO_RESPONSE;
+struct FUGC_MAP_INFO_RESPONSE;
+
 class UGCGAME_API UGameMapManage : public TSharedFromThis<UGameMapManage>
 {
 public:
@@ -40,10 +43,16 @@ public:
 	/*为UGC加载地图数据并生成*/
 	void LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld);
 
+	/*-------------------------------------------------------------------------*/
+	static void OnUGCElementInfo(FUGC_MAP_ELEMENT_INFO_RESPONSE InData);
+	static void OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData);
+
 private:
 	/*加载地图数据并生成*/
 	void LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh);
 
 private:
 	static TSharedPtr<UGameMapManage> GameMapManage;
+
+	static TMap<int32, FString> MapIDToName;
 };

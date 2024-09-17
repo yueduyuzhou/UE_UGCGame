@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Macro/ServerType.h"
+#include "Protocols/UGCGameProtocols.h"
 
 // 定义一个模板别名，用于存储带参数的回调函数
 template<typename... Args>
@@ -20,8 +22,8 @@ public:
 
 	/*----------------------------协议发送接收----------------------------*/
 	/* 发送协议 */
-	template<typename... Args>
-	void Send(uint32 InProtocol, TTuple<Args...>& args);
+	template<typename T>
+	void Send(uint32 InProtocol, T* args);
 
 	/* 接受协议 */
 	/*template<typename... Args>

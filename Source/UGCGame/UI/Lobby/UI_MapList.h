@@ -11,10 +11,14 @@ class UVerticalBox;
 class UButton;
 class UEditableText;
 class UBorder;
+struct FUGC_MAP_INFO_RESPONSE;
 
 /**
  * 
  */
+
+DECLARE_MULTICAST_DELEGATE(FOnUGCMapInfoDelegate);
+
 UCLASS()
 class UGCGAME_API UUI_MapList : public UUI_Base
 {
@@ -37,6 +41,7 @@ class UGCGAME_API UUI_MapList : public UUI_Base
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 	void UpdateMapList();
@@ -51,4 +56,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void CreateSessionBP(int32 InMax, bool InUseLAN);
 
+	/*-------------------------------协议回调--------------------------------*/
+private:
+	static void OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData);
+
+private:
+	static FOnUGCMapInfoDelegate OnUGCMapInfoDelegate;
+
+	static TMap<int32, FString> MapIDToName;
 };
