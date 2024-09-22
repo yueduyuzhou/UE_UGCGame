@@ -34,7 +34,7 @@
 FServerManage* FServerManage::Ins = nullptr;
 
 template<typename... Args>
-TMap<uint32, CallbackFunction<Args...>> FServerManage::PtcCallBacks;
+TMultiMap<uint32, CallbackFunction<Args...>> FServerManage::PtcCallBacks;
 
 FServerManage::FServerManage()
 {
@@ -140,11 +140,23 @@ void FServerManage::AddCallback(uint32 InProtocol, CallbackFunction<Args...> Cal
 template<typename... Args>
 void FServerManage::ExecuteCallback(uint32 InProtocol, Args... args)
 {
-	if (auto * Callback = PtcCallBacks<Args...>.Find(InProtocol))
+	TArray<CallbackFunction<Args...>> Callbacks;
+	PtcCallBacks<Args...>.MultiFind(InProtocol, Callbacks);
+
+	// 执行所有找到的回调
+	for (const auto& Callback : Callbacks)
 	{
-		//执行存储的回调函数并传递参数
-		(*Callback)(args...); 
+		if (Callback)  // 检查回调是否有效
+		{
+			Callback(args...);
+		}
 	}
+
+	//if (auto * Callback = PtcCallBacks<Args...>.Find(InProtocol))
+	//{
+	//	//执行存储的回调函数并传递参数
+	//	(*Callback)(args...); 
+	//}
 }
 
 template<typename... Args>

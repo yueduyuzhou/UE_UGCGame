@@ -6,12 +6,15 @@
 #include "GameFramework/Actor.h"
 #include "../Common/MethodUnit.h"
 
+class AUGCGameGameMode;
 struct FUGC_MAP_ELEMENT_INFO_RESPONSE;
 struct FUGC_MAP_INFO_RESPONSE;
+struct FElemInfo;
 
 class UGCGAME_API UGameMapManage : public TSharedFromThis<UGameMapManage>
 {
 public:
+	UGameMapManage();
 	~UGameMapManage() {}
 
 	static TSharedRef<UGameMapManage> Get();
@@ -51,8 +54,11 @@ private:
 	/*加载地图数据并生成*/
 	void LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh);
 
+
 private:
 	static TSharedPtr<UGameMapManage> GameMapManage;
 
-	static TMap<int32, FString> MapIDToName;
+	static TMap<FString, int32> NameToMapID;
+
+	static TArray<FElemInfo> TmpElements;
 };

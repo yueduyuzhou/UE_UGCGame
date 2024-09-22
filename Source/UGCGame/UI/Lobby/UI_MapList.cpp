@@ -22,11 +22,11 @@ void UUI_MapList::NativeConstruct()
 
 	CreateMap->OnClicked.AddDynamic(this, &UUI_MapList::OnCreateMapClick);
 
+	OnUGCMapInfoDelegate.AddUObject(this, &UUI_MapList::UpdateMapList);
+
 	FServerManage::Get()->AddCallback<FUGC_MAP_INFO_RESPONSE>(SP_D2C_UGC_MAP_INFO_RESPONSE, UUI_MapList::OnUGCMapInfo);
 	FUGC_MAP_INFO_REQUEST args;
 	FServerManage::Get()->Send<FUGC_MAP_INFO_REQUEST>(SP_C2D_UGC_MAP_INFO_REQUEST, &args);
-
-	OnUGCMapInfoDelegate.AddUObject(this, &UUI_MapList::UpdateMapList);
 }
 
 void UUI_MapList::NativeDestruct()
@@ -44,7 +44,6 @@ void UUI_MapList::UpdateMapList()
 		if (AUGCGamePlayerState * MyPlayerState = MethodUnit::GetPlayerState(GetWorld()))
 		{
 			//TArray<FString> Maps = MyPlayerState->GetMapList();
-
 			//获取地图名字
 			TArray<FString> Maps;
 			for (auto& Tmp : MapIDToName)

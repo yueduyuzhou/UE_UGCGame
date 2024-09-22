@@ -47,5 +47,5 @@ private:
 
 	// 存储回调函数的 TMap，键是协议号，值是接受参数的 TFunction
 	template<typename... Args>
-	static TMap<uint32, CallbackFunction<Args...>> PtcCallBacks;
+	static TMultiMap<uint32, CallbackFunction<Args...>> PtcCallBacks;
 };

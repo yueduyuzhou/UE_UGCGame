@@ -73,6 +73,11 @@ void UClientObject::Send(uint32 InProtocol, FUGC_MAP_INFO_REQUEST* args)
 	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_MAP_INFO_REQUEST);
 }
 
+void UClientObject::Send(uint32 InProtocol, FUGC_SAVE_MAP_INFO_REQ* args)
+{
+	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_SAVE_MAP_INFO_REQ, args->MapID, args->IntData, args->FloatData);
+}
+
 //template<typename ...Args>
 //void UClientObject::Recv(uint32 InProtocol)
 //{
