@@ -15,6 +15,10 @@
 #include "UGCGame/Common/UGCGameType.h"
 #include "Kismet/KismetRenderingLibrary.h"
 
+#if PLATFORM_WINDOWS
+#pragma optimize("",off) 
+#endif
+
 AFPSGameGameMode::AFPSGameGameMode()
 	:RedIndex(0)
 	, BlueIndex(0)
@@ -296,6 +300,8 @@ void AFPSGameGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	FServerManage::Get()->Tick(DeltaSeconds);
+
 	if (bStartDownTime)
 	{
 		DownTime -= DeltaSeconds;
@@ -320,3 +326,7 @@ void AFPSGameGameMode::Logout(AController* Exiting)
 
 	PlayerSpawnCount--;
 }
+
+#if PLATFORM_WINDOWS
+#pragma optimize("",on) 
+#endif

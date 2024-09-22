@@ -147,7 +147,22 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 
 void UGameMapManage::LoadMapDataAndSpawnForFPS(const FString& InSlotName, UWorld* InWorld)
 {
-	LoadMapDataAndSpawn(InSlotName, InWorld, false);
+	if (NameToMapID.Num() > 0)
+	{
+		//获取element信息并生成
+		FServerManage::Get()->AddCallback<FUGC_MAP_ELEMENT_INFO_RESPONSE>(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, UGameMapManage::OnUGCElementInfo);
+		FUGC_MAP_ELEMENT_INFO_REQUEST args(NameToMapID[InSlotName]);
+		FServerManage::Get()->Send<FUGC_MAP_ELEMENT_INFO_REQUEST>(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, &args);
+
+		LoadMapDataAndSpawn(InSlotName, InWorld, false);
+	}
+	else
+	{
+		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&, InWorld]()
+			{
+				LoadMapDataAndSpawnForFPS(InSlotName, InWorld);
+			});
+	}
 }
 
 void UGameMapManage::LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld)
