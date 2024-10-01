@@ -22,9 +22,11 @@ public:
 	void Send(uint32 InProtocol, T* args);*/
 
 	void Send(uint32 InProtocol, FDATA_REQUEST* args);
+	void Send(uint32 InProtocol, FLOGIN_REQ* args);
 	void Send(uint32 InProtocol, FUGC_MAP_ELEMENT_INFO_REQUEST* args);
 	void Send(uint32 InProtocol, FUGC_MAP_INFO_REQUEST* args);
 	void Send(uint32 InProtocol, FUGC_SAVE_MAP_INFO_REQ* args);
+	void Send(uint32 InProtocol, FUGC_CREATE_MAP_REQ* args);
 
 	/*template<typename... Args>
 	void Recv(uint32 InProtocol);*/

@@ -6,6 +6,7 @@
 #include "../../../Common/MethodUnit.h"
 #include "../../../System/GameMapManage.h"
 #include "../../../UGCGameInstance.h"
+#include "../../../Common/ServerManage/ServerManage.h"
 
 void UUI_Settings::OnClickedWidget()
 {

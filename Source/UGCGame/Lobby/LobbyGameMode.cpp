@@ -7,6 +7,7 @@
 #include "ThreadManage.h"
 #include "Kismet/GameplayStatics.h"
 #include "LobbyHUD.h"
+#include "../Common/ServerManage/ServerManage.h"
 
 ALobbyGameMode::ALobbyGameMode()
 {

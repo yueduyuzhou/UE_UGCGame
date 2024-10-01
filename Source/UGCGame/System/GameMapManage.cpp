@@ -113,7 +113,15 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 		//}
 
 		FUGC_SAVE_MAP_INFO_REQ InData;
-		InData.MapID = NameToMapID[MyGameInstance->LoadMapName];
+		if (NameToMapID.Contains(MyGameInstance->LoadMapName))
+		{
+			InData.MapID = NameToMapID[MyGameInstance->LoadMapName];
+		}
+		else
+		{
+			InData.MapID = INDEX_NONE;	
+		}
+		InData.MapName = MyGameInstance->LoadMapName;
 
 		//保存游戏数据到 BDServer
 		for (auto& Tmp : Elements)
@@ -142,6 +150,7 @@ void UGameMapManage::SaveGameMap(UWorld* InWorld)
 		}
 
 		FServerManage::Get()->Send<FUGC_SAVE_MAP_INFO_REQ>(SP_C2D_UGC_SAVE_MAP_INFO_REQ, &InData);
+
 	}
 }
 

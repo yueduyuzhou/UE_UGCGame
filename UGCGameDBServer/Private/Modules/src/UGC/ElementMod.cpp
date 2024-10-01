@@ -4,6 +4,7 @@ UElementMod* UElementMod::Ins = nullptr;
 
 UElementMod::UElementMod()
 {
+	UpdateMapIDToName();
 }
 
 UElementMod::~UElementMod()
@@ -89,7 +90,28 @@ FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FUGC_SAVE_MA
 	FUGC_SAVE_MAP_INFO_REP OutData;
 	TArray<TMap<FString, FString>> RepDatas;
 	TArray<FSimpleMysqlComparisonOperator> ClearCond;
-	FString MapIDStr = FString::FromInt(InData.MapID);
+
+	FString MapIDStr;
+
+	if (InData.MapID == INDEX_NONE)
+	{
+		FUGC_CREATE_MAP_REQ Tmp;
+		Tmp.MapNames.Add(InData.MapName);
+		FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_CREATE_MAP_REQ(Tmp);
+		int32 Len = MapInfo.MapNames.Num();
+		for (int32 i = 0; i < Len; i++)
+		{
+			if (MapInfo.MapNames[i] == InData.MapName)
+			{
+				MapIDStr = FString::FromInt(MapInfo.MapIDs[i]);
+			}
+		}
+	}
+	else
+	{
+		MapIDStr = FString::FromInt(InData.MapID);
+	}
+
 	//设置清除条件
 	FSimpleMysqlComparisonOperator OP;
 	OP.Assignment.A = "MapID";
@@ -151,15 +173,62 @@ FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FUGC_SAVE_MA
 	return OutData;
 }
 
+FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_CREATE_MAP_REQ(const FUGC_CREATE_MAP_REQ& InData)
+{
+	FUGC_MAP_INFO_RESPONSE OutData;
+
+	TArray<TMap<FString, FString>> RepDatas;
+	int32 Len = InData.MapNames.Num();
+
+	for (int i = 0; i < Len; i++)
+	{
+		TMap<FString, FString> Tmp;
+		Tmp.Add("MapName", InData.MapNames[i]);
+		Tmp.Add("id", FString::FromInt(1111));
+		RepDatas.Add(Tmp);
+	}
+
+	FMysqlConfig::Get()->InsertTableDatas("mapinfo", RepDatas);
+
+	FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_MAP_INFO_REQUEST();
+
+	UpdateMapIDToNameBy(MapInfo);
+	return MapInfo;
+}
+
+FLOGIN_REP UElementMod::C2D_LOGIN_REQ(const FLOGIN_REQ& InData)
+{
+	FLOGIN_REP OutData = FLOGIN_REP(0);
+
+	//数据库的地图表中查询对应的数据ID为MapID
+	FString Sql = FString::Printf(TEXT("Select* FROM playerinfobase where Account = %s;"), *InData.Account);
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "Password" && Row.Value == InData.Password) { OutData.IsSuccess = 1; }
+		}
+	}
+
+	return OutData;
+}
+
 void UElementMod::UpdateMapIDToName()
 {
 	FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_MAP_INFO_REQUEST();
 
+	UpdateMapIDToNameBy(MapInfo);
+}
+
+void UElementMod::UpdateMapIDToNameBy(const FUGC_MAP_INFO_RESPONSE& InMapInfo)
+{
 	MapIDToName.Empty();
 
-	int32 Len = MapInfo.MapIDs.Num();
+	int32 Len = InMapInfo.MapIDs.Num();
 	for (int32 i = 0; i < Len; i++)
 	{
-		MapIDToName.Add(MapInfo.MapIDs[i], MapInfo.MapNames[i]);
+		MapIDToName.Add(InMapInfo.MapIDs[i], InMapInfo.MapNames[i]);
 	}
 }
