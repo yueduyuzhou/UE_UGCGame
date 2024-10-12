@@ -64,4 +64,5 @@ private:
 	static FOnUGCMapInfoDelegate OnUGCMapInfoDelegate;
 
 	static TMap<int32, FString> MapIDToName;
+	static TMap<FString, int32> NameToMapID;
 };

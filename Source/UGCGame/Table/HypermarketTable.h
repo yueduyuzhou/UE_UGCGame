@@ -34,7 +34,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		int32 ItemGold;
 
-	/*武器类*/
+	/*对应武器类*/
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		TSubclassOf<AWeaponBaseServer> ItemClass;
 
@@ -42,9 +42,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Slot")
 		EWeaponType WeaponType;
 
-	/*类别*/
+	/*Item所属栏*/
 	UPROPERTY(EditDefaultsOnly, Category = "SlotTypes")
 		TArray<EHypermarkType> Types;
 
-
+	/*Item大类*/
+	UPROPERTY(EditDefaultsOnly, Category = "MainClass")
+		EItemMainClass MainClass;
 };

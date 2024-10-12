@@ -9,12 +9,13 @@
 class UEditableText;
 class UButton;
 struct FLOGIN_REP;
+struct FLOGIN_REQ;
 
 /**
  * 
  */
 
-DECLARE_MULTICAST_DELEGATE(FOnLoginDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLoginDelegate, const FLOGIN_REP&);
 
 UCLASS()
 class UGCGAME_API UUI_LogginPanel : public UUI_Base
@@ -46,7 +47,8 @@ private:
 
 	static void LoginReq(FLOGIN_REP InData);
 
-	void OpenLobbyMap();
+	void OpenLobbyMap(const FLOGIN_REP& InData);
+	bool CheckLoginInfo(const FLOGIN_REQ& InData);
 
 private:
 	static FOnLoginDelegate OnLoginDelegate;

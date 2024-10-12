@@ -11,6 +11,7 @@ class UButton;
 class UCheckBox;
 class UUniformGridPanel;
 class UUI_HypermarketSlot;
+class UPlayerModule;
 struct FHypermarketTable;
 
 /**
@@ -60,12 +61,14 @@ class UGCGAME_API UUI_Hypermarket : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 protected:
 	void UpdateItem(EHypermarkType InType);
 	void UpdateItemImage(const int32& InID);
+	void UpdateItemImage();
 
 protected:
 	UFUNCTION()
@@ -101,4 +104,10 @@ private:
 	TArray<UCheckBox*> CheckBoxArray;
 
 	int32 CurTableID = INDEX_NONE;
+
+	FDelegateHandle UpdateGoldHandle;
+
+	UPlayerModule* PMod;
+
+	int32 PreBuyItemID = INDEX_NONE;
 };

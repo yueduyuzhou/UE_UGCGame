@@ -6,18 +6,18 @@
 
 /***
  //C++
- // ¶¨ÒåÒ»¸ö TTuple °üº¬¶à¸öÔªËØ
+ // å®šä¹‰ä¸€ä¸ª TTuple åŒ…å«å¤šä¸ªå…ƒç´ 
 	TTuple<int, float, FString, int, float, FString> args(1, 3.14f, FString(TEXT("Hello")), 42, 2.718f, FString(TEXT("World")));
 
-	// Ê¹ÓÃºêÕ¹¿ª 3 ¸ö args.Get<N>()£¬¼´ args.Get<0>(), args.Get<1>(), args.Get<2>()
-	std::cout << EXPAND_ARGS(3, args) << std::endl;  // Êä³ö: 1, 3.14, Hello
+	// ä½¿ç”¨å®å±•å¼€ 3 ä¸ª args.Get<N>()ï¼Œå³ args.Get<0>(), args.Get<1>(), args.Get<2>()
+	std::cout << EXPAND_ARGS(3, args) << std::endl;  // è¾“å‡º: 1, 3.14, Hello
 
-	// Ê¹ÓÃºêÕ¹¿ª 6 ¸ö args.Get<N>()£¬¼´ args.Get<0>() µ½ args.Get<5>()
-	std::cout << EXPAND_ARGS(6, args) << std::endl;  // Êä³ö: 1, 3.14, Hello, 42, 2.718, World
+	// ä½¿ç”¨å®å±•å¼€ 6 ä¸ª args.Get<N>()ï¼Œå³ args.Get<0>() åˆ° args.Get<5>()
+	std::cout << EXPAND_ARGS(6, args) << std::endl;  // è¾“å‡º: 1, 3.14, Hello, 42, 2.718, World
 
 ***/
 
-// ¶¨Òåµİ¹éºê£¬´¦Àí´Ó1µ½10µÄÇé¿ö
+// å®šä¹‰é€’å½’å®ï¼Œå¤„ç†ä»1åˆ°10çš„æƒ…å†µ
 #define EXPAND_1(args) args.Get<0>()
 #define EXPAND_2(args) args.Get<0>(), args.Get<1>()
 #define EXPAND_3(args) args.Get<0>(), args.Get<1>(), args.Get<2>()
@@ -29,28 +29,40 @@
 #define EXPAND_9(args) args.Get<0>(), args.Get<1>(), args.Get<2>(), args.Get<3>(), args.Get<4>(), args.Get<5>(), args.Get<6>(), args.Get<7>(), args.Get<8>()
 #define EXPAND_10(args) args.Get<0>(), args.Get<1>(), args.Get<2>(), args.Get<3>(), args.Get<4>(), args.Get<5>(), args.Get<6>(), args.Get<7>(), args.Get<8>(), args.Get<9>()
 
-// Ö÷ºê£º¸ù¾İ´«ÈëµÄÊı×Ö a Õ¹¿ªÏàÓ¦ÊıÁ¿µÄ args.Get<N>()
+// ä¸»å®ï¼šæ ¹æ®ä¼ å…¥çš„æ•°å­— a å±•å¼€ç›¸åº”æ•°é‡çš„ args.Get<N>()
 #define EXPAND_ARGS(a, args) EXPAND_##a(args)
 
-/* Í¨ÓÃ·¢ËÍ */
+/* é€šç”¨å‘é€ */
 #define PROTOCOLS_SEND(InProtocols,...) \
 			FString Guid_##InProtocols = GetChannel()->GetGuid().ToString(); \
 			SIMPLE_PROTOCOLS_SEND(InProtocols,Guid_##InProtocols,__VA_ARGS__)
 
-/* Í¨ÓÃ½ÓÊÕ */
-#define PROTOCOLS_RECEIVE(InProtocols,...) \
+/* é€šç”¨æ¥æ”¶ */
+#define PROTOCOLS_RECEIVE_P(InProtocols,...) \
 			FString Guid_##InProtocols; \
 			SIMPLE_PROTOCOLS_RECEIVE(InProtocols,Guid_##InProtocols,__VA_ARGS__) \
 			if(Guid_##InProtocols != GetChannel()->GetGuid().ToString()) {return;}
 
-/* ¿Í»§¶Ë´¦Àí ClientObject ·¢ËÍº¯ÊıÉùÃ÷ºÍ¶¨Òåºê */
-#define SEND_FUNC_DECLARATION(PrototolName) \
-			void Send(uint32 InProtocol,F##PrototolName* args);
+#define PROTOCOLS_RECEIVE(InProtocols) \
+			FString Guid_##InProtocols; \
+			SIMPLE_PROTOCOLS_RECEIVE(InProtocols,Guid_##InProtocols) \
+			if(Guid_##InProtocols != GetChannel()->GetGuid().ToString()) {return;}
 
-#define SEND_FUNC_IMPLEMENTATION_P(PrototolName,...) \
-			void UClientObject::Send(uint32 InProtocol,F##PrototolName* args) \
-			{PROTOCOLS_SEND(SP_C2D_##PrototolName,__VA_ARGS__);}
+/* æœåŠ¡å™¨å¤„ç† */
+#define PROTOCOLS_IO_DEAL_WITH_SERVER(InFuncName,OutData,InData) \
+			OutData = UElementMod::Get()->##InFuncName##(Guid_SP_##InFuncName, InData);
 
-#define SEND_FUNC_IMPLEMENTATION(PrototolName) \
-			void UClientObject::Send(uint32 InProtocol,F##PrototolName* args) \
-			{PROTOCOLS_SEND(SP_C2D_##PrototolName);}
+#define PROTOCOLS_O_DEAL_WITH_SERVER(InFuncName,OutData) \
+			OutData = UElementMod::Get()->##InFuncName##(Guid_SP_##InFuncName);
+
+#define PROTOCOLS_I_DEAL_WITH_SERVER(InFuncName,InData) \
+			UElementMod::Get()->##InFuncName##(Guid_SP_##InFuncName, InData);
+
+#define PROTOCOLS_IO_OTHRE_DEAL_WITH_SERVER(InFuncName,InOtherFuncName,OutData,InData) \
+			OutData = UElementMod::Get()->##InOtherFuncName##(Guid_SP_##InFuncName, InData);
+
+#define PROTOCOLS_O_OTHRE_DEAL_WITH_SERVER(InFuncName,InOtherFuncName,OutData) \
+			OutData = UElementMod::Get()->##InOtherFuncName##(Guid_SP_##InFuncName);
+
+#define PROTOCOLS_I_OTHRE_DEAL_WITH_SERVER(InFuncName,InOtherFuncName,InData) \
+			UElementMod::Get()->##InOtherFuncName##(Guid_SP_##InFuncName, InData);

@@ -17,5 +17,6 @@ class UGCGAME_API AHypermarketGameMode : public AGameModeBase
 public:
 	AHypermarketGameMode();
 
-	
+protected:
+	virtual void Tick(float DeltaSeconds) override;
 };

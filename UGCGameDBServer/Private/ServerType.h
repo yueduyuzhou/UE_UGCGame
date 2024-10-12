@@ -2,6 +2,20 @@
 
 #include "CoreMinimal.h"
 
+/*****提前声明*****/
+
+/* 201 */
+struct FPLAYER_INFO_REP
+{
+	FPLAYER_INFO_REP() {}
+
+	FString Account;
+	int32 Gold;
+};
+
+/*****************/
+
+
 struct FDATA_REQUEST
 {
 	FDATA_REQUEST() {}
@@ -40,6 +54,9 @@ struct FLOGIN_REP
 
 	/* 0失败 1成功 */
 	int32 IsSuccess;
+
+	/* Player Info */
+	FPLAYER_INFO_REP PlayerInfo;
 };
 
 /* 150 */
@@ -109,9 +126,42 @@ struct FUGC_CREATE_MAP_REQ
 };
 
 /* 157 */
-struct FUGC_REMOVE_MAP_REQ
+struct FUGC_REMOVE_MAP_REP
 {
-	FUGC_REMOVE_MAP_REQ() {}
+	FUGC_REMOVE_MAP_REP() {}
 
+};
 
+/* 200 */
+struct FPLAYER_INFO_REQ
+{
+	FPLAYER_INFO_REQ() {}
+
+};
+
+/* 250 */
+struct FITEM_INFO_REQ
+{
+	FITEM_INFO_REQ() {}
+
+};
+
+/* 251 */
+struct FITEM_INFO_REP
+{
+	FITEM_INFO_REP() {}
+
+	TArray<int32> ItemIDs;
+	TArray<int32> Counts;
+};
+
+/* 252 */
+struct FBUY_REQ
+{
+	FBUY_REQ() {}
+	FBUY_REQ(int32 InItemID)
+		:ItemID(InItemID)
+	{}
+
+	int32 ItemID;
 };

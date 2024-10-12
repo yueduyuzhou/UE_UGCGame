@@ -15,6 +15,8 @@
 #include "UGCGame/SaveData/PlayerSaveData.h"
 #include "Kismet/GameplayStatics.h"
 #include "ThreadManage.h"
+#include "UGCGame/Common/PlayerModule/PlayerModule.h"
+#include "UGCGame/Common/ServerManage/ServerManage.h"
 
 void UUI_Hypermarket::NativeConstruct()
 {
@@ -35,8 +37,23 @@ void UUI_Hypermarket::NativeConstruct()
 	CheckBoxArray.Add(SecondaryWeapon);
 	CheckBoxArray.Add(CloseRangeWeapon);
 
+	PMod = UPlayerModule::Get();
+	if (PMod)
+	{
+		UpdateGoldHandle = PMod->OnPlayerInfoDelegate.AddUObject(this, &UUI_Hypermarket::UpdateGold);
+		UpdateGoldHandle = PMod->OnItemsInfoDelegate.AddUObject(this, &UUI_Hypermarket::UpdateItemImage);
+	}
+
+
 	UpdateItem(EHypermarkType::ALL);
 	UpdateGold();
+}
+
+void UUI_Hypermarket::NativeDestruct()
+{
+	PMod->OnPlayerInfoDelegate.Remove(UpdateGoldHandle);
+
+	Super::NativeDestruct();
 }
 
 void UUI_Hypermarket::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -117,29 +134,55 @@ void UUI_Hypermarket::UpdateItemImage(const int32& InID)
 	}
 	else
 	{
-		if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
-		{
-			if (SaveMapData->Items.Contains(InID))
-			{
-				BuyButton->SetIsEnabled(false);
-			}
-			else
-			{
-				BuyButton->SetIsEnabled(true);
-			}
-		}
-
-		//获取PlayerState
 		if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
 		{
 			//获取HypermarketTable
-			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(InID))
+			if (FHypermarketTable * CurTable = MyGS->GetWeaponTableTemplate(InID))
 			{
-				ItemImage->SetBrushFromTexture(SlotTable->ItemIcon);
-				CurTableID = SlotTable->ID;
+				TMap<int32, int32> ItemsData = PMod->MCToItemsData.Contains(CurTable->MainClass) ? PMod->MCToItemsData[CurTable->MainClass] : TMap<int32, int32>();
+
+				if (ItemsData.Contains(InID))
+				{
+					BuyButton->SetIsEnabled(false);
+				}
+				else
+				{
+					BuyButton->SetIsEnabled(true);
+				}
+
+				ItemImage->SetBrushFromTexture(CurTable->ItemIcon);
+				CurTableID = CurTable->ID;
 			}
 		}
+
+		//if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+		//{
+		//	
+		//	if (SaveMapData->Items.Contains(InID))
+		//	{
+		//		BuyButton->SetIsEnabled(false);
+		//	}
+		//	else
+		//	{
+		//		BuyButton->SetIsEnabled(true);
+		//	}
+		//}
+		////获取PlayerState
+		//if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+		//{
+		//	//获取HypermarketTable
+		//	if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(InID))
+		//	{
+		//		ItemImage->SetBrushFromTexture(SlotTable->ItemIcon);
+		//		CurTableID = SlotTable->ID;
+		//	}
+		//}
 	}
+}
+
+void UUI_Hypermarket::UpdateItemImage()
+{
+	UpdateItemImage(PreBuyItemID);
 }
 
 void UUI_Hypermarket::CheckBoxAll(bool bIsChecked)
@@ -179,31 +222,44 @@ void UUI_Hypermarket::OnBuyButtonClicked()
 		//获取HypermarketTable
 		if (FHypermarketTable * CurTable = MyGS->GetWeaponTableTemplate(CurTableID))
 		{
-			if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
-			{
-				if (SaveItemsData->Gold >= CurTable->ItemGold)
-				{
-					//发送TableID到
-					SaveItemsData->Gold -= CurTable->ItemGold;
-					SaveItemsData->Items.Add(CurTable->ID);
-					UGameplayStatics::SaveGameToSlot(SaveItemsData, TEXT("PlayerData_00"), 0);
-				}
-			}
-			else
-			{
-				if (UPlayerSaveData * SaveItems_Data = Cast<UPlayerSaveData>(UGameplayStatics::CreateSaveGameObject(UPlayerSaveData::StaticClass())))
-				{
-					SaveItems_Data->Gold = 11999;
-					SaveItems_Data->Gold -= CurTable->ItemGold;
-					SaveItems_Data->Items.Add(CurTable->ID);
-					UGameplayStatics::SaveGameToSlot(SaveItems_Data, TEXT("PlayerData_00"), 0);
-				}
-
-			}
-
+			//if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+			//{
+			//	if (SaveItemsData->Gold >= CurTable->ItemGold)
+			//	{
+			//		//发送TableID到
+			//		SaveItemsData->Gold -= CurTable->ItemGold;
+			//		SaveItemsData->Items.Add(CurTable->ID);
+			//		UGameplayStatics::SaveGameToSlot(SaveItemsData, TEXT("PlayerData_00"), 0);
+			//	}
+			//}
+			//else
+			//{
+			//	if (UPlayerSaveData * SaveItems_Data = Cast<UPlayerSaveData>(UGameplayStatics::CreateSaveGameObject(UPlayerSaveData::StaticClass())))
+			//	{
+			//		SaveItems_Data->Gold = 11999;
+			//		SaveItems_Data->Gold -= CurTable->ItemGold;
+			//		SaveItems_Data->Items.Add(CurTable->ID);
+			//		UGameplayStatics::SaveGameToSlot(SaveItems_Data, TEXT("PlayerData_00"), 0);
+			//	}
+			//}
 			//更新ItemImage状态
-			UpdateItemImage(CurTable->ID);
-			UpdateGold();
+			//UpdateItemImage(CurTable->ID);
+			//UpdateGold();
+
+			if (PMod && PMod->Gold >= CurTable->ItemGold)
+			{
+				TMap<int32, int32> ItemsData = PMod->MCToItemsData.Contains(CurTable->MainClass) ? PMod->MCToItemsData[CurTable->MainClass] : TMap<int32, int32>();
+				int32 ItemCount = ItemsData.Contains(CurTable->ID) ? ItemsData[CurTable->ID] : 0;
+
+				if (CurTable->MainClass != EItemMainClass::WEAPON || ItemCount < 1)
+				{
+					//发送购买请求
+					FBUY_REQ args = FBUY_REQ(CurTable->ID);
+					FServerManage::Get()->Send<FBUY_REQ>(SP_C2D_BUY_REQ, &args);
+				}
+			}
+			PreBuyItemID = CurTable->ID;
+			
 		}
 	}
 }
@@ -247,12 +303,8 @@ void UUI_Hypermarket::SetCheckBoxArray(ECheckBoxState CheckBoxState)
 
 void UUI_Hypermarket::UpdateGold()
 {
-	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+	if (PMod)
 	{
-		GoldText->SetText(FText::FromString(FString::FromInt(SaveItemsData->Gold)));
-	}
-	else
-	{
-
+		GoldText->SetText(FText::FromString(FString::FromInt(PMod->Gold)));
 	}
 }

@@ -38,22 +38,36 @@ void UClientObject::RecvProtocol(uint32 InProtocol)
 		case SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE:
 		{
 			FUGC_MAP_ELEMENT_INFO_RESPONSE RecvData;
-			SIMPLE_PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, RecvData.MapID, RecvData.IntData, RecvData.FloatData);
+			PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, RecvData.MapID, RecvData.IntData, RecvData.FloatData);
 			FServerManage::Get()->ExecuteCallback<FUGC_MAP_ELEMENT_INFO_RESPONSE>(InProtocol, RecvData);
 			break;
 		}
 		case SP_D2C_UGC_MAP_INFO_RESPONSE:
 		{
 			FUGC_MAP_INFO_RESPONSE RecvData;
-			SIMPLE_PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_INFO_RESPONSE, RecvData.MapIDs, RecvData.MapNames);
+			PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_INFO_RESPONSE, RecvData.MapIDs, RecvData.MapNames);
 			FServerManage::Get()->ExecuteCallback<FUGC_MAP_INFO_RESPONSE>(InProtocol, RecvData);
 			break;
 		}
 		case SP_D2C_LOGIN_REP:
 		{
 			FLOGIN_REP RecvData;
-			SIMPLE_PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_INFO_RESPONSE, RecvData.IsSuccess);
+			PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_INFO_RESPONSE, RecvData.IsSuccess, RecvData.PlayerInfo.Account, RecvData.PlayerInfo.Gold);
 			FServerManage::Get()->ExecuteCallback<FLOGIN_REP>(InProtocol, RecvData);
+			break;
+		}
+		case SP_D2C_PLAYER_INFO_REP:
+		{
+			FPLAYER_INFO_REP RecvData;
+			PROTOCOLS_RECEIVE(SP_D2C_PLAYER_INFO_REP, RecvData.Account, RecvData.Gold);
+			FServerManage::Get()->ExecuteCallback<FPLAYER_INFO_REP>(InProtocol, RecvData);
+			break;
+		}
+		case SP_D2C_ITEM_INFO_REP:
+		{
+			FITEM_INFO_REP RecvData;
+			PROTOCOLS_RECEIVE(SP_D2C_ITEM_INFO_REP, RecvData.ItemIDs, RecvData.Counts);
+			FServerManage::Get()->ExecuteCallback<FITEM_INFO_REP>(InProtocol, RecvData);
 			break;
 		}
 	}	
@@ -65,35 +79,45 @@ void UClientObject::RecvProtocol(uint32 InProtocol)
 //	
 //}
 
-void UClientObject::Send(uint32 InProtocol, FDATA_REQUEST* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_DATA_REQUEST, args->TestStr, args->TestNum);
-}
+//void UClientObject::Send(uint32 InProtocol, FDATA_REQUEST* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_DATA_REQUEST, args->TestStr, args->TestNum);
+//}
+//
+//void UClientObject::Send(uint32 InProtocol, FLOGIN_REQ* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_LOGIN_REQ, args->Account, args->Password);
+//}
+//
+//void UClientObject::Send(uint32 InProtocol, FUGC_MAP_ELEMENT_INFO_REQUEST* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, args->MapID);
+//}
+//
+//void UClientObject::Send(uint32 InProtocol, FUGC_MAP_INFO_REQUEST* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_UGC_MAP_INFO_REQUEST);
+//}
+//
+//void UClientObject::Send(uint32 InProtocol, FUGC_SAVE_MAP_INFO_REQ* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_UGC_SAVE_MAP_INFO_REQ, args->MapID, args->MapName, args->IntData, args->FloatData);
+//}
+//
+//void UClientObject::Send(uint32 InProtocol, FUGC_CREATE_MAP_REQ* args)
+//{
+//	PROTOCOLS_SEND(SP_C2D_UGC_CREATE_MAP_REQ, args->MapNames);
+//}
 
-void UClientObject::Send(uint32 InProtocol, FLOGIN_REQ* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_LOGIN_REQ, args->Account, args->Password);
-}
+SEND_FUNC_IMPLEMENTATION_P(DATA_REQUEST, args->TestStr, args->TestNum);
+SEND_FUNC_IMPLEMENTATION_P(LOGIN_REQ, args->Account, args->Password);
+SEND_FUNC_IMPLEMENTATION_P(UGC_MAP_ELEMENT_INFO_REQUEST, args->MapID);
+SEND_FUNC_IMPLEMENTATION(UGC_MAP_INFO_REQUEST);
+SEND_FUNC_IMPLEMENTATION_P(UGC_SAVE_MAP_INFO_REQ, args->MapID, args->MapName, args->IntData, args->FloatData);
+SEND_FUNC_IMPLEMENTATION_P(UGC_CREATE_MAP_REQ, args->MapNames);
+SEND_FUNC_IMPLEMENTATION(ITEM_INFO_REQ);
+SEND_FUNC_IMPLEMENTATION_P(BUY_REQ, args->ItemID);
 
-void UClientObject::Send(uint32 InProtocol, FUGC_MAP_ELEMENT_INFO_REQUEST* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_MAP_ELEMENT_INFO_REQUEST, args->MapID);
-}
-
-void UClientObject::Send(uint32 InProtocol, FUGC_MAP_INFO_REQUEST* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_MAP_INFO_REQUEST);
-}
-
-void UClientObject::Send(uint32 InProtocol, FUGC_SAVE_MAP_INFO_REQ* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_SAVE_MAP_INFO_REQ, args->MapID, args->MapName, args->IntData, args->FloatData);
-}
-
-void UClientObject::Send(uint32 InProtocol, FUGC_CREATE_MAP_REQ* args)
-{
-	SIMPLE_PROTOCOLS_SEND(SP_C2D_UGC_CREATE_MAP_REQ, args->MapNames);
-}
 
 //template<typename ...Args>
 //void UClientObject::Recv(uint32 InProtocol)

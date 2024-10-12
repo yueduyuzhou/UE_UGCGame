@@ -8,6 +8,7 @@
 #include "../LobbyPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "ThreadManage.h"
+#include "UGCGame/Common/PlayerModule/PlayerModule.h"
 
 ALobbyPlayersGameMode::ALobbyPlayersGameMode()
 {
@@ -131,7 +132,8 @@ void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)
 
 	if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(NewPlayer))
 	{
-		MyPC->PlayerID = (int32)FMath::RandRange(100000, 999999999);
+		//FCString::Atoi(*(FPlayerModule::Get()->Account));
+		MyPC->PlayerID = (int32)FMath::RandRange(100000, 999999999); 
 		FPlayerNetData TmpPlayerData;
 		TmpPlayerData.PlayerID = MyPC->PlayerID;
 		TmpPlayerData.Team = ETeamType::TEAM_RED;

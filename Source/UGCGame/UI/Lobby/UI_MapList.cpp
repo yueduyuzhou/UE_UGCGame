@@ -14,6 +14,7 @@
 #include "ThreadManage.h"
 
 TMap<int32, FString> UUI_MapList::MapIDToName;
+TMap<FString, int32> UUI_MapList::NameToMapID;
 FOnUGCMapInfoDelegate UUI_MapList::OnUGCMapInfoDelegate;
 
 void UUI_MapList::NativeConstruct()
@@ -31,7 +32,7 @@ void UUI_MapList::NativeConstruct()
 
 void UUI_MapList::NativeDestruct()
 {
-	//FServerManage::Get()->RemoveCallback<FUGC_MAP_INFO_RESPONSE>(SP_C2D_UGC_MAP_INFO_REQUEST, UUI_MapSlot::OnUGCMapInfo);
+	FServerManage::Get()->RemoveCallback<FUGC_MAP_INFO_RESPONSE>(SP_D2C_UGC_MAP_INFO_RESPONSE, UUI_MapList::OnUGCMapInfo);
 	Super::NativeDestruct();
 }
 
@@ -88,17 +89,13 @@ void UUI_MapList::UpdateBackGround(const FString& InMapName)
 void UUI_MapList::OnCreateMapClick()
 {
 	FString MapName = CreateMapName->GetText().ToString();
-	if (!MapName.IsEmpty())
+	if (!MapName.IsEmpty() && !NameToMapID.Contains(MapName))
 	{
 		if (UUGCGameInstance * GameInstance = GetWorld()->GetGameInstance<UUGCGameInstance>())
 		{
 			GameInstance->LoadMapName = MapName;
 			UGameMapManage::Get()->CreateGameMap(GetWorld());
 		}
-	}
-	else
-	{
-		
 	}
 	//CreateSessionBP(3, true);
 }
@@ -111,6 +108,7 @@ void UUI_MapList::OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData)
 	for (int32 i = 0; i < Len; i++)
 	{
 		MapIDToName.Add(InData.MapIDs[i], InData.MapNames[i]);
+		NameToMapID.Add(InData.MapNames[i], InData.MapIDs[i]);
 	}
 
 	OnUGCMapInfoDelegate.Broadcast();

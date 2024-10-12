@@ -6,6 +6,7 @@
 #include "HypermarketPlayerController.h"
 #include "HypermarketPlayerState.h"
 #include "CameraPawn.h"
+#include "../Common/ServerManage/ServerManage.h"
 
 AHypermarketGameMode::AHypermarketGameMode()
 {
@@ -16,4 +17,14 @@ AHypermarketGameMode::AHypermarketGameMode()
 	PlayerControllerClass = AHypermarketPlayerController::StaticClass();
 
 	PlayerStateClass = AHypermarketPlayerState::StaticClass();
+
+	bUseSeamlessTravel = true;
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AHypermarketGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	FServerManage::Get()->Tick(DeltaSeconds);
 }

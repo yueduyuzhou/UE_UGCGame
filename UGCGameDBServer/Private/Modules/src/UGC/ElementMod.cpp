@@ -29,15 +29,17 @@ UElementMod* UElementMod::Get()
 //	}
 //}
 
-FUGC_MAP_ELEMENT_INFO_RESPONSE UElementMod::C2D_UGC_MAP_ELEMENT_INFO_REQUEST(int32& InMapID)
+FUGC_MAP_ELEMENT_INFO_RESPONSE UElementMod::C2D_UGC_MAP_ELEMENT_INFO_REQUEST(const FString& InGuid, const FUGC_MAP_ELEMENT_INFO_REQUEST& InData)
 {
 	FUGC_MAP_ELEMENT_INFO_RESPONSE OutData;
 
 	//数据库的地图表中查询对应的数据ID为MapID
-	FString Sql = FString::Printf(TEXT("Select* FROM mapelementinfo where MapID = %d;"), InMapID);
+	FString Sql;
+	Sql = FString::Printf(TEXT("Select* FROM mapelementinfo where MapID = %d;"), InData.MapID);
+	
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 
-	OutData.MapID = InMapID;
+	OutData.MapID = InData.MapID;
 	for (auto& Tmp : Res)
 	{
 		for (auto& Row : Tmp.Rows)
@@ -60,11 +62,18 @@ FUGC_MAP_ELEMENT_INFO_RESPONSE UElementMod::C2D_UGC_MAP_ELEMENT_INFO_REQUEST(int
 	return OutData;
 }
 
-FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_MAP_INFO_REQUEST()
+FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_MAP_INFO_REQUEST(const FString& InGuid)
 {
 	FUGC_MAP_INFO_RESPONSE OutData;
 
-	FString Sql = FString::Printf(TEXT("Select* FROM mapinfo"));
+	FString Sql, Cond;
+	if (InGuid == "") { Sql = FString::Printf(TEXT("Select* FROM mapinfo")); }
+	else 
+	{
+		Cond = GuidToAccount.Contains(InGuid) ? "where Account = " + GuidToAccount[InGuid] : "";
+		Sql = FString::Printf(TEXT("Select* FROM mapinfo %s"), *Cond);
+	}
+
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 	for (auto& Tmp : Res)
 	{
@@ -85,7 +94,7 @@ FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_MAP_INFO_REQUEST()
 	return OutData;
 }
 
-FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FUGC_SAVE_MAP_INFO_REQ& InData)
+FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FString& InGuid, const FUGC_SAVE_MAP_INFO_REQ& InData)
 {
 	FUGC_SAVE_MAP_INFO_REP OutData;
 	TArray<TMap<FString, FString>> RepDatas;
@@ -97,7 +106,7 @@ FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FUGC_SAVE_MA
 	{
 		FUGC_CREATE_MAP_REQ Tmp;
 		Tmp.MapNames.Add(InData.MapName);
-		FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_CREATE_MAP_REQ(Tmp);
+		FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_CREATE_MAP_REQ(InGuid, Tmp);
 		int32 Len = MapInfo.MapNames.Num();
 		for (int32 i = 0; i < Len; i++)
 		{
@@ -173,34 +182,46 @@ FUGC_SAVE_MAP_INFO_REP UElementMod::C2D_UGC_SAVE_MAP_INFO_REQ(const FUGC_SAVE_MA
 	return OutData;
 }
 
-FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_CREATE_MAP_REQ(const FUGC_CREATE_MAP_REQ& InData)
+FUGC_MAP_INFO_RESPONSE UElementMod::C2D_UGC_CREATE_MAP_REQ(const FString& InGuid, const FUGC_CREATE_MAP_REQ& InData)
 {
 	FUGC_MAP_INFO_RESPONSE OutData;
 
 	TArray<TMap<FString, FString>> RepDatas;
 	int32 Len = InData.MapNames.Num();
+	FString Account;
+
+	if (!InGuid.IsEmpty())
+	{
+		Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	}
 
 	for (int i = 0; i < Len; i++)
 	{
 		TMap<FString, FString> Tmp;
 		Tmp.Add("MapName", InData.MapNames[i]);
 		Tmp.Add("id", FString::FromInt(1111));
+		Tmp.Add("Account", Account);
 		RepDatas.Add(Tmp);
 	}
 
 	FMysqlConfig::Get()->InsertTableDatas("mapinfo", RepDatas);
 
-	FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_MAP_INFO_REQUEST();
+	FUGC_MAP_INFO_RESPONSE MapInfo = C2D_UGC_MAP_INFO_REQUEST(InGuid);
 
 	UpdateMapIDToNameBy(MapInfo);
 	return MapInfo;
 }
 
-FLOGIN_REP UElementMod::C2D_LOGIN_REQ(const FLOGIN_REQ& InData)
+FLOGIN_REP UElementMod::C2D_LOGIN_REQ(const FString& InGuid, const FLOGIN_REQ& InData)
 {
 	FLOGIN_REP OutData = FLOGIN_REP(0);
 
-	//数据库的地图表中查询对应的数据ID为MapID
+	AccountToGuid.Add(InData.Account, InGuid);
+	GuidToAccount.Add(InGuid, InData.Account);
+
+	OutData.PlayerInfo.Account = InData.Account;
+
+	//查询账号
 	FString Sql = FString::Printf(TEXT("Select* FROM playerinfobase where Account = %s;"), *InData.Account);
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 
@@ -212,7 +233,89 @@ FLOGIN_REP UElementMod::C2D_LOGIN_REQ(const FLOGIN_REQ& InData)
 		}
 	}
 
+	if (OutData.IsSuccess == 1)
+	{
+		OutData.PlayerInfo = C2D_PLAYER_INFO_REQ(InGuid);
+	}
+
 	return OutData;
+}
+
+FPLAYER_INFO_REP UElementMod::C2D_PLAYER_INFO_REQ(const FString& InGuid, const FPLAYER_INFO_REQ& InData)
+{
+	FPLAYER_INFO_REP OutData;
+
+	//查询信息
+	OutData.Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *(OutData.Account));
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "Gold") { OutData.Gold = FCString::Atoi(*(Row.Value)); }
+		}
+	}
+
+	return OutData;
+}
+
+FITEM_INFO_REP UElementMod::C2D_ITEM_INFO_REQ(const FString& InGuid, const FITEM_INFO_REQ& InData)
+{
+	FITEM_INFO_REP OutData;
+
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	FString Sql = FString::Printf(TEXT("Select* FROM playeritemsinfo where Account = %s"), *Account);
+
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& row : Tmp.Rows)
+		{
+			if (row.Key == "ItemID") { OutData.ItemIDs.Add(FCString::Atoi(*row.Value)); }
+			else if (row.Key == "Count") { OutData.Counts.Add(FCString::Atoi(*row.Value)); }
+		}
+	}
+
+	return OutData;
+}
+
+void UElementMod::C2D_BUY_REQ(const FString& InGuid, const FBUY_REQ& InData)
+{
+	int32 Gold = GetPlayerGold(InGuid);
+	int32 Cost = GetGoldByItemID(InData.ItemID);
+
+	if (Gold >= Cost)
+	{
+		int32 Count = GetCountByItemID(InGuid, InData.ItemID);
+
+		//更新金币
+		UpdatePlayerGold(InGuid, Gold - Cost);
+
+		TArray<FSimpleMysqlComparisonOperator> ClearCond;
+		FSimpleMysqlComparisonOperator OP;
+
+		//设置清除条件
+		OP.Assignment.A = "ItemID";
+		OP.Assignment.B = FString::FromInt(InData.ItemID);
+		OP.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+		ClearCond.Add(OP);
+
+		//更新物品数
+		TArray<TMap<FString, FString>> RepDatas;
+		FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+		TMap<FString, FString> Tmp;
+		Tmp.Add("Account", Account);
+		Tmp.Add("ItemID", FString::FromInt(InData.ItemID));
+		Tmp.Add("Count", FString::FromInt(Count + 1));
+		RepDatas.Add(Tmp);
+
+		FMysqlConfig::Get()->ReplaceTableDatas("playeritemsinfo", RepDatas, true, ClearCond);
+	}
+
+	return;
 }
 
 void UElementMod::UpdateMapIDToName()
@@ -231,4 +334,80 @@ void UElementMod::UpdateMapIDToNameBy(const FUGC_MAP_INFO_RESPONSE& InMapInfo)
 	{
 		MapIDToName.Add(InMapInfo.MapIDs[i], InMapInfo.MapNames[i]);
 	}
+}
+
+int32 UElementMod::GetPlayerGold(const FString& InGuid)
+{
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "Gold") { return FCString::Atoi(*(Row.Value)); }
+		}
+	}
+
+	return 0;
+}
+
+int32 UElementMod::GetGoldByItemID(const int32& InItemID)
+{
+	TArray<FSimpleMysqlResult> Res = GetMarkDataByItemID(InItemID);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "ItemGold") { return FCString::Atoi(*(Row.Value)); }
+		}
+	}
+
+	return 0;
+}
+
+int32 UElementMod::GetCountByItemID(const FString& InGuid, const int32& InItemID)
+{
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	FString Sql = FString::Printf(TEXT("Select* FROM playeritemsinfo where Account = %s and ItemID = %d;"), *Account, InItemID);
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "Count") { return FCString::Atoi(*(Row.Value)); }
+		}
+	}
+	return 0;
+}
+
+TArray<FSimpleMysqlResult> UElementMod::GetMarkDataByItemID(const int32& InItemID)
+{
+	FString Sql = FString::Printf(TEXT("Select* FROM hypermarkettable where ID = %d;"), InItemID);
+	return FMysqlConfig::Get()->QueryBySql(Sql);
+}
+
+void UElementMod::UpdatePlayerGold(const FString& InGuid, const int32& InNewGold)
+{
+	TArray<TMap<FString, FString>> RepDatas;
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	TArray<FSimpleMysqlComparisonOperator> ClearCond;
+	FSimpleMysqlComparisonOperator OP;
+
+	//设置清除条件
+	OP.Assignment.A = "Account";
+	OP.Assignment.B = Account;
+	OP.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+	ClearCond.Add(OP);
+
+	//设置新数据
+	TMap<FString, FString> Tmp;
+	Tmp.Add("Account", Account);
+	Tmp.Add("Gold", FString::FromInt(InNewGold));
+	RepDatas.Add(Tmp);
+
+	FMysqlConfig::Get()->ReplaceTableDatas("playerinfo", RepDatas, true, ClearCond);
 }

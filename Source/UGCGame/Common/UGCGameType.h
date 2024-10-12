@@ -93,3 +93,12 @@ enum class ELobbyPanelType : uint8
 	LOBBY_UIPANEL_CREATIVEWORKSHOP			UMETA(DisplayName = "CreativeWorkshop"),
 };
 
+UENUM(BlueprintType)
+enum class EItemMainClass : uint8
+{
+	DEFAULT = 0						UMETA(DisplayName = "Default"),
+	CURRENCY = 1					UMETA(DisplayName = "Currency"),
+	WEAPON = 2						UMETA(DisplayName = "Weapon"),
+	OTHER = 3						UMETA(DisplayName = "Other"),
+};
+

@@ -99,7 +99,6 @@ FServerManage* FServerManage::Get()
 	return Ins;
 }
 
-
 /*----------------------------协议发送接收----------------------------*/
 
 template<typename T>
@@ -159,10 +158,30 @@ void FServerManage::ExecuteCallback(uint32 InProtocol, Args... args)
 	//}
 }
 
+/*TODO*/
 template<typename... Args>
-void FServerManage::RemoveCallback(uint32 InProtocol)
+void FServerManage::RemoveCallback(uint32 InProtocol, CallbackFunction<Args...> Callback)
 {
-	PtcCallBacks<Args...>.Remove(InProtocol);
+	if (IsExist<Args...>(InProtocol, Callback))
+	{
+		//PtcCallBacks<Args...>.Remove(InProtocol, Callback);
+	}
+}
+
+template<typename... Args>
+bool FServerManage::IsExist(uint32 InProtocol, CallbackFunction<Args...> Callback)
+{
+	TArray<CallbackFunction<Args...>> Funcs;
+	PtcCallBacks<Args...>.MultiFind(InProtocol, Funcs);  // 获取该 key 对应的所有 values
+
+	for (auto& Tmp : Funcs)
+	{
+		if (&Callback == &Tmp) 
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 #if PLATFORM_WINDOWS

@@ -25,11 +25,14 @@ public:
 	bool IsLocalTeamWin() { return WinTeam == LocalPlayerData.Team; }
 
 public:
+
+	/*********************************UGC*******************************/
 	/*是否加载地图*/
 	bool bIsLoadMapForUGC;
 	//加载的地图名字
 	FString LoadMapName;
 
+	/*********************************FPS*******************************/
 	//所有玩家的ID和队伍类型
 	TArray<FPlayerNetData> PlayerDatas;
 	//自己的ID和队伍类型

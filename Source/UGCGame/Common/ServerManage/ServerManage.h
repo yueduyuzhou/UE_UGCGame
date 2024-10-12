@@ -40,7 +40,13 @@ public:
 
 	/* 删除特定协议号的回调函数 */
 	template<typename... Args>
-	void RemoveCallback(uint32 InProtocol);
+	void RemoveCallback(uint32 InProtocol, CallbackFunction<Args...> Callback);
+
+	/* 是否存在回调 */
+	template<typename... Args>
+	bool IsExist(uint32 InProtocol, CallbackFunction<Args...> Callback);
+
+
 
 private:
 	static FServerManage* Ins;
