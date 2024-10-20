@@ -49,6 +49,7 @@ private:
 
 	void OpenLobbyMap(const FLOGIN_REP& InData);
 	bool CheckLoginInfo(const FLOGIN_REQ& InData);
+	void InitModules();
 
 private:
 	static FOnLoginDelegate OnLoginDelegate;

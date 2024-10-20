@@ -14,10 +14,20 @@
 #include "../../Table/HypermarketTable.h"
 #include "../../Hypermarket/HypermarketHUD.h"
 #include "../../Hypermarket/HypermarketGameState.h"
+#include "../../Common/PlayerModule/PlayerModule.h"
+#include "../../Common/ServerManage/ServerManage.h"
 
 void UUI_Backpack::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	CurMarkType = EHypermarkType::ALL;
+
+	PMod = UPlayerModule::Get();
+	if (PMod)
+	{
+		UpdateItemsHandle = PMod->OnItemsInfoDelegate.AddUObject(this, &UUI_Backpack::UpdateItem_Inner);
+	}
 
 	if (Selecter)
 	{
@@ -57,12 +67,15 @@ void UUI_Backpack::OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo:
 
 void UUI_Backpack::UpdateItem(EHypermarkType InType)
 {
+	if (InType == EHypermarkType::DEFAULT) { InType = CurMarkType; }
+	else { CurMarkType = InType; }
+
 	if (ItemGrid->GetAllChildren().Num() > 0)
 	{
 		ItemGrid->ClearChildren();
 	}
 
-	if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+	//if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
 	{
 		//获取PlayerState
 		if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
@@ -81,39 +94,72 @@ void UUI_Backpack::UpdateItem(EHypermarkType InType)
 				}
 
 				int32 Index = 0;
-				//为每个条目创建UI
-				for (int32 i = 0; i < SlotsByType.Num(); i++)
+				if (PMod)
 				{
-					//是否为拥有的
-					if (SaveMapData->ItemContains(SlotsByType[i]->ID))
+					for (int32 i = 0; i < SlotsByType.Num(); i++)
 					{
-						if (UUI_EquippedSlot * InWidgetItem = CreateWidget<UUI_EquippedSlot>(GetWorld(), ItemClass))
+						TMap<int32, int32> ItemsData = PMod->GetItemsByMainClass(SlotsByType[i]->MainClass);
+						//是否为拥有的
+						if (ItemsData.Contains(SlotsByType[i]->ID))
 						{
-							if (UGridSlot * GridSlot = ItemGrid->AddChildToGrid(InWidgetItem))
+							//为每个条目创建UI
+							if (UUI_EquippedSlot * InWidgetItem = CreateWidget<UUI_EquippedSlot>(GetWorld(), ItemClass))
 							{
-								//Slot排布
-								GridSlot->SetRow(Index / 4);
-								GridSlot->SetColumn(Index % 4);
-								Index++;
-
-								GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-								GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-								GridSlot->SetPadding(FMargin(20));
-
-
-								//背包隐藏EquippedName
-								if (InWidgetItem->EquippedName)
+								if (UGridSlot * GridSlot = ItemGrid->AddChildToGrid(InWidgetItem))
 								{
-									InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
+									//Slot排布
+									GridSlot->SetRow(Index / 4);
+									GridSlot->SetColumn(Index % 4);
+									Index++;
+
+									GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+									GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+									GridSlot->SetPadding(FMargin(20));
+
+
+									//背包隐藏EquippedName
+									if (InWidgetItem->EquippedName)
+									{
+										InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
+									}
+									//更新Item信息
+									InWidgetItem->UpdateSlot(SlotsByType[i]);
+									//绑定代理
+									InWidgetItem->EquippedtDelegate.BindUObject(this, &UUI_Backpack::UpdateEquippedSlot);
 								}
-								//更新Item信息
-								InWidgetItem->UpdateSlot(SlotsByType[i]);
-								//绑定代理
-								InWidgetItem->EquippedtDelegate.BindUObject(this, &UUI_Backpack::UpdateEquippedSlot);
-								//InWidgetItem->UpdateSaveEquippedDelegate.BindUObject(this, &UUI_Backpack::SaveEquippedItems);
 							}
 						}
 					}
+					////是否为拥有的 (废)
+					//if (SaveMapData->ItemContains(SlotsByType[i]->ID))
+					//{
+					//	if (UUI_EquippedSlot * InWidgetItem = CreateWidget<UUI_EquippedSlot>(GetWorld(), ItemClass))
+					//	{
+					//		if (UGridSlot * GridSlot = ItemGrid->AddChildToGrid(InWidgetItem))
+					//		{
+					//			//Slot排布
+					//			GridSlot->SetRow(Index / 4);
+					//			GridSlot->SetColumn(Index % 4);
+					//			Index++;
+
+					//			GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+					//			GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+					//			GridSlot->SetPadding(FMargin(20));
+
+
+					//			//背包隐藏EquippedName
+					//			if (InWidgetItem->EquippedName)
+					//			{
+					//				InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
+					//			}
+					//			//更新Item信息
+					//			InWidgetItem->UpdateSlot(SlotsByType[i]);
+					//			//绑定代理
+					//			InWidgetItem->EquippedtDelegate.BindUObject(this, &UUI_Backpack::UpdateEquippedSlot);
+					//			//InWidgetItem->UpdateSaveEquippedDelegate.BindUObject(this, &UUI_Backpack::SaveEquippedItems);
+					//		}
+					//	}
+					//}
 				}
 			}
 		}
@@ -127,6 +173,11 @@ void UUI_Backpack::UpdateItem(EHypermarkType InType)
 		}
 	}
 	
+}
+
+void UUI_Backpack::UpdateItem_Inner()
+{
+	UpdateItem(CurMarkType);
 }
 
 void UUI_Backpack::OnXButtonClicked()
@@ -182,15 +233,38 @@ void UUI_Backpack::UpdateEquippedSlot(const int32& InID)
 
 void UUI_Backpack::InitEquippedSlots()
 {
+	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
+	{
+		if (PMod && PMod->EquippedItemIDs.Num() >= 4)
+		{
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(PMod->EquippedItemIDs[0]))
+			{
+				EquippedPrimary->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(PMod->EquippedItemIDs[1]))
+			{
+				EquippedSecondary->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(PMod->EquippedItemIDs[2]))
+			{
+				EquippedCloseRange->UpdateSlot(SlotTable);
+			}
+
+			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(PMod->EquippedItemIDs[3]))
+			{
+				EquippedGrenade->UpdateSlot(SlotTable);
+			}
+		}
+	}
+	/*(废)
 	//获取PlayerState
 	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
 	{
 		if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
 		{
-			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedPrimary.ItemID))
-			{
-				EquippedPrimary->UpdateSlot(SlotTable);
-			}
+			
 
 			if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveItemsData->EquippedSecondary.ItemID))
 			{
@@ -207,11 +281,23 @@ void UUI_Backpack::InitEquippedSlots()
 				EquippedGrenade->UpdateSlot(SlotTable);
 			}
 		}
-	}
+	}*/
 }
 
 void UUI_Backpack::SaveEquippedItems()
 {
+	if (PMod->EquippedItemIDs.Num() > 0)
+	{
+		FSAVE_EQUIPPED_WEAPON_INFO_REQ InData;
+		InData.ItemIDs.Add(EquippedPrimary->HyperTableID);
+		InData.ItemIDs.Add(EquippedSecondary->HyperTableID);
+		InData.ItemIDs.Add(EquippedCloseRange->HyperTableID);
+		InData.ItemIDs.Add(EquippedGrenade->HyperTableID);
+
+		FServerManage::Get()->Send<FSAVE_EQUIPPED_WEAPON_INFO_REQ>(SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, &InData);
+	}
+
+	/* （废）
 	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
 	{
 		SaveItemsData->EquippedPrimary = FItemInfo(EquippedPrimary->HyperTableID);
@@ -235,5 +321,5 @@ void UUI_Backpack::SaveEquippedItems()
 		UE_LOG(LogTemp, Warning, TEXT("Secondary: %d"), SaveItemsData->EquippedSecondary.ItemID);
 		UE_LOG(LogTemp, Warning, TEXT("CloseRange: %d"), SaveItemsData->EquippedCloseRange.ItemID);
 		UE_LOG(LogTemp, Warning, TEXT("Grenade: %d"), SaveItemsData->EquippedGrenade.ItemID);
-	}
+	}*/
 }

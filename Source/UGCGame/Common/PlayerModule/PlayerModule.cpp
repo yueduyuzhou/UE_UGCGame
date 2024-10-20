@@ -66,6 +66,7 @@ void UPlayerModule::OnPlayerInfo(const FPLAYER_INFO_REP& InData)
 {
 	Account = InData.Account;
 	Gold = InData.Gold;
+	EquippedItemIDs = InData.ItemIDs;
 
 	if (OnPlayerInfoOneDelegate.IsBound())
 	{
@@ -116,6 +117,12 @@ void UPlayerModule::InitPlayerInfo(const FLOGIN_REP& InData)
 	{
 		OnPlayerInfo(InData.PlayerInfo);
 	}
+}
+
+const TMap<int32, int32>& UPlayerModule::GetItemsByMainClass(const EItemMainClass& InMC)
+{
+	//MCToItemsData[InMC];
+	return  MCToItemsData.Contains(InMC) ? MCToItemsData[InMC] : EmptyMap;
 }
 
 void UPlayerModule::InitAllItemIDToMC()

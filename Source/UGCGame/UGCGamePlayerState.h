@@ -51,7 +51,7 @@ public:
 
 public:
 	bool SaveMapName(const FString& InMapName);
-	TArray<FString> GetMapList();
+	const TArray<FString>& GetMapList();
 
 	FORCEINLINE const ETransformationType& GetModifyType() { return CurModifyType; }
 	void SetModifyType(const ETransformationType& InModifyType);

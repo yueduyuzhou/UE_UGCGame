@@ -6,7 +6,6 @@
 #include "GameFramework/GameStateBase.h"
 #include "Table/SlotTable.h"
 #include "Table/ElementAttribute.h"
-#include "System/ELementGenerater.h"
 #include "UGCGameState.generated.h"
 
 class UDataTable;

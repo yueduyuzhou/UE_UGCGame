@@ -7,6 +7,7 @@
 #include "UGCGame/Common/ServerManage/ServerManage.h"
 #include "Kismet/GameplayStatics.h"
 #include "../../Common/PlayerModule/PlayerModule.h"
+#include "../../System/GameMapManage.h"
 
 FOnLoginDelegate UUI_LogginPanel::OnLoginDelegate;
 
@@ -14,7 +15,8 @@ void UUI_LogginPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	//UPlayerModule::Get();
+	//永远最开始位置
+	InitModules();
 
 	OKBtn->OnClicked.AddDynamic(this, &UUI_LogginPanel::OnOKBtnClick);
 	CanelBtn->OnClicked.AddDynamic(this, &UUI_LogginPanel::OnCanelBtnClick);
@@ -66,4 +68,11 @@ bool UUI_LogginPanel::CheckLoginInfo(const FLOGIN_REQ& InData)
 {
 	//TODO:检测输入合法
 	return true;
+}
+
+void UUI_LogginPanel::InitModules()
+{
+	UPlayerModule::Get();
+	UGameMapManage::Get();
+	FServerManage::Get();
 }

@@ -41,7 +41,7 @@ void UUI_Hypermarket::NativeConstruct()
 	if (PMod)
 	{
 		UpdateGoldHandle = PMod->OnPlayerInfoDelegate.AddUObject(this, &UUI_Hypermarket::UpdateGold);
-		UpdateGoldHandle = PMod->OnItemsInfoDelegate.AddUObject(this, &UUI_Hypermarket::UpdateItemImage);
+		UpdateItemsHandle = PMod->OnItemsInfoDelegate.AddUObject(this, &UUI_Hypermarket::UpdateItemImage);
 	}
 
 
@@ -52,6 +52,7 @@ void UUI_Hypermarket::NativeConstruct()
 void UUI_Hypermarket::NativeDestruct()
 {
 	PMod->OnPlayerInfoDelegate.Remove(UpdateGoldHandle);
+	PMod->OnItemsInfoDelegate.Remove(UpdateItemsHandle);
 
 	Super::NativeDestruct();
 }
@@ -139,7 +140,7 @@ void UUI_Hypermarket::UpdateItemImage(const int32& InID)
 			//»ñÈ¡HypermarketTable
 			if (FHypermarketTable * CurTable = MyGS->GetWeaponTableTemplate(InID))
 			{
-				TMap<int32, int32> ItemsData = PMod->MCToItemsData.Contains(CurTable->MainClass) ? PMod->MCToItemsData[CurTable->MainClass] : TMap<int32, int32>();
+				TMap<int32, int32> ItemsData = PMod->GetItemsByMainClass(CurTable->MainClass);
 
 				if (ItemsData.Contains(InID))
 				{
@@ -248,7 +249,7 @@ void UUI_Hypermarket::OnBuyButtonClicked()
 
 			if (PMod && PMod->Gold >= CurTable->ItemGold)
 			{
-				TMap<int32, int32> ItemsData = PMod->MCToItemsData.Contains(CurTable->MainClass) ? PMod->MCToItemsData[CurTable->MainClass] : TMap<int32, int32>();
+				TMap<int32, int32> ItemsData = PMod->GetItemsByMainClass(CurTable->MainClass);
 				int32 ItemCount = ItemsData.Contains(CurTable->ID) ? ItemsData[CurTable->ID] : 0;
 
 				if (CurTable->MainClass != EItemMainClass::WEAPON || ItemCount < 1)

@@ -216,27 +216,50 @@ FLOGIN_REP UElementMod::C2D_LOGIN_REQ(const FString& InGuid, const FLOGIN_REQ& I
 {
 	FLOGIN_REP OutData = FLOGIN_REP(0);
 
-	AccountToGuid.Add(InData.Account, InGuid);
-	GuidToAccount.Add(InGuid, InData.Account);
-
 	OutData.PlayerInfo.Account = InData.Account;
 
-	//查询账号
-	FString Sql = FString::Printf(TEXT("Select* FROM playerinfobase where Account = %s;"), *InData.Account);
-	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
-
-	for (auto& Tmp : Res)
+	if (AccountToGuid.Contains(InData.Account))
 	{
-		for (auto& Row : Tmp.Rows)
+		//已经登录过
+		OutData.IsSuccess = 0;
+	}
+	else
+	{
+		AccountToGuid.Add(InData.Account, InGuid);
+		GuidToAccount.Add(InGuid, InData.Account);
+
+		//查询账号
+		FString Sql = FString::Printf(TEXT("Select* FROM playerinfobase where Account = %s;"), *InData.Account);
+		TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+
+		for (auto& Tmp : Res)
 		{
-			if (Row.Key == "Password" && Row.Value == InData.Password) { OutData.IsSuccess = 1; }
+			for (auto& Row : Tmp.Rows)
+			{
+				if (Row.Key == "Password" && Row.Value == InData.Password) { OutData.IsSuccess = 1; }
+			}
+		}
+
+		if (OutData.IsSuccess == 1)
+		{
+			OutData.PlayerInfo = C2D_PLAYER_INFO_REQ(InGuid);
 		}
 	}
 
-	if (OutData.IsSuccess == 1)
+	return OutData;
+}
+
+FQUIT_REP UElementMod::C2D_QUIT_REQ(const FString& InGuid)
+{
+	FQUIT_REP OutData;
+
+	if (GuidToAccount.Contains(InGuid))
 	{
-		OutData.PlayerInfo = C2D_PLAYER_INFO_REQ(InGuid);
+		AccountToGuid.Remove(GuidToAccount[InGuid]);
+		GuidToAccount.Remove(InGuid);
+		OutData.IsSuccess = 1;
 	}
+	else { OutData.IsSuccess = 0; }
 
 	return OutData;
 }
@@ -250,11 +273,24 @@ FPLAYER_INFO_REP UElementMod::C2D_PLAYER_INFO_REQ(const FString& InGuid, const F
 	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *(OutData.Account));
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 
+	TMap<FString, int32> DataFarmat;
+	DataFarmat.Add("EquippedPrimaryID", 0);
+	DataFarmat.Add("EquippedSecondaryID", 1);
+	DataFarmat.Add("EquippedCloseRangeID", 2);
+	DataFarmat.Add("EquippedGrenadeID", 3);
+	OutData.ItemIDs = TArray<int32>({ -1, -1, -1, -1 });
 	for (auto& Tmp : Res)
 	{
 		for (auto& Row : Tmp.Rows)
 		{
 			if (Row.Key == "Gold") { OutData.Gold = FCString::Atoi(*(Row.Value)); }
+			else if (Row.Key == "EquippedPrimaryID" 
+				|| Row.Key == "EquippedSecondaryID" 
+				|| Row.Key == "EquippedCloseRangeID" 
+				|| Row.Key == "EquippedGrenadeID")
+			{
+				OutData.ItemIDs[DataFarmat[Row.Key]] = FCString::Atoi(*(Row.Value));
+			}
 		}
 	}
 
@@ -316,6 +352,51 @@ void UElementMod::C2D_BUY_REQ(const FString& InGuid, const FBUY_REQ& InData)
 	}
 
 	return;
+}
+
+void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const FSAVE_EQUIPPED_WEAPON_INFO_REQ& InData)
+{
+	TArray<TMap<FString, FString>> RepDatas;
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	TArray<FSimpleMysqlComparisonOperator> ClearCond;
+	FSimpleMysqlComparisonOperator OP;
+
+	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
+	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
+	FString Gold = "";
+
+	for (auto& Tmp : Res)
+	{
+		for (auto& Row : Tmp.Rows)
+		{
+			if (Row.Key == "Gold") { Gold = Row.Value; }
+		}
+	}
+
+	//设置清除条件
+	OP.Assignment.A = "Account";
+	OP.Assignment.B = Account;
+	OP.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+	ClearCond.Add(OP);
+
+	//获取武器ID字符串
+	auto GetIDStr = [&](int32 InIndex) ->FString
+	{
+		int32 ID = InData.ItemIDs.Num() > InIndex ? InData.ItemIDs[InIndex] : INDEX_NONE;
+		return FString::FromInt(ID);
+	};
+
+	//设置新数据
+	TMap<FString, FString> Tmp;
+	Tmp.Add("Account", Account);
+	Tmp.Add("Gold", Gold);
+	Tmp.Add("EquippedPrimaryID", GetIDStr(0));
+	Tmp.Add("EquippedSecondaryID", GetIDStr(1));
+	Tmp.Add("EquippedCloseRangeID", GetIDStr(2));
+	Tmp.Add("EquippedGrenadeID", GetIDStr(3));
+	RepDatas.Add(Tmp);
+
+	FMysqlConfig::Get()->ReplaceTableDatas("playerinfo", RepDatas, true, ClearCond);
 }
 
 void UElementMod::UpdateMapIDToName()

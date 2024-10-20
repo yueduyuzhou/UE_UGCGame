@@ -22,11 +22,14 @@ public:
 	FUGC_MAP_INFO_RESPONSE C2D_UGC_CREATE_MAP_REQ(const FString& InGuid = "", const FUGC_CREATE_MAP_REQ& InData = FUGC_CREATE_MAP_REQ());
 	
 	FLOGIN_REP C2D_LOGIN_REQ(const FString& InGuid = "", const FLOGIN_REQ& InData = FLOGIN_REQ());
-	
+	FQUIT_REP C2D_QUIT_REQ(const FString& InGuid = "");
+
 	FPLAYER_INFO_REP C2D_PLAYER_INFO_REQ(const FString& InGuid = "", const FPLAYER_INFO_REQ& InData = FPLAYER_INFO_REQ());
 	
 	FITEM_INFO_REP C2D_ITEM_INFO_REQ(const FString& InGuid = "", const FITEM_INFO_REQ& InData = FITEM_INFO_REQ());
 	void C2D_BUY_REQ(const FString& InGuid = "", const FBUY_REQ& InData = FBUY_REQ());
+
+	void C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid = "", const FSAVE_EQUIPPED_WEAPON_INFO_REQ& InData = FSAVE_EQUIPPED_WEAPON_INFO_REQ());
 
 public:
 	void UpdateMapIDToName();

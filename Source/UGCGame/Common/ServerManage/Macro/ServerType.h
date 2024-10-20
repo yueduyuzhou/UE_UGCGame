@@ -11,6 +11,9 @@ struct FPLAYER_INFO_REP
 
 	FString Account;
 	int32 Gold;
+
+	/* PrimaryWeaponID SecondaryWeaponID CloseRangeWeaponID GrenadeWeaponID */
+	TArray<int32> ItemIDs;
 };
 
 /*****************/
@@ -57,6 +60,25 @@ struct FLOGIN_REP
 
 	/* Player Info */
 	FPLAYER_INFO_REP PlayerInfo;
+};
+
+/* 102 */
+struct FQUIT_REQ
+{
+	FQUIT_REQ() {}
+};
+
+/* 103 */
+struct FQUIT_REP
+{
+	FQUIT_REP() {}
+
+	FQUIT_REP(int32 InIsSuccess)
+		:IsSuccess(InIsSuccess)
+	{}
+
+	/* 0Ê§°Ü 1³É¹¦ */
+	int32 IsSuccess;
 };
 
 /* 150 */
@@ -164,4 +186,13 @@ struct FBUY_REQ
 	{}
 
 	int32 ItemID;
+};
+
+/* 300 */
+struct FSAVE_EQUIPPED_WEAPON_INFO_REQ
+{
+	FSAVE_EQUIPPED_WEAPON_INFO_REQ() {}
+
+	/* PrimaryWeaponID SecondaryWeaponID CloseRangeWeaponID GrenadeWeaponID */
+	TArray<int32> ItemIDs;
 };

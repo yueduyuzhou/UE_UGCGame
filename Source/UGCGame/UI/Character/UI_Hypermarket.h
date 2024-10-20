@@ -106,6 +106,7 @@ private:
 	int32 CurTableID = INDEX_NONE;
 
 	FDelegateHandle UpdateGoldHandle;
+	FDelegateHandle UpdateItemsHandle;
 
 	UPlayerModule* PMod;
 

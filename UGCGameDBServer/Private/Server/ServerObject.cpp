@@ -50,7 +50,14 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			if (OutData.IntData.Num() > 0 || OutData.FloatData.Num() > 0)
 			{
 				OutData.MapID = InData.MapID;
-				UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [MapID=%d, OutData.IntData Size=%d, OutData.FloatData Size=%d]"), SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, InData.MapID, OutData.IntData.Num(), OutData.FloatData.Num());
+				UE_LOG(
+					LogUGCGameDBServer, 
+					Display, 
+					TEXT("[Send Protocol=%d] : [MapID=%d, OutData.IntData Size=%d, OutData.FloatData Size=%d]"), 
+					SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, 
+					InData.MapID, 
+					OutData.IntData.Num(), 
+					OutData.FloatData.Num());
 				PROTOCOLS_SEND(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, OutData.MapID, OutData.IntData, OutData.FloatData);
 			}
 			break;
@@ -79,15 +86,40 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 		{
 			FUGC_SAVE_MAP_INFO_REQ InData;
 			FUGC_SAVE_MAP_INFO_REP OutData;
+			FUGC_MAP_ELEMENT_INFO_REQUEST InMapData;
+			FUGC_MAP_ELEMENT_INFO_RESPONSE OutEleData;
 
 			//1.接收
 			PROTOCOLS_RECEIVE_P(SP_C2D_UGC_SAVE_MAP_INFO_REQ, InData.MapID, InData.MapName, InData.IntData, InData.FloatData);
-			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Recv Protocol=%d] : [MapID=%d, MapName=%s, InData.IntData Size=%d, InData.FloatData Size=%d]"), SP_C2D_UGC_SAVE_MAP_INFO_REQ, InData.MapID, *InData.MapName, InData.IntData.Num(), InData.FloatData.Num());
+			UE_LOG(
+				LogUGCGameDBServer, 
+				Display, 
+				TEXT("[Recv Protocol=%d] : [MapID=%d, MapName=%s, InData.IntData Size=%d, InData.FloatData Size=%d]"), 
+				SP_C2D_UGC_SAVE_MAP_INFO_REQ, 
+				InData.MapID, 
+				*InData.MapName, 
+				InData.IntData.Num(), 
+				InData.FloatData.Num());
 
 			//2.协议对应处理
-			//OutData = UElementMod::Get()->C2D_UGC_SAVE_MAP_INFO_REQ(InData);
+			InMapData.MapID = InData.MapID;
 			PROTOCOLS_IO_DEAL_WITH_SERVER(C2D_UGC_SAVE_MAP_INFO_REQ, OutData, InData);
+			PROTOCOLS_IO_OTHRE_DEAL_WITH_SERVER(C2D_UGC_SAVE_MAP_INFO_REQ, C2D_UGC_MAP_ELEMENT_INFO_REQUEST, OutEleData, InMapData);
 
+			//3.发送响应
+			if (OutEleData.IntData.Num() > 0 || OutEleData.FloatData.Num() > 0)
+			{
+				OutEleData.MapID = InMapData.MapID;
+				UE_LOG(
+					LogUGCGameDBServer, 
+					Display, 
+					TEXT("[Send Protocol=%d] : [MapID=%d, OutData.IntData Size=%d, OutData.FloatData Size=%d]"), 
+					SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, 
+					OutEleData.MapID, 
+					OutEleData.IntData.Num(), 
+					OutEleData.FloatData.Num());
+				PROTOCOLS_SEND(SP_D2C_UGC_MAP_ELEMENT_INFO_RESPONSE, OutEleData.MapID, OutEleData.IntData, OutEleData.FloatData);
+			}
 			break;
 		}
 		case SP_C2D_UGC_CREATE_MAP_REQ:
@@ -130,12 +162,29 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			PROTOCOLS_SEND(SP_D2C_LOGIN_REP, 
 				OutData.IsSuccess, 
 				OutData.PlayerInfo.Account, 
-				OutData.PlayerInfo.Gold);
+				OutData.PlayerInfo.Gold,
+				OutData.PlayerInfo.ItemIDs);
 
 			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [OutData.ItemIDs Length=%d, OutData.Counts Length=%d]"), SP_D2C_ITEM_INFO_REP, ItemsData.ItemIDs.Num(), ItemsData.Counts.Num());
 			PROTOCOLS_SEND(SP_D2C_ITEM_INFO_REP,
 				ItemsData.ItemIDs,
 				ItemsData.Counts);
+			break;
+		}
+		case SP_C2D_QUIT_REQ:
+		{
+			FQUIT_REP OutData;
+
+			//1.接收
+			PROTOCOLS_RECEIVE_P(SP_C2D_QUIT_REQ);
+			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Recv Protocol=%d] : [Player Guid=%s Request Quit]"), SP_C2D_QUIT_REQ, *Guid_SP_C2D_QUIT_REQ);
+
+			//2.协议对应处理
+			PROTOCOLS_O_DEAL_WITH_SERVER(C2D_QUIT_REQ, OutData);
+
+			//3.发送响应
+			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Guid=%s Quit %s]"), SP_C2D_QUIT_REQ, *Guid_SP_C2D_QUIT_REQ, (OutData.IsSuccess ? "Success" : "Fail"));
+			PROTOCOLS_SEND(SP_C2D_QUIT_REQ, OutData.IsSuccess);
 			break;
 		}
 		case SP_C2D_PLAYER_INFO_REQ:
@@ -200,6 +249,19 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			PROTOCOLS_SEND(SP_D2C_PLAYER_INFO_REP,
 				PlayerInfo.Account,
 				PlayerInfo.Gold);
+			break;
+		}
+		case SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ:
+		{
+			FSAVE_EQUIPPED_WEAPON_INFO_REQ InData;
+
+			//1.接收
+			PROTOCOLS_RECEIVE_P(SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, InData.ItemIDs);
+			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Recv Protocol=%d] : [InData.ItemIDs Length=%d]"), SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, InData.ItemIDs.Num());
+
+			//2.协议对应处理
+			PROTOCOLS_I_DEAL_WITH_SERVER(C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, InData);
+
 			break;
 		}
 	}

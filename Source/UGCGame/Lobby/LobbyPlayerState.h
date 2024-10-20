@@ -17,5 +17,5 @@ class UGCGAME_API ALobbyPlayerState : public APlayerState
 	ALobbyPlayerState();
 
 public:
-	TArray<FString> GetMapList();
+	const TArray<FString>& GetMapList();
 };

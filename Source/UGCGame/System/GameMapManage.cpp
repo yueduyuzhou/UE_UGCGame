@@ -194,6 +194,18 @@ void UGameMapManage::LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld
 	}
 }
 
+const TArray<FString>& UGameMapManage::GetMapNameArray()
+{
+	MapNames.Empty();
+
+	for (auto& Tmp : NameToMapID)
+	{
+		MapNames.Add(Tmp.Key);
+	}
+
+	return MapNames;
+}
+
 void UGameMapManage::OnUGCElementInfo(FUGC_MAP_ELEMENT_INFO_RESPONSE InData)
 {
 	TmpElements.Empty();
@@ -268,6 +280,8 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 						UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : GetElementAttributeTemplate fail, ElementID = %d"), Tmp.ElementID);
 					}
 				}
+
+				TmpElements.Empty();
 			}
 
 			////从文件中加载属性

@@ -32,6 +32,8 @@ public:
 	void OnItemsInfo(const FITEM_INFO_REP& InData);
 	void InitPlayerInfo(const FLOGIN_REP& InData);
 
+	const TMap<int32, int32>& GetItemsByMainClass(const EItemMainClass& InMC = EItemMainClass::DEFAULT);
+
 private:
 	void InitAllItemIDToMC();
 
@@ -52,8 +54,11 @@ public:
 	/******************************基础信息****************************/
 	FString Account;
 	int32 Gold;
+	/* PrimaryWeaponID SecondaryWeaponID CloseRangeWeaponID GrenadeWeaponID */
+	TArray<int32> EquippedItemIDs;
 
 	/******************************背包信息****************************/
 	TMap<EItemMainClass, TMap<int32, int32>> MCToItemsData;
 	TMap<int32, EItemMainClass> AllItemIDToMC;
+	TMap<int32, int32> EmptyMap;
 };

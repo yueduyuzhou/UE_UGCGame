@@ -46,6 +46,9 @@ public:
 	/*为UGC加载地图数据并生成*/
 	void LoadMapDataAndSpawnForUGC(const FString& InSlotName, UWorld* InWorld);
 
+	/*获取所有Map名字数组*/
+	const TArray<FString>& GetMapNameArray();
+
 	/*-------------------------------------------------------------------------*/
 	static void OnUGCElementInfo(FUGC_MAP_ELEMENT_INFO_RESPONSE InData);
 	static void OnUGCMapInfo(FUGC_MAP_INFO_RESPONSE InData);
@@ -59,6 +62,7 @@ private:
 	static TSharedPtr<UGameMapManage> GameMapManage;
 
 	static TMap<FString, int32> NameToMapID;
+	TArray<FString> MapNames;
 
 	static TArray<FElemInfo> TmpElements;
 };

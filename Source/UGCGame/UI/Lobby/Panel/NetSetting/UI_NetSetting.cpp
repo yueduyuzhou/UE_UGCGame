@@ -71,7 +71,7 @@ void UUI_NetSetting::SetValues(const TArray<FString>& InValues)
 	Values.Empty();
 	for (auto& Tmp : InValues)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%s"), *Tmp));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("%s"), *Tmp));
 		Values.Add(FText::FromString(Tmp));
 	}
 }

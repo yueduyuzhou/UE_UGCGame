@@ -8,9 +8,12 @@ DEFINITION_SIMPLE_PROTOCOLS(C2D_DATA_REQUEST, 50);		/* 测试 获取UGC元素信
 DEFINITION_SIMPLE_PROTOCOLS(D2C_DATA_RESPONSE, 51);	/* 测试响应 {...} */
 
 
-/**************************************************登录***************************************************/
+/**************************************************登录退出***************************************************/
 DEFINITION_SIMPLE_PROTOCOLS(C2D_LOGIN_REQ, 100);		/* 登录 {FString, FString} */
 DEFINITION_SIMPLE_PROTOCOLS(D2C_LOGIN_REP, 101);	/* 测试响应 {int32(bool)} */
+
+DEFINITION_SIMPLE_PROTOCOLS(C2D_QUIT_REQ, 102);		/* 退出请求 {} */
+DEFINITION_SIMPLE_PROTOCOLS(D2C_QUIT_REP, 103);		/* 退出响应 {int32(bool)} */
 
 
 /**************************************************UGC***************************************************/
@@ -37,3 +40,6 @@ DEFINITION_SIMPLE_PROTOCOLS(C2D_ITEM_INFO_REQ, 250);		/* item信息请求 {} */
 DEFINITION_SIMPLE_PROTOCOLS(D2C_ITEM_INFO_REP, 251);		/* item信息响应 {...} */
 
 DEFINITION_SIMPLE_PROTOCOLS(C2D_BUY_REQ, 252);		/* 购买请求 {int32} */
+
+/**************************************************Backpack**************************************************/
+DEFINITION_SIMPLE_PROTOCOLS(C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, 300);		/* 保存已装备信息请求 {int32[]} */

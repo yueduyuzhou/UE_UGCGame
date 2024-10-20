@@ -12,6 +12,7 @@ class UGridPanel;
 class UComboBoxString;
 class UUI_HypermarketSlot;
 class UUI_EquippedSlot;
+class UPlayerModule;
 struct FHypermarketTable;
 
 /**
@@ -47,13 +48,15 @@ class UGCGAME_API UUI_Backpack : public UUserWidget
 		TSubclassOf<UUI_EquippedSlot> ItemClass;
 
 protected:
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
 	virtual void OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 protected:
-	void UpdateItem(EHypermarkType InType);
+	void UpdateItem(EHypermarkType InType = EHypermarkType::DEFAULT);
+	void UpdateItem_Inner();
 
 	UFUNCTION()
 	void OnXButtonClicked();
@@ -64,4 +67,10 @@ public:
 	void InitEquippedSlots();
 
 	void SaveEquippedItems();
+
+private:
+	UPlayerModule* PMod = nullptr;
+
+	FDelegateHandle UpdateItemsHandle;
+	EHypermarkType CurMarkType;
 };

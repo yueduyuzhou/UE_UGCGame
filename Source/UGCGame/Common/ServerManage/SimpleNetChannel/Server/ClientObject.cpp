@@ -52,8 +52,22 @@ void UClientObject::RecvProtocol(uint32 InProtocol)
 		case SP_D2C_LOGIN_REP:
 		{
 			FLOGIN_REP RecvData;
-			PROTOCOLS_RECEIVE(SP_D2C_UGC_MAP_INFO_RESPONSE, RecvData.IsSuccess, RecvData.PlayerInfo.Account, RecvData.PlayerInfo.Gold);
+			PROTOCOLS_RECEIVE(
+				SP_D2C_UGC_MAP_INFO_RESPONSE, 
+				RecvData.IsSuccess, 
+				RecvData.PlayerInfo.Account, 
+				RecvData.PlayerInfo.Gold,
+				RecvData.PlayerInfo.ItemIDs);
 			FServerManage::Get()->ExecuteCallback<FLOGIN_REP>(InProtocol, RecvData);
+			break;
+		}
+		case SP_D2C_QUIT_REP:
+		{
+			FQUIT_REP RecvData;
+			PROTOCOLS_RECEIVE(
+				SP_D2C_UGC_MAP_INFO_RESPONSE,
+				RecvData.IsSuccess);
+			FServerManage::Get()->ExecuteCallback<FQUIT_REP>(InProtocol, RecvData);
 			break;
 		}
 		case SP_D2C_PLAYER_INFO_REP:
@@ -111,21 +125,14 @@ void UClientObject::RecvProtocol(uint32 InProtocol)
 
 SEND_FUNC_IMPLEMENTATION_P(DATA_REQUEST, args->TestStr, args->TestNum);
 SEND_FUNC_IMPLEMENTATION_P(LOGIN_REQ, args->Account, args->Password);
+SEND_FUNC_IMPLEMENTATION(QUIT_REQ);
 SEND_FUNC_IMPLEMENTATION_P(UGC_MAP_ELEMENT_INFO_REQUEST, args->MapID);
 SEND_FUNC_IMPLEMENTATION(UGC_MAP_INFO_REQUEST);
 SEND_FUNC_IMPLEMENTATION_P(UGC_SAVE_MAP_INFO_REQ, args->MapID, args->MapName, args->IntData, args->FloatData);
 SEND_FUNC_IMPLEMENTATION_P(UGC_CREATE_MAP_REQ, args->MapNames);
 SEND_FUNC_IMPLEMENTATION(ITEM_INFO_REQ);
 SEND_FUNC_IMPLEMENTATION_P(BUY_REQ, args->ItemID);
-
-
-//template<typename ...Args>
-//void UClientObject::Recv(uint32 InProtocol)
-//{
-//	TTuple<Args...> args;
-//
-//	
-//}
+SEND_FUNC_IMPLEMENTATION_P(SAVE_EQUIPPED_WEAPON_INFO_REQ, args->ItemIDs);
 
 #if PLATFORM_WINDOWS
 #pragma optimize("",on) 

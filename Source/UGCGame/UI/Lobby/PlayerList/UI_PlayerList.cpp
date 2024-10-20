@@ -15,6 +15,7 @@
 #include "ThreadManage.h"
 #include "Kismet/GameplayStatics.h"
 #include "../../../Common/MethodUnit.h"
+#include "../../../Lobby/LobbyPlayerState.h"
 
 void UUI_PlayerList::NativeConstruct()
 {
@@ -151,9 +152,7 @@ void UUI_PlayerList::UpdateMapList()
 	{
 		if (Select_GameMap)
 		{
-			TArray<FString> Maps = MyPlayerState->GetMapList();
-
-			Select_GameMap->SetValues(Maps);
+			Select_GameMap->SetValues(MyPlayerState->GetMapList());
 		}
 	}
 }

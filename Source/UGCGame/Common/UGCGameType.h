@@ -27,8 +27,8 @@ enum class EHypermarkType : uint8
 	ALL					UMETA(DisplayName = "All"),
 	PRIMARYWEAPON		UMETA(DisplayName = "PrimaryWeapon"),
 	SECONDARYWEAPON		UMETA(DisplayName = "SecondaryWeapon"),
-	CLOSERANGEWEAPON	UMETA(DisplayName = "CloseRangeWeapon")
-
+	CLOSERANGEWEAPON	UMETA(DisplayName = "CloseRangeWeapon"),
+	DEFAULT				UMETA(DiaplayName = "Default")
 };
 
 UENUM(BlueprintType)

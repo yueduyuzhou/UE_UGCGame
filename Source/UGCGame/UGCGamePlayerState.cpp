@@ -197,16 +197,16 @@ FRotator AUGCGamePlayerState::SnapToGridRotation(const FRotator & InOldRotation,
 	return SnappedRotation;
 }
 
-TArray<FString> AUGCGamePlayerState::GetMapList()
+const TArray<FString>& AUGCGamePlayerState::GetMapList()
 {
 	//TODO£∫¥”DBServerªÒ»°
-	UMapListSaveData* SaveMapData = Cast<UMapListSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("MapList"), 0));
+	/*UMapListSaveData* SaveMapData = Cast<UMapListSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("MapList"), 0));
 	if (SaveMapData)
 	{
 		return SaveMapData->Maps;
-	}
+	}*/
 
-	return TArray<FString>();
+	return UGameMapManage::Get()->GetMapNameArray();
 }
 
 void AUGCGamePlayerState::SetModifyType(const ETransformationType & InModifyType)
