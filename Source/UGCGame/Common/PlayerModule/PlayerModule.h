@@ -1,12 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UGCGame/Common/UGCGameType.h"
 #include "PlayerModule.generated.h"
 
 struct FLOGIN_REP;
 struct FPLAYER_INFO_REP;
 struct FITEM_INFO_REP;
-enum class EItemMainClass : uint8;
+//enum class EItemMainClass : uint8;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerInfoOneDelegate, const FPLAYER_INFO_REP&);
 DECLARE_MULTICAST_DELEGATE(FOnPlayerInfoDelegate);

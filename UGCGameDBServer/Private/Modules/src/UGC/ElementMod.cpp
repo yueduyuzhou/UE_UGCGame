@@ -283,8 +283,8 @@ FPLAYER_INFO_REP UElementMod::C2D_PLAYER_INFO_REQ(const FString& InGuid, const F
 	{
 		for (auto& Row : Tmp.Rows)
 		{
-			if (Row.Key == "Gold") { OutData.Gold = FCString::Atoi(*(Row.Value)); }
-			else if (Row.Key == "EquippedPrimaryID" 
+			//if (Row.Key == "Gold") { OutData.Gold = FCString::Atoi(*(Row.Value)); }
+			if (Row.Key == "EquippedPrimaryID" 
 				|| Row.Key == "EquippedSecondaryID" 
 				|| Row.Key == "EquippedCloseRangeID" 
 				|| Row.Key == "EquippedGrenadeID")
@@ -294,6 +294,7 @@ FPLAYER_INFO_REP UElementMod::C2D_PLAYER_INFO_REQ(const FString& InGuid, const F
 		}
 	}
 
+	OutData.Gold = GetPlayerGold(InGuid);
 	return OutData;
 }
 
@@ -361,7 +362,7 @@ void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const
 	TArray<FSimpleMysqlComparisonOperator> ClearCond;
 	FSimpleMysqlComparisonOperator OP;
 
-	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
+	/*FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 	FString Gold = "";
 
@@ -371,7 +372,7 @@ void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const
 		{
 			if (Row.Key == "Gold") { Gold = Row.Value; }
 		}
-	}
+	}*/
 
 	//设置清除条件
 	OP.Assignment.A = "Account";
@@ -389,7 +390,7 @@ void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const
 	//设置新数据
 	TMap<FString, FString> Tmp;
 	Tmp.Add("Account", Account);
-	Tmp.Add("Gold", Gold);
+	//Tmp.Add("Gold", Gold);
 	Tmp.Add("EquippedPrimaryID", GetIDStr(0));
 	Tmp.Add("EquippedSecondaryID", GetIDStr(1));
 	Tmp.Add("EquippedCloseRangeID", GetIDStr(2));
@@ -420,14 +421,14 @@ void UElementMod::UpdateMapIDToNameBy(const FUGC_MAP_INFO_RESPONSE& InMapInfo)
 int32 UElementMod::GetPlayerGold(const FString& InGuid)
 {
 	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
-	FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
+	FString Sql = FString::Printf(TEXT("Select* FROM playeritemsinfo where Account = %s and ItemID = 1;"), *Account);
 	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
 
 	for (auto& Tmp : Res)
 	{
 		for (auto& Row : Tmp.Rows)
 		{
-			if (Row.Key == "Gold") { return FCString::Atoi(*(Row.Value)); }
+			if (Row.Key == "Count") { return FCString::Atoi(*(Row.Value)); }
 		}
 	}
 
@@ -476,19 +477,23 @@ void UElementMod::UpdatePlayerGold(const FString& InGuid, const int32& InNewGold
 	TArray<TMap<FString, FString>> RepDatas;
 	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
 	TArray<FSimpleMysqlComparisonOperator> ClearCond;
-	FSimpleMysqlComparisonOperator OP;
+	FSimpleMysqlComparisonOperator OP, OP2;
 
 	//设置清除条件
 	OP.Assignment.A = "Account";
 	OP.Assignment.B = Account;
-	OP.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+	OP2.Assignment.A = "ItemID";
+	OP2.Assignment.B = "1";
+	OP.Assignment.ComparisonOperator = OP2.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
 	ClearCond.Add(OP);
+	ClearCond.Add(OP2);
 
 	//设置新数据
 	TMap<FString, FString> Tmp;
 	Tmp.Add("Account", Account);
+	Tmp.Add("ItemID", "1");
 	Tmp.Add("Gold", FString::FromInt(InNewGold));
 	RepDatas.Add(Tmp);
 
-	FMysqlConfig::Get()->ReplaceTableDatas("playerinfo", RepDatas, true, ClearCond);
+	FMysqlConfig::Get()->ReplaceTableDatas("playeritemsinfo", RepDatas, true, ClearCond);
 }

@@ -13,6 +13,8 @@ class UCheckBox;
 class UEditableText;
 class UUI_DetailVector;
 class FDelegateHandle;
+class AElementBase;
+
 /**
  * 
  */

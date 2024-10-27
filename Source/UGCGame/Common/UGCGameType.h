@@ -91,6 +91,7 @@ enum class ELobbyPanelType : uint8
 	LOBBY_UIPANEL_LOBBY						UMETA(DisplayName = "LobbyPanel"),
 	LOBBY_UIPANEL_HYPERMARKET				UMETA(DisplayName = "HypermarketPanel"),
 	LOBBY_UIPANEL_CREATIVEWORKSHOP			UMETA(DisplayName = "CreativeWorkshop"),
+	LOBBY_UIPANEL_QUITPANEL					UMETA(DisplayName = "QuitPanel"),
 };
 
 UENUM(BlueprintType)
@@ -100,5 +101,18 @@ enum class EItemMainClass : uint8
 	CURRENCY = 1					UMETA(DisplayName = "Currency"),
 	WEAPON = 2						UMETA(DisplayName = "Weapon"),
 	OTHER = 3						UMETA(DisplayName = "Other"),
+};
+
+/* 通用物品id，数量 键值对*/
+USTRUCT(BlueprintType)
+struct FIDCountPair
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+		int32 ItemID;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+		int32 Count;
 };
 

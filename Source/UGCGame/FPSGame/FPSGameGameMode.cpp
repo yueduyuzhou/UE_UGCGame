@@ -98,6 +98,7 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 
 void AFPSGameGameMode::GameCharacterDeath(const int32& InKillerID, const int32& InKilledID)
 {
+	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]:%d ==Kill==> %d"), InKillerID, InKilledID);
 	if (UUGCGameInstance * MyGI = GetGameInstance<UUGCGameInstance>())
 	{
 		if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))

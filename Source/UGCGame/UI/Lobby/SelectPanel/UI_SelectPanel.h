@@ -25,6 +25,9 @@ class UGCGAME_API UUI_SelectPanel : public UUI_Base
 	UPROPERTY(meta = (BindWidget))
 		UButton* CreativeWorkshopButton;
 
+	UPROPERTY(meta = (BindWidget))
+		UButton* QuitButton;
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -38,5 +41,8 @@ protected:
 	UFUNCTION()
 		void OnCreativeWorkshopButtonClicked();
 	
+	UFUNCTION()
+		void OnQuitButtonClicked();
+
 	void UpdateMainPanel(ELobbyPanelType InType);
 };

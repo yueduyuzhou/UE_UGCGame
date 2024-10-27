@@ -38,6 +38,11 @@ public:
 	**********************************************************************/
 	ALobbyPlayerController* GetLocalPlayerController();
 
+	/**********************************************************************
+	*	
+	**********************************************************************/
+	void OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID);
+
 protected:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer);

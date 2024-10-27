@@ -183,8 +183,8 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			PROTOCOLS_O_DEAL_WITH_SERVER(C2D_QUIT_REQ, OutData);
 
 			//3.发送响应
-			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Guid=%s Quit %s]"), SP_C2D_QUIT_REQ, *Guid_SP_C2D_QUIT_REQ, (OutData.IsSuccess ? "Success" : "Fail"));
-			PROTOCOLS_SEND(SP_C2D_QUIT_REQ, OutData.IsSuccess);
+			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Guid=%s Quit %s]"), SP_D2C_QUIT_REP, *Guid_SP_C2D_QUIT_REQ, (OutData.IsSuccess ? "Success" : "Fail"));
+			PROTOCOLS_SEND(SP_D2C_QUIT_REP, OutData.IsSuccess);
 			break;
 		}
 		case SP_C2D_PLAYER_INFO_REQ:

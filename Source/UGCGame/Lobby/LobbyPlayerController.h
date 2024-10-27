@@ -42,9 +42,17 @@ public:
 	UFUNCTION(client, reliable)
 		void ServerCallClientAddMassage(const int32& InPlayerID, const FString& InMsg);
 
+	UFUNCTION(client, reliable)
+		void ServerCallClientSendPlayerInfo();
+
+	UFUNCTION(server, reliable)
+		void ServerReceivePlayerInfo(const FString& InNewPlayerID);
+
 public:
 	void SetPlayerList(UUI_PlayerList* InPlayerList);
 	void SetChatFrame(UUI_ChatFrame* InChatFrame);
+
+	FORCEINLINE const int32& GetPlayerID() { return PlayerID; }
 
 public:
 	UPROPERTY(Replicated)

@@ -100,6 +100,7 @@ public:
 		bool IsAuthority();
 
 	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
+	FORCEINLINE const int32& GetPlayerID() { return PlayerID; }
 
 public:
 	UUI_Crosshair* CrosshairUI;

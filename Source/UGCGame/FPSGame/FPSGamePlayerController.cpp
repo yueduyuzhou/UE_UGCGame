@@ -310,7 +310,7 @@ void AFPSGamePlayerController::ControllerCharacterDeath(AActor* InDamager)
 						if (AFPSGameGameMode * MyFPSGM = Cast<AFPSGameGameMode>(MyGM))
 						{
 							//GameMode´¦ÀíËÀÍö
-							GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call ControllerCharacterDeath, KillerPlayerID = %d, KilledPlayerID = %d"), DamagerController->PlayerID, PlayerID));
+							//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call ControllerCharacterDeath, KillerPlayerID = %d, KilledPlayerID = %d"), DamagerController->PlayerID, PlayerID));
 
 							MyFPSGM->GameCharacterDeath(DamagerController->PlayerID, PlayerID);
 						}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "../Common/UGCGameType.h"
 #include "MapSaveData.generated.h"
 
 USTRUCT(BlueprintType)

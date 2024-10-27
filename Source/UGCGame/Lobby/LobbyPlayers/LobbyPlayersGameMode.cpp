@@ -119,6 +119,21 @@ ALobbyPlayerController* ALobbyPlayersGameMode::GetLocalPlayerController()
 	return nullptr;
 }
 
+void ALobbyPlayersGameMode::OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID)
+{
+	FPlayerNetData TmpPlayerData;
+	TmpPlayerData.PlayerID = InNewPlayer->PlayerID;
+	TmpPlayerData.Team = ETeamType::TEAM_RED;
+
+	AddPlayerDataInInstance(TmpPlayerData);
+	InNewPlayer->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
+
+	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
+		{
+			NotifyAllPlayerUpdateList();
+		});
+}
+
 void ALobbyPlayersGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
@@ -132,19 +147,8 @@ void ALobbyPlayersGameMode::PostLogin(APlayerController* NewPlayer)
 
 	if (ALobbyPlayerController * MyPC = Cast<ALobbyPlayerController>(NewPlayer))
 	{
-		//FCString::Atoi(*(FPlayerModule::Get()->Account));
-		MyPC->PlayerID = (int32)FMath::RandRange(100000, 999999999); 
-		FPlayerNetData TmpPlayerData;
-		TmpPlayerData.PlayerID = MyPC->PlayerID;
-		TmpPlayerData.Team = ETeamType::TEAM_RED;
-
-		AddPlayerDataInInstance(TmpPlayerData);
-		MyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
-
-		GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-			{
-				NotifyAllPlayerUpdateList();
-			});
+		//呼叫新加入玩家的本地客户端发送信息到服务器
+		MyPC->ServerCallClientSendPlayerInfo();
 	}
 }
 

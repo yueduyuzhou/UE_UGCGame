@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "CommonData/FPSGameType.h"
+#include "Common/FPSGameType.h"
 #include "WeaponBaseServer.generated.h"
 
 class USkeletalMeshComponent;

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Common/UGCGameType.h"
-#include "FPSGame/CommonData/FPSGameType.h"
+#include "FPSGame/Common/FPSGameType.h"
 #include "UGCGameInstance.generated.h"
 
 
@@ -25,7 +25,6 @@ public:
 	bool IsLocalTeamWin() { return WinTeam == LocalPlayerData.Team; }
 
 public:
-
 	/*********************************UGC*******************************/
 	/* «∑Òº”‘ÿµÿÕº*/
 	bool bIsLoadMapForUGC;

@@ -1608,27 +1608,37 @@ void AFPSGameCharacterBase::CharacterDeath()
 
 void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
 {
-	if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
+	if (AFPSGameGameState * GS = GetWorld()->GetGameState<AFPSGameGameState>())
 	{
-		if (AFPSGamePlayerController * DamageCauserFPSPC = Cast<AFPSGamePlayerController>(DamageCauser->GetOwner()))
+		//获取 被攻击者 的PlayerState
+		if (AFPSGamePlayerState * MyPlayerState = Cast<AFPSGamePlayerState>(GetPlayerState()))
 		{
-			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(GetOwner()))
+			//获取 攻击者 的PlayerController
+			if (AFPSGamePlayerController * DamageCauserFPSPC = Cast<AFPSGamePlayerController>(DamageCauser->GetOwner()))
 			{
-				if (MyFPSPC->GetTeamType() == MyFPSPC->GetTeamType())
+				//获取 被攻击者 的PlayerController
+				if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(GetOwner()))
 				{
-					//同队伤害衰减
-					Damage /= 15;
-				}
-				MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
-				ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
-
-				if (MyPlayerState->Health <= 0)
-				{
-					//死亡
-					if (AFPSGamePlayerController * FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+					if (MyFPSPC->GetTeamType() == DamageCauserFPSPC->GetTeamType())
 					{
-						CharacterDeath();
-						FPSPC->ControllerCharacterDeath(DamageCauser);
+						//同队伤害衰减
+						Damage /= 15;
+					}
+					//应用伤害
+					MyPlayerState->Health = FMath::Clamp(MyPlayerState->Health - Damage, 0.f, MyPlayerState->MaxHealth);
+					ServerCallClientUpdateHealth(MyPlayerState->Health, MyPlayerState->MaxHealth);
+					
+					//攻击时记录
+					GS->Attack(DamageCauserFPSPC->GetPlayerID(), MyFPSPC->GetPlayerID());
+					
+					//死亡
+					if (MyPlayerState->Health <= 0)
+					{
+						if (AFPSGamePlayerController * FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+						{
+							CharacterDeath();
+							FPSPC->ControllerCharacterDeath(DamageCauser);
+						}
 					}
 				}
 			}

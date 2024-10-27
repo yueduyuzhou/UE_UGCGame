@@ -3,8 +3,9 @@
 
 #include "FPSGameGameState.h"
 #include "FPSGameGameMode.h"
-#include "CommonData/FPSGameType.h"
+#include "Common/FPSGameType.h"
 #include "../Table/HypermarketTable.h"
+#include "../Table/KillReward.h"
 
 AFPSGameGameState::AFPSGameGameState()
 	:BlueTeamKillCount(0)
@@ -12,6 +13,9 @@ AFPSGameGameState::AFPSGameGameState()
 {
 	static ConstructorHelpers::FObjectFinder<UDataTable> Hypermarket_Table(TEXT("/Game/Table/HypermarketTable"));
 	WeaponTablePtr = Hypermarket_Table.Object;
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> KillReward_Table(TEXT("/Game/Table/KillReward"));
+	KillRewardTablePtr = KillReward_Table.Object;
 }
 
 FHypermarketTable* AFPSGameGameState::GetWeaponTableTemplate(const int32& InID)
@@ -41,39 +45,123 @@ TArray<FHypermarketTable*>* AFPSGameGameState::GetWeaponTablesTemplate()
 	return &CacheWeaponTables;
 }
 
+FKillReward* AFPSGameGameState::GetKillRewardTableTemplate(const int32& InID)
+{
+	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameState]:Find ID=%d FKillReward "), InID);
+	if (const TArray<FKillReward*> * SlotData = GetKillRewardTablesTemplate())
+	{
+		for (auto* Tmp : (*SlotData))
+		{
+			if (Tmp->ID == InID)
+			{
+				UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameState]:return ID Is %d FKillReward "), Tmp->ID);
+				return Tmp;
+			}
+		}
+	}
+	return nullptr;
+}
+
+TArray<FKillReward*>* AFPSGameGameState::GetKillRewardTablesTemplate()
+{
+	if (!CacheKillRewardTables.Num())
+	{
+		if (KillRewardTablePtr)
+		{
+			KillRewardTablePtr->GetAllRows(TEXT("Kill Reward Table"), CacheKillRewardTables);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameState]:KillRewardTablePtr Is Null"));
+		}
+	}
+	return &CacheKillRewardTables;
+}
+
 void AFPSGameGameState::KillBlue(const int32& InKillerID, const int32& InKilledID)
 {
+	//记录队伍击杀数
 	BlueTeamKillCount++;
-	if (ExistPlayer(InKillerID))
-	{
-		GetInfoByID(InKillerID).KillCount++;
-	}
-	if (ExistPlayer(InKilledID))
-	{
-		GetInfoByID(InKilledID).DeathCount++;
-	}
+	SettlementDeath(InKillerID, InKilledID);
 }
 
 void AFPSGameGameState::KillRed(const int32& InKillerID, const int32& InKilledID)
 {
+	//记录队伍击杀数
 	RedTeamKillCount++;
+	SettlementDeath(InKillerID, InKilledID);
+}
+
+void AFPSGameGameState::Attack(const int32& InAttackerID, const int32& InAttackedID)
+{
+	FFPSPlayerInfo& Attacked = GetInfoByID(InAttackedID);
+	Attacked.AssisterQueue.AddAssister(InAttackerID);
+
+	//UE_LOG(LogTemp, Display, TEXT("%d ==Attack==> %d"), InAttackerID, InAttackedID);
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("%d ==Attack==> %d"), InAttackerID, InAttackedID));
+}
+
+void AFPSGameGameState::SettlementDeath(const int32& InKillerPlayerID, const int32& InKilledPlayerID)
+{
+	FFPSPlayerInfo& Killer = GetInfoByID(InKillerPlayerID);
+	FFPSPlayerInfo& Killed = GetInfoByID(InKilledPlayerID);
+
+	//记录个人数据
+	Killer.KillCount++;
+	Killer.TmpKillCount++;
+	Killed.DeathCount++;
+
+	FKillReward* KRData = GetKillRewardTableTemplate(Killed.TmpKillCount);
+	if (!KRData) 
+	{
+		UE_LOG(LogTemp, Error, TEXT("[class AFPSGameGameState]:KRData Is Null"));
+		return;
+	}
+
+	TArray<FIDCountPair> Items = KRData->Items;
 	
-	if (ExistPlayer(InKillerID))
+
+	//击杀者奖励
+	//TMap<int32, int32>& RewItems = Killer.Items;
+	//for (FIDCountPair& Tmp : Items)
+	//{
+	//	if (RewItems.Contains(Tmp.ItemID)) { RewItems[Tmp.ItemID] += Tmp.Count; }
+	//	else { RewItems.Add(Tmp.ItemID, Tmp.Count); }
+	//}
+
+	//击杀者和助攻者奖励叠加(BUG)
+	int32 Cur = 0;
+	while (!Killed.AssisterQueue.IsEmpty())
 	{
-		GetInfoByID(InKillerID).KillCount++;
+		int32 AssisterID = Killed.AssisterQueue.Tail();
+		Killed.AssisterQueue.PopTail();
+		FFPSPlayerInfo& Assister = GetInfoByID(AssisterID);
+		TMap<int32, int32>& AssisRewItems = Assister.Items;
+
+		for (FIDCountPair& Tmp : Items)
+		{
+			//奖励衰减
+			Tmp.Count >>= Cur;
+
+			if (AssisRewItems.Contains(Tmp.ItemID)) { AssisRewItems[Tmp.ItemID] += Tmp.Count; }
+			else { AssisRewItems.Add(Tmp.ItemID, Tmp.Count); }
+			UE_LOG(LogTemp, Display, TEXT("AssisterID=%d RewItems ItemID=%d Count=%d"), AssisterID, Tmp.ItemID, AssisRewItems[Tmp.ItemID]);
+		}
+
+		Cur++;
 	}
-	if (ExistPlayer(InKilledID))
-	{
-		GetInfoByID(InKilledID).DeathCount++;
-	}
+
+	Killed.AssisterQueue.ResetQueue();
 }
 
 FFPSPlayerInfo& AFPSGameGameState::GetInfoByID(const int32& InPlayerID)
 {
+	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameState]:FPSPlayerInfos Length %d"), FPSPlayerInfos.Num());
 	for (auto& Tmp : FPSPlayerInfos)
 	{
 		if (Tmp.PlayerID == InPlayerID)
 		{
+			UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameState]:return %d Info"), InPlayerID);
 			return Tmp;
 		}
 	}

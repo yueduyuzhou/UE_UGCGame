@@ -65,7 +65,7 @@ void UClientObject::RecvProtocol(uint32 InProtocol)
 		{
 			FQUIT_REP RecvData;
 			PROTOCOLS_RECEIVE(
-				SP_D2C_UGC_MAP_INFO_RESPONSE,
+				SP_D2C_QUIT_REP,
 				RecvData.IsSuccess);
 			FServerManage::Get()->ExecuteCallback<FQUIT_REP>(InProtocol, RecvData);
 			break;

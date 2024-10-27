@@ -7,6 +7,7 @@
 #include "UI_MainScreen.generated.h"
 
 class UCanvasPanel;
+class UUI_QuitPanel;
 
 /**
  * 
@@ -19,6 +20,9 @@ class UGCGAME_API UUI_MainScreen : public UUI_Base
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 		UCanvasPanel* MainPanel;
 	
+	//UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	//	UUI_QuitPanel* QuitPanel;
+
 public:
 	void AddChildToMainPanel(UWidget* InChild);
 	TArray<UWidget*> GetMainPanelAllChildren();

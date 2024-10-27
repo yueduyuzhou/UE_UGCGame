@@ -8,6 +8,7 @@
 #include "../UI/Lobby/ChatFrame/UI_ChatFrame.h"
 #include "LobbyPlayers/LobbyPlayersGameMode.h"
 #include "../UGCGameInstance.h"
+#include "../Common/PlayerModule/PlayerModule.h"
 
 ALobbyPlayerController::ALobbyPlayerController()
 	:PlayerID(INDEX_NONE)
@@ -93,6 +94,21 @@ void ALobbyPlayerController::ServerCallClientAddMassage_Implementation(const int
 	if (ChatFrame)
 	{
 		ChatFrame->AddMassageToContent(InPlayerID, InMsg);
+	}
+}
+
+void ALobbyPlayerController::ServerCallClientSendPlayerInfo_Implementation()
+{
+	ServerReceivePlayerInfo(UPlayerModule::Get()->Account);
+}
+
+void ALobbyPlayerController::ServerReceivePlayerInfo_Implementation(const FString& InNewPlayerID)
+{
+	PlayerID = FCString::Atoi(*InNewPlayerID);
+
+	if (ALobbyPlayersGameMode * LPGM = GetWorld()->GetAuthGameMode<ALobbyPlayersGameMode>())
+	{
+		LPGM->OnReceiveNewPlayerInfo(this, InNewPlayerID);
 	}
 }
 

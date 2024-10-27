@@ -39,7 +39,7 @@ void UUI_QuitPanel::OnSureButtonClicked()
 
 void UUI_QuitPanel::OnCancelButtonClicked()
 {
-
+	this->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UUI_QuitPanel::QuitReq(FQUIT_REP InData)
