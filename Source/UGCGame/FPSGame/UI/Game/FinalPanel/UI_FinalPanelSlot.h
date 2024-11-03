@@ -6,6 +6,9 @@
 #include "../../Core/UI_FPSBase.h"
 #include "UI_FinalPanelSlot.generated.h"
 
+class UBorder;
+struct FFPSPlayerInfo;
+
 /**
  * 
  */
@@ -30,4 +33,10 @@ class UGCGAME_API UUI_FinalPanelSlot : public UUI_FPSBase
 
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* PlayerID;
+
+	UPROPERTY(meta = (BindWidget))
+		UBorder* BackGround;
+
+public:
+	void RefreshSlot(const int32& InRankNum, const FFPSPlayerInfo& InInfo);
 };

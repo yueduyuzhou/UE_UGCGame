@@ -241,6 +241,11 @@ void AFPSGamePlayerController::ServerCallClientEndGame_Implementation(const ETea
 		MyGI->WinTeam = InWinTeam;
 		MyGI->EndGamePlayerInfos = InPlayerInfos;
 
+		for (auto& Tmp : MyGI->EndGamePlayerInfos)
+		{
+			UE_LOG(LogTemp, Display, TEXT("[class AFPSGamePlayerController]: ServerCallClientEndGame_Implementation : ~~~~~~~%s~~~~~~"), *Tmp.InfoToString());
+		}
+
 		//禁止输入，播放过场动画
 
 		//延时打开新关卡，显示结算UI

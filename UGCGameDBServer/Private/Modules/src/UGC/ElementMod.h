@@ -31,6 +31,8 @@ public:
 
 	void C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid = "", const FSAVE_EQUIPPED_WEAPON_INFO_REQ& InData = FSAVE_EQUIPPED_WEAPON_INFO_REQ());
 
+	void C2D_SETTLEMENT_REWARD_REQ(const FString& InGuid = "", const FSETTLEMENT_REWARD_REQ& InData = FSETTLEMENT_REWARD_REQ());
+
 public:
 	void UpdateMapIDToName();
 	void UpdateMapIDToNameBy(const FUGC_MAP_INFO_RESPONSE& InMapInfo);

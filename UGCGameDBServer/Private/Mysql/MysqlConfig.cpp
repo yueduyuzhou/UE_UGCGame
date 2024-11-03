@@ -137,7 +137,7 @@ bool FMysqlConfig::DeleteTableDatas(const FString& TableName, const TArray<FSimp
 
 	if (!ErrMsg.IsEmpty())
 	{
-		UE_LOG(LogUGCGameDBServer, Display, TEXT("DeleteTableDatas : Clear Data Fail!!!"));
+		UE_LOG(LogUGCGameDBServer, Error, TEXT("DeleteTableDatas : Clear Data Fail, %s"), *ErrMsg);
 		return false;
 	}
 

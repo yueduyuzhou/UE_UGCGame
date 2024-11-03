@@ -116,14 +116,8 @@ void UUI_Backpack::UpdateItem(EHypermarkType InType)
 									GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 									GridSlot->SetPadding(FMargin(20));
 
-
-									//背包隐藏EquippedName
-									if (InWidgetItem->EquippedName)
-									{
-										InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
-									}
 									//更新Item信息
-									InWidgetItem->UpdateSlot(SlotsByType[i]);
+									InWidgetItem->UpdateSlot(SlotsByType[i], false);
 									//绑定代理
 									InWidgetItem->EquippedtDelegate.BindUObject(this, &UUI_Backpack::UpdateEquippedSlot);
 								}

@@ -79,6 +79,10 @@ struct FFPSPlayerInfo
 	{}
 
 public:
+	FString InfoToString();
+	TMap<int32, int32> ItemsToMap();
+
+public:
 	UPROPERTY()
 	int32 PlayerID;
 	
@@ -96,7 +100,10 @@ public:
 
 	/* ×îÖÕ½±Àø */
 	UPROPERTY()
-	TMap<int32, int32> Items;
+	TArray<int32> Items_ID;
+
+	UPROPERTY()
+	TArray<int32> Items_Count;
 
 	/* Öú¹¥¶ÓÁÐ */
 	UPROPERTY()

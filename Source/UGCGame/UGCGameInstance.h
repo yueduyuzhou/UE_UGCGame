@@ -21,6 +21,7 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 
 public:
 	const ETeamType GetTeamTypeByPlayerID(const int32& InPlayerID);
+	const FFPSPlayerInfo GetLocalPlayerFPSInfo();
 
 	bool IsLocalTeamWin() { return WinTeam == LocalPlayerData.Team; }
 

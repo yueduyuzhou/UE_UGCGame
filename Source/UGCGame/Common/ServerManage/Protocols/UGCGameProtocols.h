@@ -43,3 +43,6 @@ DEFINITION_SIMPLE_PROTOCOLS(C2D_BUY_REQ, 252);		/* 购买请求 {int32} */
 
 /**************************************************Backpack**************************************************/
 DEFINITION_SIMPLE_PROTOCOLS(C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, 300);		/* 保存已装备信息请求 {int32[]} */
+
+/**************************************************Reward**************************************************/
+DEFINITION_SIMPLE_PROTOCOLS(C2D_SETTLEMENT_REWARD_REQ, 350);		/* 奖励结算请求 {int32[]，int32[]} */

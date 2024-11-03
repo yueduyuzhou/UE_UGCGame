@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "../../Table/ItemTable.h"
 #include "../../Table/HypermarketTable.h"
 #include "UGCGame/UI/Game/Core/UI_Slot.h"
 #include "UI_HypermarketSlot.generated.h"
@@ -46,11 +47,12 @@ protected:
 
 public:
 	void SetSlotName(const FString& InName);
-	void SetSlotGold(const int32 InGold);
+	void SetSlotGoldText(const int32& InValue, bool IsGold = true);
 	void SetEquippedName(const FString& InName);
 
 	/*更新Slot信息*/
-	void UpdateSlot(const FHypermarketTable* InTable);
+	void UpdateSlot(const FHypermarketTable* InTable, bool IsShowEquipped = true);
+	void UpdateSlot(const FItemTable* InTable, bool IsShowEquipped = false);
 
 	void SetHyperTableID(const int32& InID);
 	FORCEINLINE const int32& GetHyperTableID() { return HyperTableID; }

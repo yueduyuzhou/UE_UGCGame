@@ -2,6 +2,7 @@
 
 
 #include "UGCGameInstance.h"
+#include "Common/PlayerModule/PlayerModule.h"
 
 UUGCGameInstance::UUGCGameInstance()
 	:bIsLoadMapForUGC(false)
@@ -20,4 +21,17 @@ const ETeamType UUGCGameInstance::GetTeamTypeByPlayerID(const int32& InPlayerID)
 		}
 	}
 	return ETeamType::TEAM_NONE;
+}
+
+const FFPSPlayerInfo UUGCGameInstance::GetLocalPlayerFPSInfo()
+{
+	int32 Len = EndGamePlayerInfos.Num();
+	for (int32 i = 0; i < Len; i++)
+	{
+		if (FString::FromInt(EndGamePlayerInfos[i].PlayerID) == UPlayerModule::Get()->Account)
+		{
+			return EndGamePlayerInfos[i];
+		}
+	}
+	return FFPSPlayerInfo();
 }

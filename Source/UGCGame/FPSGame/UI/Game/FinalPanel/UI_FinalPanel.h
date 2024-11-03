@@ -9,6 +9,7 @@
 class UVerticalBox;
 class UTextBlock;
 class UUI_FinalPanelSlot;
+class UUI_RewardPanel;
 
 /**
  * 
@@ -24,10 +25,19 @@ class UGCGAME_API UUI_FinalPanel : public UUI_FPSBase
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* Result;
 
+	UPROPERTY(meta = (BindWidget))
+		UUI_RewardPanel* RewardPanel;
+
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUI_FinalPanelSlot> FinalPanelSlotClass;
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
+private:
+	void InitPlayerList();
+	void InitRewardPanel();
+
+	void SettlementReward();
 };

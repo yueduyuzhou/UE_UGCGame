@@ -101,13 +101,8 @@ void UUI_Hypermarket::UpdateItem(EHypermarkType InType)
 						GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 						GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
-						//商城隐藏EquippedName
-						if (InWidgetItem->EquippedName)
-						{
-							InWidgetItem->EquippedName->SetVisibility(ESlateVisibility::Hidden);
-						}
 						//更新Item信息
-						InWidgetItem->UpdateSlot(SlotsByType[i]);
+						InWidgetItem->UpdateSlot(SlotsByType[i], false);
 						//绑定点击代理
 						InWidgetItem->HypermarketDelegate.BindUObject(this, &UUI_Hypermarket::UpdateItemImage);
 					}

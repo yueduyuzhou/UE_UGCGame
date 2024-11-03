@@ -74,3 +74,23 @@ void FAssisterQueue::PrintQueue()
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Assister%d : %d"), i, Assisters[i]));
 	}
 }
+
+FString FFPSPlayerInfo::InfoToString()
+{
+	FString Str;
+	for (int32 i = 0; i < Items_ID.Num(); i++)
+	{
+		Str += FString::Printf(TEXT(" [ItemID = %d, ItemCount = %d] \n"), Items_ID[i], Items_Count[i]);
+	}
+	return FString::Printf(TEXT("PlayerID = %d, KillCount = %d, DeathCount = %d, Items = {%s}"), PlayerID, KillCount, DeathCount, *Str);
+}
+
+TMap<int32, int32> FFPSPlayerInfo::ItemsToMap()
+{
+	TMap<int32, int32> Res;
+	for (int32 i = 0; i < Items_ID.Num(); i++)
+	{
+		Res.Add(Items_ID[i], Items_Count[i]);
+	}
+	return Res;
+}

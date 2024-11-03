@@ -196,3 +196,17 @@ struct FSAVE_EQUIPPED_WEAPON_INFO_REQ
 	/* PrimaryWeaponID SecondaryWeaponID CloseRangeWeaponID GrenadeWeaponID */
 	TArray<int32> ItemIDs;
 };
+
+/* 350 */
+struct FSETTLEMENT_REWARD_REQ
+{
+	FSETTLEMENT_REWARD_REQ() {}
+
+	FSETTLEMENT_REWARD_REQ(const TArray<int32>& InItems_ID, const TArray<int32>& InItems_Count)
+		:Items_ID(InItems_ID)
+		, Items_Count(InItems_Count)
+	{}
+
+	TArray<int32> Items_ID;
+	TArray<int32> Items_Count;
+};

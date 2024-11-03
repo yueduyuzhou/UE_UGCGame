@@ -136,16 +136,24 @@ void AFPSGameGameState::SettlementDeath(const int32& InKillerPlayerID, const int
 		int32 AssisterID = Killed.AssisterQueue.Tail();
 		Killed.AssisterQueue.PopTail();
 		FFPSPlayerInfo& Assister = GetInfoByID(AssisterID);
-		TMap<int32, int32>& AssisRewItems = Assister.Items;
+		//TMap<int32, int32>& AssisRewItems = Assister.Items;
+		TArray<int32>& Items_ID = Assister.Items_ID;
+		TArray<int32>& Items_Count = Assister.Items_Count;
+		int32 Index = INDEX_NONE;
 
 		for (FIDCountPair& Tmp : Items)
 		{
 			//½±ÀøË¥¼õ
 			Tmp.Count >>= Cur;
 
-			if (AssisRewItems.Contains(Tmp.ItemID)) { AssisRewItems[Tmp.ItemID] += Tmp.Count; }
-			else { AssisRewItems.Add(Tmp.ItemID, Tmp.Count); }
-			UE_LOG(LogTemp, Display, TEXT("AssisterID=%d RewItems ItemID=%d Count=%d"), AssisterID, Tmp.ItemID, AssisRewItems[Tmp.ItemID]);
+			Index = Items_ID.Find(Tmp.ItemID);
+			if (Index != INDEX_NONE) { Items_Count[Index] += Tmp.Count; }
+			else 
+			{
+				Items_ID.Add(Tmp.ItemID);
+				Items_Count.Add(Tmp.Count);
+			}
+			//UE_LOG(LogTemp, Display, TEXT("AssisterID=%d RewItems ItemID=%d Count=%d"), AssisterID, Tmp.ItemID, AssisRewItems[Tmp.ItemID]);
 		}
 
 		Cur++;

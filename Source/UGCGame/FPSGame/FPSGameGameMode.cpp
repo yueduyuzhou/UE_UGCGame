@@ -164,6 +164,11 @@ void AFPSGameGameMode::EndGame()
 				MyGI->WinTeam = WinTeam;
 				MyGI->EndGamePlayerInfos = FPSGS->GetFPSPlayerInfos();
 
+				/*for (auto& Tmp : MyGI->EndGamePlayerInfos)
+				{
+					UE_LOG(LogTemp, Display, TEXT("~~~~~~~%s~~~~~~"), *Tmp.InfoToString());
+				}*/
+				
 				LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
 				//AllPlayerEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
 			}

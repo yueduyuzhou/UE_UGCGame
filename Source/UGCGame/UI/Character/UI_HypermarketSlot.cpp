@@ -51,9 +51,14 @@ void UUI_HypermarketSlot::SetSlotName(const FString& InName)
 	SlotName->SetText(FText::FromString(InName));
 }
 
-void UUI_HypermarketSlot::SetSlotGold(const int32 InGold)
+void UUI_HypermarketSlot::SetSlotGoldText(const int32& InValue, bool IsGold)
 {
-	SlotGold->SetText(FText::FromString(FString::Printf(TEXT("$%d"), InGold)));
+	if(IsGold)
+		SlotGold->SetText(FText::FromString(FString::Printf(TEXT("$%d"), InValue)));
+	else
+		SlotGold->SetText(FText::FromString(FString::Printf(TEXT("%d"), InValue)));
+
+	SlotGold->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UUI_HypermarketSlot::SetEquippedName(const FString& InName)
@@ -61,14 +66,32 @@ void UUI_HypermarketSlot::SetEquippedName(const FString& InName)
 	EquippedName->SetText(FText::FromString(InName));
 }
 
-void UUI_HypermarketSlot::UpdateSlot(const FHypermarketTable* InTable)
+void UUI_HypermarketSlot::UpdateSlot(const FHypermarketTable* InTable, bool IsShowEquipped)
 {
 	if (InTable)
 	{
 		SetSlotName(InTable->ItemName.ToString());
-		SetSlotGold(InTable->ItemGold);
+		SetSlotGoldText(InTable->ItemGold);
 		SetIcon(InTable->ItemIcon);
 		SetHyperTableID(InTable->ID);
+
+		if (IsShowEquipped) { EquippedName->SetVisibility(ESlateVisibility::Visible); }
+		else { EquippedName->SetVisibility(ESlateVisibility::Hidden); }
+	}
+}
+
+void UUI_HypermarketSlot::UpdateSlot(const FItemTable* InTable, bool IsShowEquipped)
+{
+	if (InTable)
+	{
+		SetSlotName(InTable->ItemName.ToString());
+		SetIcon(InTable->ItemIcon);
+		SetHyperTableID(InTable->ID);
+
+		SlotGold->SetVisibility(ESlateVisibility::Hidden);
+
+		if (IsShowEquipped) { EquippedName->SetVisibility(ESlateVisibility::Visible); }
+		else { EquippedName->SetVisibility(ESlateVisibility::Hidden); }
 	}
 }
 

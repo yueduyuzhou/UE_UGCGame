@@ -362,18 +362,6 @@ void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const
 	TArray<FSimpleMysqlComparisonOperator> ClearCond;
 	FSimpleMysqlComparisonOperator OP;
 
-	/*FString Sql = FString::Printf(TEXT("Select* FROM playerinfo where Account = %s;"), *Account);
-	TArray<FSimpleMysqlResult> Res = FMysqlConfig::Get()->QueryBySql(Sql);
-	FString Gold = "";
-
-	for (auto& Tmp : Res)
-	{
-		for (auto& Row : Tmp.Rows)
-		{
-			if (Row.Key == "Gold") { Gold = Row.Value; }
-		}
-	}*/
-
 	//设置清除条件
 	OP.Assignment.A = "Account";
 	OP.Assignment.B = Account;
@@ -398,6 +386,40 @@ void UElementMod::C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ(const FString& InGuid, const
 	RepDatas.Add(Tmp);
 
 	FMysqlConfig::Get()->ReplaceTableDatas("playerinfo", RepDatas, true, ClearCond);
+}
+
+void UElementMod::C2D_SETTLEMENT_REWARD_REQ(const FString& InGuid, const FSETTLEMENT_REWARD_REQ& InData)
+{
+	TArray<TMap<FString, FString>> RepDatas;
+	FString Account = GuidToAccount.Contains(InGuid) ? GuidToAccount[InGuid] : "";
+	TArray<FSimpleMysqlComparisonOperator> ClearCond;
+	FSimpleMysqlComparisonOperator OP, OP2;
+
+	int32 Len = InData.Items_ID.Num();
+	for (int32 i = 0; i < Len; i++)
+	{
+		FString ItemID = FString::FromInt(InData.Items_ID[i]);
+		int32 OldCount = GetCountByItemID(InGuid, InData.Items_ID[i]);
+
+		//设置清除条件
+		ClearCond.Empty();
+		OP.Assignment.A = "Account";
+		OP.Assignment.B = Account;
+		OP.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+		OP2.Assignment.A = "ItemID";
+		OP2.Assignment.B = ItemID;
+		OP2.Assignment.ComparisonOperator = EMysqlComparisonOperator::EQUAL;
+		ClearCond.Add(OP);
+		ClearCond.Add(OP2);
+
+		//设置新数据
+		TMap<FString, FString> Tmp;
+		Tmp.Add("Account", Account);
+		Tmp.Add("ItemID", ItemID);
+		Tmp.Add("Count", FString::FromInt(OldCount + InData.Items_Count[i]));
+		RepDatas.Add(Tmp);
+		FMysqlConfig::Get()->ReplaceTableDatas("playeritemsinfo", RepDatas, true, ClearCond);
+	}
 }
 
 void UElementMod::UpdateMapIDToName()

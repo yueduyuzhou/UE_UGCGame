@@ -264,6 +264,32 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 
 			break;
 		}
+		case SP_C2D_SETTLEMENT_REWARD_REQ:
+		{
+			FSETTLEMENT_REWARD_REQ InData;
+			FPLAYER_INFO_REP PlayerInfo;
+
+			//1.接收
+			PROTOCOLS_RECEIVE_P(SP_C2D_SETTLEMENT_REWARD_REQ, InData.Items_ID, InData.Items_Count);
+			UE_LOG(
+				LogUGCGameDBServer, 
+				Display, 
+				TEXT("[Recv Protocol=%d] : [InData.Items_ID Length=%d, InData.Items_Count Length=%d]"), 
+				SP_C2D_SETTLEMENT_REWARD_REQ,
+				InData.Items_ID.Num(),
+				InData.Items_Count.Num());
+
+			//2.协议对应处理
+			PROTOCOLS_I_DEAL_WITH_SERVER(C2D_SETTLEMENT_REWARD_REQ, InData);
+			PROTOCOLS_O_OTHRE_DEAL_WITH_SERVER(C2D_SETTLEMENT_REWARD_REQ, C2D_PLAYER_INFO_REQ, PlayerInfo);
+
+			//3.发送响应
+			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Account=%s, Gold=%d]"), SP_D2C_PLAYER_INFO_REP, *(PlayerInfo.Account), PlayerInfo.Gold);
+			PROTOCOLS_SEND(SP_D2C_PLAYER_INFO_REP,
+				PlayerInfo.Account,
+				PlayerInfo.Gold);
+			break;
+		}
 	}
 }
 
