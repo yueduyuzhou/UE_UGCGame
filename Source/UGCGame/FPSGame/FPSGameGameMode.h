@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "Core/FPSGameModeBase.h"
 #include "FPSGameGameMode.generated.h"
 
 class AFPSGameCharacterBase;
@@ -17,7 +17,7 @@ enum class ETeamType : uint8;
  * 
  */
 UCLASS()
-class UGCGAME_API AFPSGameGameMode : public AGameModeBase
+class UGCGAME_API AFPSGameGameMode : public AFPSGameModeBase
 {
 	GENERATED_BODY()
 
@@ -25,27 +25,42 @@ public:
 	AFPSGameGameMode();
 
 private:
-	/***************
+	/******************************
 	*	GameCharacter
-	***************/
+	******************************/
 	//生成游戏角色
 	void SpawnPlayerCharacters();
 
-	/***************
+	/******************************
 	*	Game
-	***************/
+	******************************/
 	/*开始倒计时*/
 	void InitDownTime();
 
 	/*通知所有玩家开始倒计时*/
 	void AllPlayerUpdateDownTime(const int32& InDownTime);
 
+	/*游戏结束预处理*/
+	void PreEndGame();
+
 	/*游戏结束*/
 	void EndGame();
+
+	/*游戏结束结算*/
+	bool EndGameSettlement();
 
 	/*通知所有玩家游戏结束*/
 	UFUNCTION(BlueprintCallable)
 	void AllClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos);
+
+	/******************************
+	*	GameFlowState
+	******************************/
+	/*是否一切就绪可以开始游戏*/
+	bool IsReadyStartGame();
+
+	/*是否所有玩家已经准备好*/
+	bool IsAllPlayerReadyStartGame();
 
 public:
 
@@ -69,10 +84,7 @@ public:
 	//AFPSGamePlayerController* GetPlayerControllerByPlayerID(const int32& InPlayerID);
 	UClass* GetCharacterClass(const ETeamType& InType);
 
-	void AddSpawnCount();
-
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE int32 GetSpawnCount() { return PlayerSpawnCount; }
+	void ChangeMapReadyState(bool InState = true);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -92,8 +104,14 @@ private:
 	int32 RedIndex;
 	int32 BlueIndex;
 
-	int32 PlayerSpawnCount;
-
 	bool bStartDownTime;
+	bool bCheckQuitGame;
+	bool bStartedGame;
+	bool bMapReady;
+	bool bAllPlayerReadyStartGame;	//注：不要直接使用，应该使用IsAllPlayerReadyStartGame函数
+
 	float DownTime;
+
+	/**************************结算****************************/
+	ETeamType WinTeam;
 };

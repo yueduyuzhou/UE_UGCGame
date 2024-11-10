@@ -268,13 +268,14 @@ void AFPSGamePlayerController::SendPlayerDataToServer_Implementation(const FPlay
 				TeamType = InPlayerData.Team;
 				PlayerID = InPlayerData.PlayerID;
 
-				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, 
+				/*GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, 
 					FString::Printf(
 						TEXT("[class AFPSGamePlayerController] : SendPlayerDataToServer, InPlayerData.PlayerID = %d, PlayerID = %d"), 
 						InPlayerData.PlayerID,
-						PlayerID));
+						PlayerID));*/
 				FPSGS->RegisterPlayerInfo(PlayerID);
 
+				//Éú³ÉÍæ¼Ò
 				SpawnPlayerCharacter(
 					MyFPSGM->GetCharacterClass(InPlayerData.Team),
 					MyFPSGM->GetNextSpawnTransform(InPlayerData));
@@ -291,9 +292,8 @@ void AFPSGamePlayerController::SpawnPlayerCharacter(UClass* InCharacterClass, co
 		{
 			if (APawn * NewCharacter = GetWorld()->SpawnActor<APawn>(InCharacterClass, InTransform))
 			{
-				UE_LOG(LogTemp, Display, TEXT("[class AFPSGamePlayerController] : PlayerController Possess Pawn"));
+				//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]£º2"));
 				Possess(NewCharacter);
-				MyFPSGM->AddSpawnCount();
 			}
 		}
 	}

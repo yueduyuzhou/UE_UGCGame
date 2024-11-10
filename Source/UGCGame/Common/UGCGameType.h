@@ -49,6 +49,9 @@ struct FPlayerNetData
 
 	UPROPERTY()
 	ETeamType Team;
+
+	UPROPERTY()
+	TArray<int32> EquipedWeapons;
 };
 
 FORCEINLINE bool operator==(const FPlayerNetData& InA, const FPlayerNetData& InB)

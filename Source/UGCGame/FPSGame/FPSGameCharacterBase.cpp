@@ -4,20 +4,22 @@
 #include "FPSGameCharacterBase.h"
 #include "WeaponBaseServer.h"
 #include "WeaponBaseClient.h"
+#include "FPSGameGameState.h"
 #include "FPSGamePlayerState.h"
 #include "FPSGamePlayerController.h"
 #include "../Table/HypermarketTable.h"
 #include "UGCGame/SaveData/PlayerSaveData.h"
+#include "Camera/CameraComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/DecalComponent.h"
-#include "Camera/CameraComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
-#include "FPSGameGameState.h"
 #include "ThreadManage.h"
+#include "UGCGame/Common/PlayerModule/PlayerModule.h"
+#include "../UGCGameInstance.h"
 
 #if PLATFORM_WINDOWS
 #pragma optimize("",off) 
@@ -106,33 +108,93 @@ void AFPSGameCharacterBase::StartWeapon()
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		//TODO：改为从DBServer获取Equipped数据
-		if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+		//if (UPlayerSaveData * SaveMapData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
+		//{
+		//	//获取PlayerState
+		//	if (AFPSGameGameState * MyGS = GetWorld()->GetGameState<AFPSGameGameState>())
+		//	{
+		//		if (FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedPrimary.ItemID))
+		//		{
+		//			PurchaseWeapon(SlotTable->WeaponType);
+		//		}
+		//		if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedSecondary.ItemID))
+		//		{
+		//			PurchaseWeapon(SlotTable->WeaponType);
+		//		}
+		//		if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedCloseRange.ItemID))
+		//		{
+		//			PurchaseWeapon(SlotTable->WeaponType);
+		//		}
+		//		if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedGrenade.ItemID))
+		//		{
+		//			PurchaseWeapon(SlotTable->WeaponType);
+		//		}
+		//		
+		//		//PurchaseWeapon(StartWeaponType);
+		//	}
+		//}
+		//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：1"));
+		if (AFPSGamePlayerController * MyPC = Cast<AFPSGamePlayerController>(GetController()))
 		{
-			//获取PlayerState
-			if (AFPSGameGameState * MyGS = GetWorld()->GetGameState<AFPSGameGameState>())
+			if (UUGCGameInstance * MyGI = GetWorld()->GetGameInstance<UUGCGameInstance>())
 			{
-				if (FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedPrimary.ItemID))
+				const TArray<int32>& EWs = MyGI->GetEquipedWeaponByPlayerID(MyPC->GetPlayerID());
+				int32 Len = EWs.Num();
+				UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Len = %d"), MyPC->GetPlayerID(), Len);
+				for (int32 i = 0; i < Len; i++)
 				{
-					PurchaseWeapon(SlotTable->WeaponType);
-				}
-				
-				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedSecondary.ItemID))
-				{
-					PurchaseWeapon(SlotTable->WeaponType);
-				}
+					//获取PlayerState
+					if (AFPSGameGameState * MyGS = GetWorld()->GetGameState<AFPSGameGameState>())
+					{
+						int32 ItemID = EWs[i];
 
-				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedCloseRange.ItemID))
-				{
-					PurchaseWeapon(SlotTable->WeaponType);
-				}
+						if (ItemID != INDEX_NONE)
+						{
+							UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Equiped ItemID = %d"), MyPC->GetPlayerID(), ItemID);
+							FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(ItemID);
+							PurchaseWeapon(SlotTable->WeaponType);
+						}
+						else //无装备，使用默认方案
+						{
+							FFPSGameConfig* Cfg = MyGS->GetGameConfigTemplate();
 
-				if (FHypermarketTable * SlotTable = MyGS->GetWeaponTableTemplate(SaveMapData->EquippedGrenade.ItemID))
-				{
-					PurchaseWeapon(SlotTable->WeaponType);
+							UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d Use Default"), MyPC->GetPlayerID());
+
+							if (Cfg)
+							{
+								for(auto& Tmp : Cfg->DefaultWeapon)
+									UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：DefaultWeapon %d ItemId = %d"), i, Tmp);
+
+								ItemID = Cfg->DefaultWeapon[i];
+								if (ItemID != INDEX_NONE)
+								{
+									FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(ItemID);
+									PurchaseWeapon(SlotTable->WeaponType);
+								}
+								else
+									UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, ItemID Is %d"), MyPC->GetPlayerID(), ItemID);
+							}
+							else
+							{
+								UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Cfg Is Null"), MyPC->GetPlayerID());
+							}
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, MyGS Is Null"), MyPC->GetPlayerID());
+					}
 				}
-				
-				//PurchaseWeapon(StartWeaponType);
 			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, MyGI Is Null"), MyPC->GetPlayerID());
+			}
+		}
+		else
+		{
+			GThread::Get()->GetCoroutines().BindUObject(0.2f, this, &AFPSGameCharacterBase::StartWeapon);
+			UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::StartWeapon]：MyPC Is Null"));
 		}
 	}
 }
@@ -975,8 +1037,8 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f , FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
-		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.f , FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
+		//UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
 
 		ActiveWeapon = InWeaponBaseServer->WeaponType;
 
@@ -1024,8 +1086,8 @@ void AFPSGameCharacterBase::EquipSecondaryWeapon(AWeaponBaseServer* InWeaponBase
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
-		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Secondary Weapon"));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
+		//UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Secondary Weapon"));
 
 		ActiveWeapon = InWeaponBaseServer->WeaponType;
 

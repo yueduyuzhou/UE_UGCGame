@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "../LobbyPlayerController.h"
 #include "LobbyPlayersGameMode.generated.h"
 
 /**
@@ -41,7 +42,7 @@ public:
 	/**********************************************************************
 	*	
 	**********************************************************************/
-	void OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID);
+	void OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID, TArray<int32> InEquipedWeapons);
 
 protected:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;

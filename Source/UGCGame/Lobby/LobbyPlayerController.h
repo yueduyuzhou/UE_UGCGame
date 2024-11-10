@@ -46,7 +46,7 @@ public:
 		void ServerCallClientSendPlayerInfo();
 
 	UFUNCTION(server, reliable)
-		void ServerReceivePlayerInfo(const FString& InNewPlayerID);
+		void ServerReceivePlayerInfo(const FString& InNewPlayerID, const TArray<int32>& InEquipedWeapons);
 
 public:
 	void SetPlayerList(UUI_PlayerList* InPlayerList);

@@ -99,16 +99,19 @@ void ALobbyPlayerController::ServerCallClientAddMassage_Implementation(const int
 
 void ALobbyPlayerController::ServerCallClientSendPlayerInfo_Implementation()
 {
-	ServerReceivePlayerInfo(UPlayerModule::Get()->Account);
+	UE_LOG(LogTemp, Display, TEXT("[class ALobbyPlayerController::ServerCallClientSendPlayerInfo]£º[%s]"), *(UPlayerModule::Get()->Account));
+	for (auto& Tmp : UPlayerModule::Get()->EquippedItemIDs)
+		UE_LOG(LogTemp, Display, TEXT("[class ALobbyPlayerController::ServerCallClientSendPlayerInfo]£º[%d]"), Tmp);
+	ServerReceivePlayerInfo(UPlayerModule::Get()->Account, UPlayerModule::Get()->EquippedItemIDs);
 }
 
-void ALobbyPlayerController::ServerReceivePlayerInfo_Implementation(const FString& InNewPlayerID)
+void ALobbyPlayerController::ServerReceivePlayerInfo_Implementation(const FString& InNewPlayerID, const TArray<int32>& InEquipedWeapons)
 {
 	PlayerID = FCString::Atoi(*InNewPlayerID);
 
 	if (ALobbyPlayersGameMode * LPGM = GetWorld()->GetAuthGameMode<ALobbyPlayersGameMode>())
 	{
-		LPGM->OnReceiveNewPlayerInfo(this, InNewPlayerID);
+		LPGM->OnReceiveNewPlayerInfo(this, InNewPlayerID, InEquipedWeapons);
 	}
 }
 

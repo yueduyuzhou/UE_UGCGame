@@ -72,6 +72,10 @@ void ALobbyPlayersGameMode::AddPlayerDataInInstance(const FPlayerNetData& InPlay
 {
 	if (UUGCGameInstance * MyGameInstance = GetGameInstance<UUGCGameInstance>())
 	{		
+		UE_LOG(LogTemp, Display, TEXT("[class ALobbyPlayersGameMode::AddPlayerDataInInstance]£º[%d]"), InPlayerData.PlayerID);
+		for(auto& Tmp : InPlayerData.EquipedWeapons)
+			UE_LOG(LogTemp, Display, TEXT("[class ALobbyPlayersGameMode::AddPlayerDataInInstance]£º[%d]"), Tmp);
+
 		MyGameInstance->PlayerDatas.Add(InPlayerData);
 	}
 }
@@ -119,11 +123,12 @@ ALobbyPlayerController* ALobbyPlayersGameMode::GetLocalPlayerController()
 	return nullptr;
 }
 
-void ALobbyPlayersGameMode::OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID)
+void ALobbyPlayersGameMode::OnReceiveNewPlayerInfo(ALobbyPlayerController* InNewPlayer, FString InNewPlayerID, TArray<int32> InEquipedWeapons)
 {
 	FPlayerNetData TmpPlayerData;
 	TmpPlayerData.PlayerID = InNewPlayer->PlayerID;
 	TmpPlayerData.Team = ETeamType::TEAM_RED;
+	TmpPlayerData.EquipedWeapons = InEquipedWeapons;
 
 	AddPlayerDataInInstance(TmpPlayerData);
 	InNewPlayer->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);

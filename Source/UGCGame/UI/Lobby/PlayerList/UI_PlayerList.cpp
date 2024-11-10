@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "../../../Common/MethodUnit.h"
 #include "../../../Lobby/LobbyPlayerState.h"
+#include "../../../Common/PlayerModule/PlayerModule.h"
 
 void UUI_PlayerList::NativeConstruct()
 {
@@ -192,6 +193,7 @@ void UUI_PlayerList::RedSelectButtonClick()
 			FPlayerNetData TmpPlayerData;
 			TmpPlayerData.PlayerID = LobbyPC->PlayerID;
 			TmpPlayerData.Team = ETeamType::TEAM_RED;
+			TmpPlayerData.EquipedWeapons = UPlayerModule::Get()->EquippedItemIDs;
 			LobbyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
 			LobbyPC->PlayerListChangeOnServer(TmpPlayerData);
 		}
@@ -207,6 +209,8 @@ void UUI_PlayerList::BlueSelectButtonClick()
 			FPlayerNetData TmpPlayerData;
 			TmpPlayerData.PlayerID = LobbyPC->PlayerID;
 			TmpPlayerData.Team = ETeamType::TEAM_BLUE;
+			TmpPlayerData.EquipedWeapons = UPlayerModule::Get()->EquippedItemIDs;
+
 			LobbyPC->ServerCallClientUpdateLocalPlayerData(TmpPlayerData);
 			LobbyPC->PlayerListChangeOnServer(TmpPlayerData);
 		}

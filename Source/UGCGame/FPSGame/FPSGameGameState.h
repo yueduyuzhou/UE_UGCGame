@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../UGCGameState.h"
+#include "Core/FPSGameStateBase.h"
 #include "FPSGameGameState.generated.h"
 
 class FPSGameGameMode;
@@ -15,7 +15,7 @@ struct FKillReward;
  * 
  */
 UCLASS()
-class UGCGAME_API AFPSGameGameState : public AUGCGameState
+class UGCGAME_API AFPSGameGameState : public AFPSGameStateBase
 {
 	GENERATED_BODY()
 

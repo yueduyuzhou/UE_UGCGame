@@ -17,10 +17,10 @@ void UUI_FinalPanelSlot::RefreshSlot(const int32& InRankNum, const FFPSPlayerInf
 
 	if (UPlayerModule::Get()->Account == FString::FromInt(InInfo.PlayerID))
 	{
-		BackGround->SetBrushColor(FLinearColor(0.1f, 0.1f, 0.1f, 0.4f));
+		BackGround->SetBrushColor(FLinearColor(0.625f, 0.625f, 0.625f, 0.4f));
 	}
 	else
 	{
-		BackGround->SetBrushColor(FLinearColor(0.625f, 0.625f, 0.625f, 0.4f));
+		BackGround->SetBrushColor(FLinearColor(0.1f, 0.1f, 0.1f, 0.4f));
 	}
 }

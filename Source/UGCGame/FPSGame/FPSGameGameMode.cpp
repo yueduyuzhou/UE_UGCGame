@@ -20,11 +20,16 @@
 #endif
 
 AFPSGameGameMode::AFPSGameGameMode()
-	:RedIndex(0)
+	:Super()
+	, RedIndex(0)
 	, BlueIndex(0)
-	, PlayerSpawnCount(0)
 	, bStartDownTime(false)
+	, bCheckQuitGame(false)
+	, bStartedGame(false)
+	, bMapReady(false)
+	, bAllPlayerReadyStartGame(false)
 	, DownTime(90.f)
+	, WinTeam(ETeamType::TEAM_NONE)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
 
@@ -42,55 +47,40 @@ void AFPSGameGameMode::SpawnPlayerCharacters()
 {
 	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
 	{
-		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]: Player Count: %d"), MyGameInstance->PlayerDatas.Num());
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::SpawnPlayerCharacters]: Player Count: %d"), MyGameInstance->PlayerDatas.Num());
 		
-#if !WITH_EDITOR
-		if (MyGameInstance->PlayerDatas.Num() == GetNumPlayers())
-#else 
-		if (2 == GetNumPlayers())
-#endif
+		// 获取游戏地图上的出生点数组
+		TArray<AActor*> SpawnPoints;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEE_SpawnPoint::StaticClass(), SpawnPoints);
+		//区分出生点
+		if (SpawnPoints.Num() > 0)
 		{
-			// 获取游戏地图上的出生点数组
-			TArray<AActor*> SpawnPoints;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEE_SpawnPoint::StaticClass(), SpawnPoints);
-			//区分出生点
-			if (SpawnPoints.Num() > 0)
+			for (auto* Tmp : SpawnPoints)
 			{
-				for (auto* Tmp : SpawnPoints)
+				if (AEE_SpawnPoint * CurPoint = Cast<AEE_SpawnPoint>(Tmp))
 				{
-					if (AEE_SpawnPoint * CurPoint = Cast<AEE_SpawnPoint>(Tmp))
+					if (CurPoint->GetTeamType() == ETeamType::TEAM_RED)
 					{
-						if (CurPoint->GetTeamType() == ETeamType::TEAM_RED)
-						{
-							RedSpawnPoints.Add(CurPoint);
-						}
-						else if (CurPoint->GetTeamType() == ETeamType::TEAM_BLUE)
-						{
-							BlueSpawnPoints.Add(CurPoint);
-						}
+						RedSpawnPoints.Add(CurPoint);
 					}
-				}
-			}
-
-			// 遍历所有玩家控制器，生成角色并分配到队伍
-			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-			{
-				if (APlayerController * MyPC = It->Get())
-				{
-					if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
+					else if (CurPoint->GetTeamType() == ETeamType::TEAM_BLUE)
 					{
-						MyFPSPC->ServerCallClientSendPlayerData();
+						BlueSpawnPoints.Add(CurPoint);
 					}
 				}
 			}
 		}
-		else
+
+		// 遍历所有玩家控制器，发送信息，生成角色并分配到队伍
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
-			GThread::Get()->GetCoroutines().BindLambda(0.2f, [&]()
+			if (APlayerController * MyPC = It->Get())
+			{
+				if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(MyPC))
 				{
-					UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode]: Repeat Call SpawnPlayerCharacters"));
-					SpawnPlayerCharacters();
-				});
+					MyFPSPC->ServerCallClientSendPlayerData();
+				}
+			}
 		}
 	}
 	
@@ -139,9 +129,37 @@ void AFPSGameGameMode::AllPlayerUpdateDownTime(const int32& InDownTime)
 	}
 }
 
+void AFPSGameGameMode::PreEndGame()
+{
+	bCheckQuitGame = true;
+	bStartDownTime = false;
+
+	//服务器结算
+	if (EndGameSettlement())
+	{
+		if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
+		{
+			//LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+			//通知除自己外所有客户端退出会话并结算，显示获胜/失败页面
+			AllClientEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+		}
+	}
+}
+
 void AFPSGameGameMode::EndGame()
 {
-	ETeamType WinTeam = ETeamType::TEAM_NONE;
+	//TODO：本地退出
+	if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
+	{
+		if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
+		{
+			LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
+		}
+	}
+}
+
+bool AFPSGameGameMode::EndGameSettlement()
+{
 	//结算（队伍人头/队伍积分）
 	if (AFPSGameGameState * FPSGS = Cast<AFPSGameGameState>(GetWorld()->GetGameState()))
 	{
@@ -157,25 +175,16 @@ void AFPSGameGameMode::EndGame()
 				WinTeam = ETeamType::TEAM_BLUE;
 			}
 
-			//通知客户端显示获胜/失败页面
-			if (AFPSGamePlayerController * LocalFPSPC = GetLocalPlayerController())
-			{
-				//保存再服务端Instance
-				MyGI->WinTeam = WinTeam;
-				MyGI->EndGamePlayerInfos = FPSGS->GetFPSPlayerInfos();
 
-				/*for (auto& Tmp : MyGI->EndGamePlayerInfos)
-				{
-					UE_LOG(LogTemp, Display, TEXT("~~~~~~~%s~~~~~~"), *Tmp.InfoToString());
-				}*/
-				
-				LocalFPSPC->EndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
-				//AllPlayerEndGame(WinTeam, FPSGS->GetFPSPlayerInfos());
-			}
+			//保存再服务端Instance
+			MyGI->WinTeam = WinTeam;
+			MyGI->EndGamePlayerInfos = FPSGS->GetFPSPlayerInfos();
+
+			return WinTeam != ETeamType::TEAM_NONE;
 		}
 	}
 
-	
+	return false;
 }
 
 void AFPSGameGameMode::AllClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos)
@@ -186,6 +195,7 @@ void AFPSGameGameMode::AllClientEndGame(const ETeamType& InWinTeam, const TArray
 		{
 			if (AFPSGamePlayerController * MyFPSPC = Cast<AFPSGamePlayerController>(It->Get()))
 			{
+				//非服务器
 				if (LocalFPSPC->PlayerID != MyFPSPC->PlayerID)
 				{
 					MyFPSPC->ServerCallClientEndGame(InWinTeam, InPlayerInfos);
@@ -193,6 +203,28 @@ void AFPSGameGameMode::AllClientEndGame(const ETeamType& InWinTeam, const TArray
 			}
 		}
 	}
+}
+
+bool AFPSGameGameMode::IsReadyStartGame()
+{
+	bool bAllPlayerJoined = false;
+	//所有玩家加入才会开正式进入游戏流程
+#if !WITH_EDITOR
+	if (MyGameInstance->PlayerDatas.Num() == GetNumPlayers())
+#else 
+	if (2 == GetNumPlayers())
+#endif
+	{
+		bAllPlayerJoined = true;
+	}
+
+	//所有玩家已加入 地图已准备好 游戏未正式开始
+	return bAllPlayerJoined && bMapReady && !bStartedGame;
+}
+
+bool AFPSGameGameMode::IsAllPlayerReadyStartGame()
+{
+	return bAllPlayerReadyStartGame;
 }
 
 void AFPSGameGameMode::AllPlayerUpdateMiniMap()
@@ -270,36 +302,20 @@ UClass* AFPSGameGameMode::GetCharacterClass(const ETeamType& InType)
 	return nullptr;
 }
 
-void AFPSGameGameMode::AddSpawnCount()
+void AFPSGameGameMode::ChangeMapReadyState(bool InState)
 {
-	PlayerSpawnCount++;
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameGameMode]: AddSpawnCount, PlayerSpawnCount = %d"), PlayerSpawnCount));
+	bMapReady = InState;
 }
 
 void AFPSGameGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//延时加载游戏地图
-	GThread::Get()->GetCoroutines().BindLambda(1.f, [&]()
-		{
-			if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
-			{
-				UGameMapManage::Get()->LoadMapDataAndSpawnForFPS(MyGameInstance->LoadMapName, GetWorld());
-			}
-		});
-
-	GThread::Get()->GetCoroutines().BindLambda(2.f, [&]()
-		{
-			//通知所有端更新MiniMap
-			AllPlayerUpdateMiniMap();
-
-			//为玩家生成游戏角色
-			SpawnPlayerCharacters();
-
-			//开始计时
-			InitDownTime();
-		});
+	//加载游戏地图
+	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))
+	{
+		UGameMapManage::Get()->LoadMapDataAndSpawnForFPS(MyGameInstance->LoadMapName, GetWorld());
+	}
 }
 
 void AFPSGameGameMode::Tick(float DeltaSeconds)
@@ -308,29 +324,56 @@ void AFPSGameGameMode::Tick(float DeltaSeconds)
 
 	FServerManage::Get()->Tick(DeltaSeconds);
 
-	if (bStartDownTime)
+	//开始游戏检测
+	if (IsReadyStartGame())
+	{
+		//开始游戏标记
+		bStartedGame = true;
+
+		//通知所有端更新MiniMap
+		AllPlayerUpdateMiniMap();
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::Tick] : AllPlayerUpdateMiniMap"));
+
+		//为玩家生成游戏角色
+		SpawnPlayerCharacters();
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::Tick] : SpawnPlayerCharacters"));
+
+		//开始计时
+		InitDownTime();
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::Tick] : InitDownTime"));
+
+	}
+
+	//预退出游戏检测
+	if (bStartDownTime && DownTime >= 0.f)
 	{
 		DownTime -= DeltaSeconds;
 		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("%0.2f"), DownTime));
 		if (DownTime <= 0.f)
 		{
-			//游戏结算
-			EndGame();
+			PreEndGame();
+			UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::Tick] : PreEndGame"));
 		}
+	}
+
+	//退出游戏检测
+	if (bCheckQuitGame && GetNumPlayers() == 1)
+	{
+		EndGame();
+		UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::Tick] : EndGame"));
 	}
 }
 
 void AFPSGameGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-	AddSpawnCount();
 }
 
 void AFPSGameGameMode::Logout(AController* Exiting)
 {
 	Super::Logout(Exiting);
 
-	PlayerSpawnCount--;
+
 }
 
 #if PLATFORM_WINDOWS

@@ -246,6 +246,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 		{
 			if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
 			{
+				int32 TmpCount = 0;
 				//生成Elements BUG
 				for (auto& Tmp : TmpElements)
 				{
@@ -272,7 +273,9 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 							}
 
 							//记录生成数量
+							TmpCount++;
 							MyGameState->AddSpawnData(Tmp.ElementID);
+							UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::LoadMapDataAndSpawn] : SpawnActor Id = %d"), Tmp.ElementID);
 						}
 					}
 					else
@@ -281,31 +284,21 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 					}
 				}
 
+				//通知GameMode游戏Map已经准备好
+				if (TmpCount == TmpElements.Num())
+				{
+					if (AFPSGameGameMode * FPSGM = Cast<AFPSGameGameMode>(MyGameState->AuthorityGameMode))
+					{
+						FPSGM->ChangeMapReadyState(true);
+					}
+				}
 				TmpElements.Empty();
 			}
-
-			////从文件中加载属性
-			//if (UMapSaveData * SaveMapData = Cast<UMapSaveData>(UGameplayStatics::LoadGameFromSlot(InSlotName, 0)))
-			//{
-			//	if (SaveMapData->Elements.Num() > 0)
-			//	{
-
-			//	}
-			//	else
-			//	{
-			//		UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : SaveMapData->Elements Is Empty"));
-			//		return;
-			//	}
-			//}
-			//else
-			//{
-			//	UE_LOG(LogTemp, Error, TEXT("[class UGameMapManage] : SaveMapData Is Null"));
-			//	return;
-			//}
 		}
 	}
 	else
 	{
+		UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::LoadMapDataAndSpawn] : Current TmpElements Is Empty, So We Need Delay Call This Function[LoadMapDataAndSpawn] Again"));
 		GThread::Get()->GetCoroutines().BindLambda(0.2f, [&, InWorld]()
 			{
 				LoadMapDataAndSpawn(InSlotName, InWorld, InbShowEffectMesh);

@@ -20,7 +20,9 @@ class UGCGAME_API UUGCGameInstance : public UGameInstance
 	UUGCGameInstance();
 
 public:
+	const FPlayerNetData* GetNetDataByPlayerID(const int32& InPlayerID);
 	const ETeamType GetTeamTypeByPlayerID(const int32& InPlayerID);
+	const TArray<int32> GetEquipedWeaponByPlayerID(const int32& InPlayerID);
 	const FFPSPlayerInfo GetLocalPlayerFPSInfo();
 
 	bool IsLocalTeamWin() { return WinTeam == LocalPlayerData.Team; }
@@ -33,7 +35,7 @@ public:
 	FString LoadMapName;
 
 	/*********************************FPS*******************************/
-	//所有玩家的ID和队伍类型
+	//所有玩家的ID，队伍类型，装备
 	TArray<FPlayerNetData> PlayerDatas;
 	//自己的ID和队伍类型
 	FPlayerNetData LocalPlayerData;
