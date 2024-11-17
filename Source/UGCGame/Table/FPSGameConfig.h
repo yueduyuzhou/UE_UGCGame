@@ -19,7 +19,7 @@ public:
 
 	/* 持续时间，单位秒 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GameConfig")
-		int32 Duration;
+		float Duration;
 
 	/* 必要的Element [ElementID, 数量] */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GameConfig")

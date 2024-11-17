@@ -11,7 +11,7 @@ USTRUCT(BlueprintType)
 struct FElemInfo
 {
 	GENERATED_BODY()
-
+		
 	FElemInfo()
 		:ElementID(INDEX_NONE)
 		, Location(FVector::ZeroVector)

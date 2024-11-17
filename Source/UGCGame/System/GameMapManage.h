@@ -57,6 +57,10 @@ private:
 	/*加载地图数据并生成*/
 	void LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWorld, bool InbShowEffectMesh);
 
+	/*检测必要Element是否已经存在*/
+	bool RecycleCheckSpwnedElementsByMode(UWorld* InWorld);
+
+	void SpawnElementBy(const int32& InNum, const int32& InEleID, UWorld* InWorld);
 
 private:
 	static TSharedPtr<UGameMapManage> GameMapManage;
@@ -65,4 +69,5 @@ private:
 	TArray<FString> MapNames;
 
 	static TArray<FElemInfo> TmpElements;
+	int32 TmpCount;
 };

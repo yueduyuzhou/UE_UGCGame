@@ -266,6 +266,8 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 
 AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 {
+	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : ActiveWeapon = %d"), ActiveWeapon);
+	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : WeaponPrimaryClient Is %s, WeaponSecondaryClient Is %s"), WeaponPrimaryClient ? TEXT("Valid") : TEXT("Null"), WeaponSecondaryClient ? TEXT("Valid") : TEXT("Null"));
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
@@ -289,6 +291,7 @@ AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 			return WeaponPrimaryClient;
 		}
 	}
+	
 	return nullptr;
 }
 
@@ -400,27 +403,35 @@ void AFPSGameCharacterBase::PsitolWeaponFireOnServer_Implementation(FVector InCa
 	PistolLineTrace(InCamreaLocation, InCameraRotation, IsMoveing);
 }
 
-void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation()
+void AFPSGameCharacterBase::PrimaryWeaponReloadOnServer_Implementation(const float& InReloadTime)
 {
-	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	if (WeaponPrimaryServer)
 	{
-		if (WeaponPrimaryServer)
+		int32 CurrentAmmo = WeaponPrimaryServer->GetCurrentAmmo();
+		int32 CurrentClipAmmo = WeaponPrimaryServer->GetCurrentClipAmmo();
+		int32 MaxClipAmmo = WeaponPrimaryServer->GetMaxClipAmmo();
+		if (CurrentAmmo > 0 && CurrentClipAmmo < MaxClipAmmo)
 		{
-			if (WeaponPrimaryServer->GetCurrentAmmo() > 0 && WeaponPrimaryServer->GetCurrentClipAmmo() < WeaponPrimaryServer->GetMaxClipAmmo())
-			{
-				//设置换弹标志
-				IsReloading = true;
+			//设置换弹标志
+			IsReloading = true;
 
-				//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
-				ServerCallClientReloadAnimation();
-				MulticastReload();
+			//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
+			ServerCallClientReloadAnimation();
+			MulticastReload();
 
-				GThread::Get()->GetCoroutines().BindUObject(
-					ClientWeapon->ClientArmReloadMontage->GetPlayLength(),
-					this,
-					&AFPSGameCharacterBase::ReloadDelayCallBack);
-			}
+			GThread::Get()->GetCoroutines().BindUObject(
+				InReloadTime,
+				this,
+				&AFPSGameCharacterBase::ReloadDelayCallBack);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::PrimaryWeaponReloadOnServer] : CurrentAmmo = %d, CurrentClipAmmo = %d, MaxClipAmmo = %d"), CurrentAmmo, CurrentClipAmmo, MaxClipAmmo);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[class AFPSGameCharacterBase::PrimaryWeaponReloadOnServer] : WeaponPrimaryServer Is Null"));
 	}
 }
 
@@ -456,26 +467,23 @@ void AFPSGameCharacterBase::DetachWeaponOnServer_Implementation()
 	}
 }
 
-void AFPSGameCharacterBase::SecondaryWeaponReloadOnServer_Implementation()
+void AFPSGameCharacterBase::SecondaryWeaponReloadOnServer_Implementation(const float& InReloadTime)
 {
-	if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
+	if (WeaponSecondaryServer)
 	{
-		if (WeaponSecondaryServer)
+		if (WeaponSecondaryServer->GetCurrentAmmo() > 0 && WeaponSecondaryServer->GetCurrentClipAmmo() < WeaponSecondaryServer->GetMaxClipAmmo())
 		{
-			if (WeaponSecondaryServer->GetCurrentAmmo() > 0 && WeaponSecondaryServer->GetCurrentClipAmmo() < WeaponSecondaryServer->GetMaxClipAmmo())
-			{
-				//设置换弹标志
-				IsReloading = true;
+			//设置换弹标志
+			IsReloading = true;
 
-				//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
-				ServerCallClientReloadAnimation();
-				MulticastReload();
+			//客户端手臂动画、服务器多播身体动画、数据更新、UI更新
+			ServerCallClientReloadAnimation();
+			MulticastReload();
 
-				GThread::Get()->GetCoroutines().BindUObject(
-					ClientWeapon->ClientArmReloadMontage->GetPlayLength(),
-					this,
-					&AFPSGameCharacterBase::ReloadDelayCallBack);
-			}
+			GThread::Get()->GetCoroutines().BindUObject(
+				InReloadTime,
+				this,
+				&AFPSGameCharacterBase::ReloadDelayCallBack);
 		}
 	}
 }
@@ -942,35 +950,36 @@ void AFPSGameCharacterBase::NormalSpeedWalk()
 
 void AFPSGameCharacterBase::AmmoReload()
 {
-	if (!IsFireing)
+	if (!IsFireing && !IsReloading)
 	{
-		if (!IsReloading)
+		if (AWeaponBaseClient * ClientWeapon = GetCurrentClientWeapon())
 		{
+			float ReloadTime = FMath::Max(ClientWeapon->ClientArmReloadMontage->GetPlayLength(), 1.f);
 			switch (ActiveWeapon)
 			{
 			case EWeaponType::AK47:
 				{
-					PrimaryWeaponReloadOnServer();
+					PrimaryWeaponReloadOnServer(ReloadTime);
 					break;
 				}
 			case EWeaponType::M4A1:
 				{
-					PrimaryWeaponReloadOnServer();
+					PrimaryWeaponReloadOnServer(ReloadTime);
 					break;
 				}
 			case EWeaponType::MP7:
 				{
-					PrimaryWeaponReloadOnServer();
+					PrimaryWeaponReloadOnServer(ReloadTime);
 					break;
 				}
 			case EWeaponType::DESERTEAGLE:
 				{
-					SecondaryWeaponReloadOnServer();
+					SecondaryWeaponReloadOnServer(ReloadTime);
 					break;
 				}
 			case EWeaponType::SNIPER:
 				{
-					PrimaryWeaponReloadOnServer();
+					PrimaryWeaponReloadOnServer(ReloadTime);
 					break;
 				}
 			}
@@ -1038,7 +1047,7 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon(AWeaponBaseServer* InWeaponBaseSe
 	else
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f , FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, Weapon Type = %d"), InWeaponBaseServer->WeaponType));
-		//UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
+		UE_LOG(LogTemp, Warning, TEXT("[class AFPSGameCharacterBase] : Equip Primary Weapon"));
 
 		ActiveWeapon = InWeaponBaseServer->WeaponType;
 

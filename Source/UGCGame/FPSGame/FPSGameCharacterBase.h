@@ -58,7 +58,7 @@ private:
 		void PsitolWeaponFireOnServer(FVector InCamreaLocation, FRotator InCameraRotation, bool IsMoveing);
 
 	UFUNCTION(server, reliable)
-		void PrimaryWeaponReloadOnServer();
+		void PrimaryWeaponReloadOnServer(const float& InReloadTime);
 
 	UFUNCTION(server, reliable)
 		void SwitchWeaponOnServer();
@@ -67,7 +67,7 @@ private:
 		void DetachWeaponOnServer();
 
 	UFUNCTION(server, reliable)
-		void SecondaryWeaponReloadOnServer();
+		void SecondaryWeaponReloadOnServer(const float& InReloadTime);
 
 	UFUNCTION(server, reliable)
 		void StopFireingOnServer();

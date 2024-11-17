@@ -8,6 +8,7 @@
 #include "FPSGamePlayerState.h"
 #include "FPSGameGameState.h"
 #include "../UGCGameInstance.h"
+#include "../Table/FPSGameConfig.h"
 #include "../System/GameMapManage.h"
 #include "../Element/Effect/EE_SpawnPoint.h"
 #include "Kismet/GameplayStatics.h"
@@ -28,7 +29,6 @@ AFPSGameGameMode::AFPSGameGameMode()
 	, bStartedGame(false)
 	, bMapReady(false)
 	, bAllPlayerReadyStartGame(false)
-	, DownTime(90.f)
 	, WinTeam(ETeamType::TEAM_NONE)
 {
 	PlayerControllerClass = AFPSGamePlayerController::StaticClass();
@@ -107,6 +107,20 @@ void AFPSGameGameMode::GameCharacterDeath(const int32& InKillerID, const int32& 
 	}
 }
 
+void AFPSGameGameMode::Init()
+{
+	//游戏配置
+	if (AFPSGameGameState * MyGS = GetGameState<AFPSGameGameState>())
+	{
+		GameCfg = MyGS->GetGameConfigTemplate();
+	}
+
+	if (GameCfg)
+	{
+		DownTime = GameCfg->Duration;
+	}
+}
+
 void AFPSGameGameMode::InitDownTime()
 {
 	bStartDownTime = true;
@@ -180,11 +194,12 @@ bool AFPSGameGameMode::EndGameSettlement()
 			MyGI->WinTeam = WinTeam;
 			MyGI->EndGamePlayerInfos = FPSGS->GetFPSPlayerInfos();
 
-			return WinTeam != ETeamType::TEAM_NONE;
+			//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameGameMode::EndGameSettlement] : WinTeam = %d"), WinTeam);
+			//return WinTeam != ETeamType::TEAM_NONE;	//兼容平局
 		}
 	}
 
-	return false;
+	return true;
 }
 
 void AFPSGameGameMode::AllClientEndGame(const ETeamType& InWinTeam, const TArray<FFPSPlayerInfo>& InPlayerInfos)
@@ -310,6 +325,8 @@ void AFPSGameGameMode::ChangeMapReadyState(bool InState)
 void AFPSGameGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Init();
 
 	//加载游戏地图
 	if (UUGCGameInstance * MyGameInstance = Cast<UUGCGameInstance>(GetGameInstance()))

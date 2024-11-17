@@ -9,12 +9,15 @@
 #include "../Element/EffectElement.h"
 #include "ThreadManage.h"
 #include "../Common/ServerManage/ServerManage.h"
+#include "../FPSGame/Core/FPSGameModeBase.h"
+#include "../FPSGame/FPSGameGameState.h"
 
 TSharedPtr<UGameMapManage> UGameMapManage::GameMapManage = nullptr;
 TMap<FString, int32> UGameMapManage::NameToMapID;
 TArray<FElemInfo> UGameMapManage::TmpElements;
 
 UGameMapManage::UGameMapManage()
+	:TmpCount(0)
 {
 	//获取MapList信息
 	FServerManage::Get()->AddCallback<FUGC_MAP_INFO_RESPONSE>(SP_D2C_UGC_MAP_INFO_RESPONSE, UGameMapManage::OnUGCMapInfo);
@@ -246,7 +249,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 		{
 			if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
 			{
-				int32 TmpCount = 0;
+				TmpCount = 0;
 				//生成Elements BUG
 				for (auto& Tmp : TmpElements)
 				{
@@ -275,7 +278,7 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 							//记录生成数量
 							TmpCount++;
 							MyGameState->AddSpawnData(Tmp.ElementID);
-							UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::LoadMapDataAndSpawn] : SpawnActor Id = %d"), Tmp.ElementID);
+							//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::LoadMapDataAndSpawn] : SpawnActor Id = %d"), Tmp.ElementID);
 						}
 					}
 					else
@@ -284,13 +287,24 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 					}
 				}
 
+				bool Success = RecycleCheckSpwnedElementsByMode(InWorld);
+
 				//通知GameMode游戏Map已经准备好
-				if (TmpCount == TmpElements.Num())
+				if (TmpCount >= TmpElements.Num() && Success)
 				{
 					if (AFPSGameGameMode * FPSGM = Cast<AFPSGameGameMode>(MyGameState->AuthorityGameMode))
 					{
 						FPSGM->ChangeMapReadyState(true);
 					}
+				}
+				else
+				{
+					UE_LOG(
+						LogTemp, 
+						Display, 
+						TEXT("[class UGameMapManage::LoadMapDataAndSpawn] : Spawn %s , Element Count = %d, "), 
+						Success ? TEXT("Success") : TEXT("Fail"), 
+						TmpCount);
 				}
 				TmpElements.Empty();
 			}
@@ -303,5 +317,120 @@ void UGameMapManage::LoadMapDataAndSpawn(const FString& InSlotName, UWorld* InWo
 			{
 				LoadMapDataAndSpawn(InSlotName, InWorld, InbShowEffectMesh);
 			});
+	}
+}
+
+bool UGameMapManage::RecycleCheckSpwnedElementsByMode(UWorld* InWorld)
+{
+	int32 RecycleNum = 10, RecycleCount = 0;
+	bool SpwnSuccess = false;
+
+	if (AFPSGameStateBase * FPSGS = Cast<AFPSGameStateBase>(InWorld->GetGameState()))
+	{
+		if (FFPSGameConfig * Cfg = FPSGS->GetGameConfigTemplate())
+		{
+			//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 1"));
+
+			//循环检测
+			while (RecycleCount < RecycleNum)
+			{
+				//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 2"));
+
+				//1.收集
+				TMap<int32, int32> EleDic;
+				TArray<AActor*> Elements;
+				UGameplayStatics::GetAllActorsOfClass(InWorld, AElementBase::StaticClass(), Elements);
+				for (auto& Tmp : Elements)
+				{
+					if (AElementBase * Elem = Cast<AElementBase>(Tmp))
+					{
+						int32 Key = Elem->GetElementID();
+						if (EleDic.Contains(Key))
+							EleDic[Key]++;
+						else
+							EleDic.Add(Key, 1);
+					}
+				}
+
+				/*UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 3"));
+				for(auto& Tmp : EleDic)
+					UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : %d : %d"), Tmp.Key, Tmp.Value);*/
+
+
+				//2.检测
+				SpwnSuccess = true;
+				for (auto& Tmp : Cfg->EssentialEle)
+				{
+					int32 SpawnNum = 0;
+					if (EleDic.Contains(Tmp.Key))
+					{
+						if (EleDic[Tmp.Key] < Tmp.Value)
+						{
+							SpawnNum = Tmp.Value - EleDic[Tmp.Key];
+						}
+					}
+					else
+					{
+						SpawnNum = Tmp.Value;
+					}
+
+					if (SpawnNum)
+					{
+						//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : EleDic[Tmp.Key] = %d Tmp.Value = %d, SpawnNum = %d"), EleDic[Tmp.Key], Tmp.Value, SpawnNum);
+						SpawnElementBy(SpawnNum, Tmp.Key, InWorld);
+						SpwnSuccess = false;
+					}
+				}
+
+				//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 4"));
+
+
+				//3.判断
+				if (SpwnSuccess) { break; }
+				RecycleCount++;
+
+				//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 5 RecycleCount = %d"), RecycleCount);
+
+			}
+		}
+	}
+	
+	//UE_LOG(LogTemp, Display, TEXT("[class UGameMapManage::RecycleCheckSpwnedElementsByMode] : 6 SpwnSuccess = %d"), SpwnSuccess ? 1 : 0);
+
+	return SpwnSuccess;
+}
+
+void UGameMapManage::SpawnElementBy(const int32& InNum, const int32& InEleID, UWorld* InWorld)
+{
+	if (AUGCGameState * MyGameState = MethodUnit::GetGameState(InWorld))
+	{
+		if (const FElementAttribute * ElementAttr = MyGameState->GetElementAttributeTemplate(InEleID))
+		{
+			for (int32 i = 0; i < InNum; i++)
+			{
+				if (AElementBase * MewElement = InWorld->SpawnActor<AElementBase>(ElementAttr->ElementClass, FVector::ZeroVector, FRotator::ZeroRotator))
+				{
+					//设置保存的属性
+					MewElement->SetElementID(InEleID);
+					MewElement->SetActorScale3D(FVector(1.f));
+					MewElement->SetTeamType(ETeamType::TEAM_RED);
+
+					//TODO:分情况处理
+					if (ABuildElement * BElement = Cast<ABuildElement>(MewElement))
+					{
+						BElement->SetElementMesh(ElementAttr->ElementMeth);
+						BElement->SetMeshColorMulticast(FLinearColor::Black);
+					}
+					else if (AEffectElement * EElement = Cast<AEffectElement>(MewElement))
+					{
+						EElement->SetElementMeshVisibility(true);
+					}
+
+					//记录生成数量
+					TmpCount++;
+					MyGameState->AddSpawnData(InEleID);
+				}
+			}
+		}
 	}
 }

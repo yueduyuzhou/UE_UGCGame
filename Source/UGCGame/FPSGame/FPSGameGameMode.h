@@ -11,6 +11,7 @@ class AFPSGamePlayerController;
 class AEE_SpawnPoint;
 struct FPlayerNetData;
 struct FFPSPlayerInfo;
+struct FFPSGameConfig;
 enum class ETeamType : uint8;
 
 /**
@@ -34,6 +35,9 @@ private:
 	/******************************
 	*	Game
 	******************************/
+	/*初始化游戏*/
+	void Init();
+
 	/*开始倒计时*/
 	void InitDownTime();
 
@@ -111,6 +115,8 @@ private:
 	bool bAllPlayerReadyStartGame;	//注：不要直接使用，应该使用IsAllPlayerReadyStartGame函数
 
 	float DownTime;
+
+	FFPSGameConfig* GameCfg;
 
 	/**************************结算****************************/
 	ETeamType WinTeam;
