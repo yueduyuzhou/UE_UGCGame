@@ -64,7 +64,7 @@ protected:
 public:
 	/*更新Equipped信息*/
 	void UpdateEquippedSlot(const int32& InID);
-	void InitEquippedSlots();
+	void UpdateEquippedSlots();
 
 	void SaveEquippedItems();
 
@@ -72,5 +72,6 @@ private:
 	UPlayerModule* PMod = nullptr;
 
 	FDelegateHandle UpdateItemsHandle;
+	FDelegateHandle UpdateEquipedHandle;
 	EHypermarkType CurMarkType;
 };

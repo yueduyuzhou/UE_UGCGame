@@ -202,7 +202,8 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Account=%s, Gold=%d]"), SP_D2C_PLAYER_INFO_REP, *(OutData.Account), OutData.Gold);
 			PROTOCOLS_SEND(SP_D2C_PLAYER_INFO_REP,
 				OutData.Account,
-				OutData.Gold);
+				OutData.Gold,
+				OutData.ItemIDs);
 			break;
 		}
 		case SP_C2D_ITEM_INFO_REQ:
@@ -248,7 +249,8 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Account=%s, Gold=%d]"), SP_D2C_PLAYER_INFO_REP, *(PlayerInfo.Account), PlayerInfo.Gold);
 			PROTOCOLS_SEND(SP_D2C_PLAYER_INFO_REP,
 				PlayerInfo.Account,
-				PlayerInfo.Gold);
+				PlayerInfo.Gold,
+				PlayerInfo.ItemIDs);
 			break;
 		}
 		case SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ:
@@ -287,7 +289,8 @@ void UServerObject::RecvProtocol(uint32 InProtocol)
 			UE_LOG(LogUGCGameDBServer, Display, TEXT("[Send Protocol=%d] : [Player Account=%s, Gold=%d]"), SP_D2C_PLAYER_INFO_REP, *(PlayerInfo.Account), PlayerInfo.Gold);
 			PROTOCOLS_SEND(SP_D2C_PLAYER_INFO_REP,
 				PlayerInfo.Account,
-				PlayerInfo.Gold);
+				PlayerInfo.Gold,
+				PlayerInfo.ItemIDs);
 			break;
 		}
 	}

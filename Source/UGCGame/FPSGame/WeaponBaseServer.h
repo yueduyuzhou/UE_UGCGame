@@ -76,7 +76,7 @@ public:
 	void EquipWeapon();
 
 	/*½â³ıÎäÆ÷°ó¶¨*/
-	void DetachWeapon();
+	//void DetachWeapon();
 
 	/*Å×³öÎäÆ÷*/
 	void ThrowWeapon(FVector InForwardDirection);

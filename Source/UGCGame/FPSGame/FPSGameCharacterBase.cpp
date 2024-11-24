@@ -35,6 +35,7 @@ AFPSGameCharacterBase::AFPSGameCharacterBase()
 	, IsFireing(false)
 	, IsReloading(false)
 	, IsAiming(false)
+	, IsDeath(false)
 	, PsitolRecoilMin(0.f)
 	, PsitolRecoilMax(0.f)
 { 
@@ -62,6 +63,7 @@ void AFPSGameCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsFireing, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsReloading, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsAiming, COND_None);
+	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, IsDeath, COND_None);
 	DOREPLIFETIME_CONDITION(AFPSGameCharacterBase, ActiveWeapon, COND_None);
 }
 
@@ -140,7 +142,7 @@ void AFPSGameCharacterBase::StartWeapon()
 			{
 				const TArray<int32>& EWs = MyGI->GetEquipedWeaponByPlayerID(MyPC->GetPlayerID());
 				int32 Len = EWs.Num();
-				UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Len = %d"), MyPC->GetPlayerID(), Len);
+				//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Len = %d"), MyPC->GetPlayerID(), Len);
 				for (int32 i = 0; i < Len; i++)
 				{
 					//获取PlayerState
@@ -150,7 +152,7 @@ void AFPSGameCharacterBase::StartWeapon()
 
 						if (ItemID != INDEX_NONE)
 						{
-							UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Equiped ItemID = %d"), MyPC->GetPlayerID(), ItemID);
+							//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d, Equiped ItemID = %d"), MyPC->GetPlayerID(), ItemID);
 							FHypermarketTable* SlotTable = MyGS->GetWeaponTableTemplate(ItemID);
 							PurchaseWeapon(SlotTable->WeaponType);
 						}
@@ -158,12 +160,12 @@ void AFPSGameCharacterBase::StartWeapon()
 						{
 							FFPSGameConfig* Cfg = MyGS->GetGameConfigTemplate();
 
-							UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d Use Default"), MyPC->GetPlayerID());
+							//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：Player %d Use Default"), MyPC->GetPlayerID());
 
 							if (Cfg)
 							{
-								for(auto& Tmp : Cfg->DefaultWeapon)
-									UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：DefaultWeapon %d ItemId = %d"), i, Tmp);
+								/*for(auto& Tmp : Cfg->DefaultWeapon)
+									UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::StartWeapon]：DefaultWeapon %d ItemId = %d"), i, Tmp);*/
 
 								ItemID = Cfg->DefaultWeapon[i];
 								if (ItemID != INDEX_NONE)
@@ -266,8 +268,8 @@ void AFPSGameCharacterBase::PurchaseWeapon(EWeaponType InWeaponType)
 
 AWeaponBaseClient* AFPSGameCharacterBase::GetCurrentClientWeapon()
 {
-	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : ActiveWeapon = %d"), ActiveWeapon);
-	UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : WeaponPrimaryClient Is %s, WeaponSecondaryClient Is %s"), WeaponPrimaryClient ? TEXT("Valid") : TEXT("Null"), WeaponSecondaryClient ? TEXT("Valid") : TEXT("Null"));
+	//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : ActiveWeapon = %d"), ActiveWeapon);
+	//UE_LOG(LogTemp, Display, TEXT("[class AFPSGameCharacterBase::GetCurrentClientWeapon] : WeaponPrimaryClient Is %s, WeaponSecondaryClient Is %s"), WeaponPrimaryClient ? TEXT("Valid") : TEXT("Null"), WeaponSecondaryClient ? TEXT("Valid") : TEXT("Null"));
 	switch (ActiveWeapon)
 	{
 	case EWeaponType::AK47:
@@ -462,7 +464,7 @@ void AFPSGameCharacterBase::DetachWeaponOnServer_Implementation()
 			CurrentWeapon->SetOwner(nullptr);
 			CurrentWeapon->ThrowWeapon(GetActorForwardVector());
 			ClientDetachWeapon();
-			ResetWeapon();
+			ResetWeapon();	//服务器上置空武器指针
 		}
 	}
 }
@@ -811,7 +813,7 @@ void AFPSGameCharacterBase::ClientDetachWeapon_Implementation()
 	if (AWeaponBaseClient * CurrentClientWeapon = GetCurrentClientWeapon())
 	{
 		CurrentClientWeapon->Destroy();
-
+		ClientResetWeapon();	//客户端上置空武器指针
 	}
 }
 
@@ -1083,7 +1085,7 @@ void AFPSGameCharacterBase::EquipPrimaryWeapon()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, WeaponPrimaryServer Is Null")));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipPrimaryWeapon, WeaponPrimaryServer Is Null")));
 	}
 }
 
@@ -1132,7 +1134,7 @@ void AFPSGameCharacterBase::EquipSecondaryWeapon()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, WeaponSecondaryServer Is Null")));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGameCharacterBase] : EquipSecondaryWeapon, WeaponSecondaryServer Is Null")));
 	}
 }
 
@@ -1146,18 +1148,9 @@ void AFPSGameCharacterBase::ResetWeapon()
 	switch (ActiveWeapon)
 	{
 		case EWeaponType::AK47:
-		{
-			WeaponPrimaryServer = nullptr;
-			WeaponPrimaryClient = nullptr;
-			break;
-		}
 		case EWeaponType::M4A1:
-		{
-			WeaponPrimaryServer = nullptr;
-			WeaponPrimaryClient = nullptr;
-			break;
-		}
 		case EWeaponType::MP7:
+		case EWeaponType::SNIPER:
 		{
 			WeaponPrimaryServer = nullptr;
 			WeaponPrimaryClient = nullptr;
@@ -1169,10 +1162,24 @@ void AFPSGameCharacterBase::ResetWeapon()
 			WeaponSecondaryClient = nullptr;
 			break;
 		}
+	}
+}
+
+void AFPSGameCharacterBase::ClientResetWeapon()
+{
+	switch (ActiveWeapon)
+	{
+		case EWeaponType::AK47:
+		case EWeaponType::M4A1:
+		case EWeaponType::MP7:
 		case EWeaponType::SNIPER:
 		{
-			WeaponPrimaryServer = nullptr;
 			WeaponPrimaryClient = nullptr;
+			break;
+		}
+		case EWeaponType::DESERTEAGLE:
+		{
+			WeaponSecondaryClient = nullptr;
 			break;
 		}
 	}
@@ -1660,6 +1667,8 @@ void AFPSGameCharacterBase::DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, A
 
 void AFPSGameCharacterBase::CharacterDeath()
 {
+	IsDeath = true;
+
 	if (AWeaponBaseServer * ServerWeapon = GetCurrentServerWeapon())
 	{
 		ServerWeapon->Destroy();
@@ -1675,6 +1684,21 @@ void AFPSGameCharacterBase::CharacterDeath()
 	{
 		MyPlayerState->DeathResetData();
 	}
+
+	if (AFPSGamePlayerController * FPSPC = Cast<AFPSGamePlayerController>(GetController()))
+	{
+		GetWorldTimerManager().SetTimer(DestroyTimerHandle, this, &AFPSGameCharacterBase::Death, 1.0f, false, FPSPC->GetReSpawnTime());
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(DestroyTimerHandle, this, &AFPSGameCharacterBase::Death, 1.0f, false, 3.0f);
+	}
+}
+
+void AFPSGameCharacterBase::Death()
+{
+	//角色销毁
+	Destroy();
 }
 
 void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
@@ -1715,6 +1739,11 @@ void AFPSGameCharacterBase::OnHit(AActor* DamagedActor, float Damage, AControlle
 			}
 		}
 	}
+}
+
+bool AFPSGameCharacterBase::IsCharacterDeath()
+{
+	return IsDeath;
 }
 
 AFPSGamePlayerController* AFPSGameCharacterBase::GetFPSPlayerControllerOnServer()

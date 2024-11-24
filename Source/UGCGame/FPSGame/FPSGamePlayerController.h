@@ -101,6 +101,7 @@ public:
 
 	FORCEINLINE const ETeamType& GetTeamType() { return TeamType; }
 	FORCEINLINE const int32& GetPlayerID() { return PlayerID; }
+	FORCEINLINE const float& GetReSpawnTime() { return ReSpawnTime; }
 
 public:
 	UUI_Crosshair* CrosshairUI;

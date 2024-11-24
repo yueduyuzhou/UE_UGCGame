@@ -153,6 +153,7 @@ public:
 
 	/*武器置空*/
 	void ResetWeapon();
+	void ClientResetWeapon();
 
 	/*把武器放置到身体上的别处*/
 	void DepositActiveServerWeapon();
@@ -195,9 +196,13 @@ public:
 public:
 	void DamagePlayer(UPhysicalMaterial* InPhysicsMaterial, AActor* InDamageActor, FVector InDamageFromDrection, FHitResult& InHitResult);
 	void CharacterDeath();
+	void Death();
 
 	UFUNCTION()
 	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsCharacterDeath();
 
 public:
 	AFPSGamePlayerController* GetFPSPlayerControllerOnServer();
@@ -251,8 +256,12 @@ private:
 	UPROPERTY(Replicated)
 		bool IsAiming;
 
+	UPROPERTY(Replicated)
+		bool IsDeath;
+
 private:
 	FTimerHandle AutomaticFireTimerHandle;
+	FTimerHandle DestroyTimerHandle;
 
 	/*后坐力*/
 	float NewVerticalRecoilValue;

@@ -514,7 +514,7 @@ void UElementMod::UpdatePlayerGold(const FString& InGuid, const int32& InNewGold
 	TMap<FString, FString> Tmp;
 	Tmp.Add("Account", Account);
 	Tmp.Add("ItemID", "1");
-	Tmp.Add("Gold", FString::FromInt(InNewGold));
+	Tmp.Add("Count", FString::FromInt(InNewGold));
 	RepDatas.Add(Tmp);
 
 	FMysqlConfig::Get()->ReplaceTableDatas("playeritemsinfo", RepDatas, true, ClearCond);

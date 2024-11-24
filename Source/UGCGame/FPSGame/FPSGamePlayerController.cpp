@@ -329,8 +329,7 @@ void AFPSGamePlayerController::ControllerCharacterDeath(AActor* InDamager)
 						UE_LOG(LogTemp, Error, TEXT("[class AFPSGamePlayerController] : ControllerCharacterDeath, MyGM Is Null"));
 					}
 
-					//½ÇÉ«Ïú»Ù
-					FPSCharacter->Destroy();
+					UnPossess();
 
 					//½ûÖ¹ÊäÈë
 
@@ -364,8 +363,8 @@ void AFPSGamePlayerController::CrosshairRecoil()
 
 void AFPSGamePlayerController::UpdateAmmo(const int32& InCurrentClipAmmo, const int32& InCurrentAmmo)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo"));
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo")));
+	//UE_LOG(LogTemp, Warning, TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, FString::Printf(TEXT("[class AFPSGamePlayerController] : Call UpdateAmmo")));
 	if (CrosshairUI)
 	{
 		CrosshairUI->UpdateAmmo(InCurrentClipAmmo, InCurrentAmmo);

@@ -78,32 +78,45 @@ void AWeaponBaseServer::EquipWeapon()
 	}
 }
 
-void AWeaponBaseServer::DetachWeapon()
-{
-	if (WeaponMesh)
-	{
-		WeaponMesh->SetEnableGravity(true);
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
-	}
-
-	GThread::Get()->GetCoroutines().BindLambda(1.5f, [&]()
-		{
-			if (SphereCollision)
-			{
-				SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			}
-		});
-}
+//void AWeaponBaseServer::DetachWeapon()
+//{
+//	if (WeaponMesh)
+//	{
+//		WeaponMesh->SetEnableGravity(true);
+//		WeaponMesh->SetSimulatePhysics(true);
+//		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
+//	
+//		GThread::Get()->GetCoroutines().BindLambda(1.5f, [&]()
+//			{
+//				if (SphereCollision)
+//				{
+//					SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+//				}
+//			});
+//	}
+//}
 
 void AWeaponBaseServer::ThrowWeapon(FVector InForwardDirection)
 {
 	float LaunchStrength = 200.0f;
 	FVector LaunchVelocity = InForwardDirection * LaunchStrength;
 
-	DetachWeapon();
+	//DetachWeapon();
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetSimulatePhysics(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMesh->AddImpulse(LaunchVelocity, NAME_None, true);
 
-	WeaponMesh->AddImpulse(LaunchVelocity, NAME_None, true);
+		GThread::Get()->GetCoroutines().BindLambda(1.5f, [&]()
+		{
+			if (SphereCollision)
+			{
+				SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}
+		});
+	}
 }
 
 void AWeaponBaseServer::ReloadAmmo()

@@ -27,6 +27,7 @@ void UUI_Backpack::NativeConstruct()
 	if (PMod)
 	{
 		UpdateItemsHandle = PMod->OnItemsInfoDelegate.AddUObject(this, &UUI_Backpack::UpdateItem_Inner);
+		UpdateEquipedHandle = PMod->OnPlayerInfoDelegate.AddUObject(this, &UUI_Backpack::UpdateEquippedSlots);
 	}
 
 	if (Selecter)
@@ -42,7 +43,7 @@ void UUI_Backpack::NativeConstruct()
 	EquippedGrenade->SetEquippedName(FString(TEXT("Grenade")));
 
 	UpdateItem(EHypermarkType::ALL);
-	InitEquippedSlots();
+	UpdateEquippedSlots();
 }
 
 void UUI_Backpack::OnComboBoxSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
@@ -225,7 +226,7 @@ void UUI_Backpack::UpdateEquippedSlot(const int32& InID)
 	}
 }
 
-void UUI_Backpack::InitEquippedSlots()
+void UUI_Backpack::UpdateEquippedSlots()
 {
 	if (AHypermarketGameState * MyGS = GetWorld()->GetGameState<AHypermarketGameState>())
 	{
@@ -280,16 +281,13 @@ void UUI_Backpack::InitEquippedSlots()
 
 void UUI_Backpack::SaveEquippedItems()
 {
-	if (PMod->EquippedItemIDs.Num() > 0)
-	{
-		FSAVE_EQUIPPED_WEAPON_INFO_REQ InData;
-		InData.ItemIDs.Add(EquippedPrimary->HyperTableID);
-		InData.ItemIDs.Add(EquippedSecondary->HyperTableID);
-		InData.ItemIDs.Add(EquippedCloseRange->HyperTableID);
-		InData.ItemIDs.Add(EquippedGrenade->HyperTableID);
+	FSAVE_EQUIPPED_WEAPON_INFO_REQ InData;
+	InData.ItemIDs.Add(EquippedPrimary->HyperTableID);
+	InData.ItemIDs.Add(EquippedSecondary->HyperTableID);
+	InData.ItemIDs.Add(EquippedCloseRange->HyperTableID);
+	InData.ItemIDs.Add(EquippedGrenade->HyperTableID);
 
-		FServerManage::Get()->Send<FSAVE_EQUIPPED_WEAPON_INFO_REQ>(SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, &InData);
-	}
+	FServerManage::Get()->Send<FSAVE_EQUIPPED_WEAPON_INFO_REQ>(SP_C2D_SAVE_EQUIPPED_WEAPON_INFO_REQ, &InData);
 
 	/* £¨·Ï£©
 	if (UPlayerSaveData * SaveItemsData = Cast<UPlayerSaveData>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerData_00"), 0)))
